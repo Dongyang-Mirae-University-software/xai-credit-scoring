@@ -1,0 +1,15 @@
+scikit-learn
+xgboost
+lightgbm
+imbalanced-learn
+shap>=0.42.0
+fairlearn
+mlflow>=2.0.0
+fastapi
+uvicorn
+streamlit
+pandas
+numpy
+pytest
+python-dotenv
+ucimlrepo
