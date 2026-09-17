@@ -8,6 +8,8 @@ mlflow>=2.0.0
 fastapi
 uvicorn
 streamlit
+requests
+plotly
 pandas
 numpy
 pytest
