@@ -9,17 +9,18 @@ GMSC(Give Me Some Credit) 데이터셋 기반 모델 학습, SHAP 기반 XAI 설
 
 ## 팀 구성원 역할
 
-- 이윤아 - 프론트엔드 (Streamlit 대시보드, SHAP 시각화, 거절 사유 설명)
-- 남궁명진 - 백엔드 (FastAPI, Pydantic)
-- 이하늘 - 인프라·데이터 (시뮬레이터, Docker Compose)
-- 이재희 - AI 모델 (모델 학습, SHAP, ANOVA)
+- **이재희** - 데이터·모델 (데이터 생성, 전처리, 모델 학습 3종)
+- **이하늘** - 백엔드·인프라 (API/DB 설계, API 개발, Docker Compose)
+- **이윤아** - 프론트엔드 (화면 설계, Streamlit 대시보드, 시각화)
+- **남궁명진** - 모델 분석 (성능 비교, XAI·SHAP, 공정성·통계 검증)
 
 ## 디렉토리 구조
 
 ```
 xai-credit-scoring/
 ├── data/
-│   ├── raw/            # 원본 데이터 (GMSC CSV 등, git 미포함)
+│   ├── raw/            # 원본 데이터
+│   │   └── kaggle_datasets/  # Give Me Some Credit 캐글 데이터셋 (git 포함)
 │   ├── processed/      # 전처리 완료 데이터 (git 미포함)
 │   ├── splits/         # Train/Val/Test 분할 결과 (git 미포함)
 │   └── mock/           # 프론트 개발용 mock 데이터 (git 포함)
@@ -53,8 +54,10 @@ xai-credit-scoring/
 
 - API 서버(`src/api/main.py`)는 7개 엔드포인트(`/health`, `/predict`, `/explain`, `/fairness`, `/fairness/mitigation`, `/metrics`, `/anova`) 모두 구현 완료. 단, 실제 모델 학습 전이라 규칙 기반 mock 응답을 반환한다. 입력값에 따라 점수·등급·SHAP 기여도가 달라지긴 하지만 실제 예측값은 아님.
 - Streamlit 대시보드(`src/dashboard/app.py`)는 미션 스펙의 5개 탭(고객심사/XAI분석/공정성/모델성능/통계검증) 구조를 갖추고, API 서버하고만 통신하도록 구성됨 (모델 파일 직접 로드 없음 - MSA 제약 준수).
-- `src/data`, `src/statistics/anova.py`는 함수 시그니처만 정의된 상태(`NotImplementedError`) - AI 모델 담당자가 실제 로직 구현 예정.
-- 실제 GMSC 데이터는 아직 미다운로드 상태라 `data/mock/cs-training-mock.csv`(500행, 실제 데이터 분포에 맞춘 mock)로 개발 중.
+- `src/data/loader.py`, `src/data/simulator.py`, `src/data/preprocessor.py`는 함수 시그니처만 정의된 상태 - 이재희가 실제 로직 구현 예정.
+- `src/models/`는 3가지 모델 학습 (Logistic Regression, XGBoost, LightGBM) - 이재희가 구현 예정.
+- `src/statistics/anova.py`, `src/fairness/`, `src/explainer/`는 함수 시그니처만 정의된 상태 - 남궁명진이 실제 로직 구현 예정.
+- GMSC 데이터셋(`data/raw/kaggle_datasets/`)이 추가됨. 포함 파일: `cs-training.csv`(훈련 데이터), `cs-test.csv`(테스트 데이터), `sampleEntry.csv`(샘플 제출), `Data Dictionary.xls`(데이터 사전).
 - 모델 학습이 끝나면 `src/api/main.py`의 mock 로직만 실제 모델/SHAP/Fairlearn 호출로 교체하면 되고, 엔드포인트·응답 스키마는 그대로 유지하면 됨.
 
 ## 실행 방법
