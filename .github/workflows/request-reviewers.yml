@@ -1,0 +1,85 @@
+# PR 이 열리면 .github/CODEOWNERS 를 읽어 변경된 파일의 담당자를 리뷰어로 요청한다.
+# 무료 조직의 비공개 레포라 GitHub 의 CODEOWNERS 자동 지정이 동작하지 않아 대신한다.
+# CODEOWNERS 와 같은 방식: 대상 브랜치의 파일을 쓰고, 마지막으로 일치한 줄이 적용된다.
+name: 리뷰어 자동 요청
+
+on:
+  pull_request:
+    types: [opened, reopened, ready_for_review, synchronize]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  request:
+    if: ${{ !github.event.pull_request.draft }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/github-script@v7
+        with:
+          script: |
+            const pr = context.payload.pull_request;
+
+            let text;
+            try {
+              const { data } = await github.rest.repos.getContent({
+                ...context.repo, path: '.github/CODEOWNERS', ref: pr.base.ref,
+              });
+              text = Buffer.from(data.content, 'base64').toString('utf8');
+            } catch (e) {
+              core.info(`${pr.base.ref} 에 CODEOWNERS 가 없습니다.`);
+              return;
+            }
+
+            const rules = text.split('\n')
+              .map(l => l.replace(/#.*/, '').trim())
+              .filter(Boolean)
+              .map(l => {
+                const [pattern, ...owners] = l.split(/\s+/);
+                return { pattern, owners: owners.map(o => o.replace(/^@/, '')).filter(o => !o.includes('/')) };
+              });
+
+            // gitignore 형식 패턴: / 로 시작하면 루트 기준, / 로 끝나면 폴더, * 는 한 단계, ** 는 여러 단계
+            const toRegex = (pattern) => {
+              if (pattern === '*') return /.*/;
+              let p = pattern;
+              const anchored = p.startsWith('/');
+              if (anchored) p = p.slice(1);
+              const dir = p.endsWith('/');
+              const glob = p
+                .replace(/[.+^${}()|[\]\\]/g, '\\$&')
+                .replace(/\*\*/g, '\u0000')
+                .replace(/\*/g, '[^/]*')
+                .replace(/\u0000/g, '.*');
+              return new RegExp(`${anchored ? '^' : '^(.*/)?'}${glob}${dir ? '.*' : '(/.*)?'}$`);
+            };
+            const compiled = rules.map(r => ({ ...r, re: toRegex(r.pattern) }));
+
+            const files = await github.paginate(github.rest.pulls.listFiles, {
+              ...context.repo, pull_number: pr.number, per_page: 100,
+            });
+
+            const owners = new Set();
+            for (const f of files) {
+              const rule = [...compiled].reverse().find(r => r.re.test(f.filename));
+              if (rule) rule.owners.forEach(o => owners.add(o));
+            }
+
+            // 작성자, 이미 요청된 사람, 이미 리뷰한 사람은 다시 요청하지 않는다
+            const reviews = await github.paginate(github.rest.pulls.listReviews, {
+              ...context.repo, pull_number: pr.number,
+            });
+            const skip = new Set([
+              pr.user.login,
+              ...pr.requested_reviewers.map(u => u.login),
+              ...reviews.map(r => r.user.login),
+            ].map(s => s.toLowerCase()));
+            const reviewers = [...owners].filter(o => !skip.has(o.toLowerCase()));
+
+            if (!reviewers.length) {
+              core.info('새로 요청할 리뷰어가 없습니다.');
+              return;
+            }
+            await github.rest.pulls.requestReviewers({ ...context.repo, pull_number: pr.number, reviewers });
+            core.info(`리뷰어 요청: ${reviewers.join(', ')}`);
