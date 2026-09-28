@@ -1,0 +1,51 @@
+# 코드 리뷰어 자동 지정
+#
+# 원칙: 그 코드를 "받아서 쓰는 사람"이 리뷰한다.
+# 규칙: 아래로 갈수록 우선순위가 높다 (마지막으로 일치한 줄이 적용됨).
+# 한 줄에 여러 명이면 그중 한 명만 승인해도 된다. 작성자 본인은 제외된다.
+#
+# 팀 약속: 한 줄에 두 명이 있으면 첫 번째가 승인 담당이다.
+# 뒤에 붙은 @skarndaudwls1(남궁명진, 발표자)은 전체 구조 파악용 참여 리뷰어로,
+# 읽고 질문 댓글만 남기며 승인하지 않는다.
+#
+# 이윤아 @yuna0222 / 이하늘 @gosky2 / 이재희 @Jaehe-he / 남궁명진 @skarndaudwls1
+
+# 기본값: 따로 지정되지 않은 파일 (README, docs, notebooks, data 등)
+*                               @yuna0222 @gosky2
+
+# 인프라: 도커·환경 설정 (이윤아·이하늘 공동 소유라 서로 리뷰)
+/Dockerfile                     @yuna0222 @gosky2
+/docker-compose.yml             @yuna0222 @gosky2
+/requirements.txt               @yuna0222 @gosky2
+/.env.example                   @yuna0222 @gosky2
+
+# 데이터: 로드·전처리 → API가 같은 방식으로 전처리해야 하므로 이하늘
+# (남궁명진 참여: 분할·누수 방지는 발표 단골 질문, 시험용 데이터는 검증 재료)
+/src/data/                      @gosky2 @skarndaudwls1
+# 시뮬레이터: 편향을 심는 기준 = 공정성을 재는 기준이어야 하므로 남궁명진
+/src/data/simulator.py          @skarndaudwls1
+
+# 모델 학습: 5-Fold 점수 5개 저장 형식이 ANOVA 재료이므로 남궁명진
+/src/models/                    @skarndaudwls1
+# 학습된 모델 파일: API가 불러 쓰므로 이하늘
+/models/                        @gosky2
+
+# API: 응답 형식을 소비하는 대시보드 담당 이윤아
+# (남궁명진 참여: 시스템 전체가 7개 창구로 연결되고, 검증 결과도 여기로 나감)
+/src/api/                       @yuna0222 @skarndaudwls1
+# 검증 엔드포인트를 별도 파일로 분리하면 남궁명진이 리뷰
+/src/api/routers/metrics.py     @skarndaudwls1
+/src/api/routers/explain.py     @skarndaudwls1
+/src/api/routers/fairness.py    @skarndaudwls1
+/src/api/routers/anova.py       @skarndaudwls1
+
+# 대시보드: API 호출 형식·MSA 규칙(모델 직접 로드 금지) 확인은 이하늘
+/src/dashboard/                 @gosky2
+
+# 검증: 데이터·점수·성별 컬럼을 만든 이재희
+/src/explainer/                 @Jaehe-he
+/src/fairness/                  @Jaehe-he
+/src/statistics/                @Jaehe-he
+
+# 이 파일 자체: 리뷰 규칙 변경은 팀장 확인
+/.github/                       @yuna0222
