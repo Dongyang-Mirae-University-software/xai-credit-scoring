@@ -1,0 +1,66 @@
+# PR의 브랜치 이름과 커밋 메시지가 팀 규칙에 맞는지 검사한다.
+# - develop 으로의 PR: <type>/<설명> 형식의 브랜치만 허용
+# - main 으로의 PR: develop, hotfix/*, release/* 브랜치만 허용
+# - 커밋 메시지: "<type>: 내용" (type 소문자), merge 커밋은 제외
+name: 브랜치·커밋 규칙 검사
+
+on:
+  pull_request:
+    types: [opened, edited, synchronize, reopened]
+    branches: [develop, main]
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/github-script@v7
+        with:
+          script: |
+            const BRANCH_TYPES = 'feature|fix|hotfix|refactor|design|docs|test|chore|release|infra';
+            const COMMIT_TYPES = 'feat|fix|refactor|design|comment|style|docs|test|chore|init|rename|remove';
+            const branchRe = new RegExp(`^(${BRANCH_TYPES})/[a-z0-9]+(-[a-z0-9]+)*$`);
+            const releaseRe = /^release\/v\d+\.\d+\.\d+$/;
+            const commitRe = new RegExp(`^(${COMMIT_TYPES}): \\S`);
+
+            const pr = context.payload.pull_request;
+            const head = pr.head.ref;
+            const base = pr.base.ref;
+            const errors = [];
+
+            if (base === 'main' && !(head === 'develop' || head.startsWith('hotfix/') || head.startsWith('release/'))) {
+              errors.push(`main 에는 develop, hotfix/*, release/* 브랜치만 PR 할 수 있습니다. (현재: \`${head}\`)`);
+            }
+
+            if (head !== 'develop') {
+              if (!branchRe.test(head) && !releaseRe.test(head)) {
+                errors.push([
+                  `브랜치 이름 \`${head}\` 이(가) 규칙에 맞지 않습니다.`,
+                  `  형식: \`type/short-description\` 또는 \`type/번호-short-description\` (전부 소문자, 단어는 -로 구분)`,
+                  `  type: ${BRANCH_TYPES.split('|').join(', ')}`,
+                ].join('\n'));
+              }
+
+              const commits = await github.paginate(github.rest.pulls.listCommits, {
+                ...context.repo, pull_number: pr.number, per_page: 100,
+              });
+              const bad = commits
+                .map(c => ({ sha: c.sha.slice(0, 7), title: c.commit.message.split('\n')[0] }))
+                .filter(c => !c.title.startsWith('Merge ') && !commitRe.test(c.title));
+              if (bad.length) {
+                errors.push([
+                  '커밋 메시지가 규칙에 맞지 않습니다. 형식: `type: 내용` (type 소문자)',
+                  `  type: ${COMMIT_TYPES.split('|').join(', ')}`,
+                  ...bad.map(c => `  - ${c.sha} "${c.title}"`),
+                ].join('\n'));
+              }
+            }
+
+            if (errors.length) {
+              core.setFailed('\n' + errors.join('\n\n'));
+            } else {
+              core.info('브랜치 이름과 커밋 메시지가 규칙에 맞습니다.');
+            }
