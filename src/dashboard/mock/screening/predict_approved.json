@@ -1,0 +1,9 @@
+{
+  "customer_id": "C001234",
+  "credit_score": 687,
+  "risk_grade": "B",
+  "approval_status": "APPROVED",
+  "default_probability": 0.12,
+  "model_version": "xgboost_v1.0",
+  "timestamp": "2026-01-30T10:15:30Z"
+}

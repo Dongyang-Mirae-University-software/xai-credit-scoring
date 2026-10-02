@@ -1,0 +1,29 @@
+/* 앱 전역 스타일 (사이드바 스타일은 components/sidebar.css) */
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Noto+Sans+KR:wght@400;500;700&display=swap');
+
+:root {
+  --content-bg: #f5f7fa;
+  --content-text: #000000;
+  --font-sans: 'Noto Sans KR', sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+}
+
+/* 본문 기본 폰트 */
+[data-testid="stMain"] {
+  font-family: var(--font-sans);
+}
+
+/* 본문 영역 배경 (상단 헤더 바 포함) */
+[data-testid="stApp"],
+[data-testid="stAppViewContainer"],
+[data-testid="stMain"],
+[data-testid="stHeader"] {
+  background: var(--content-bg);
+}
+
+/* 본문 기본 글씨색
+   :where()로 우선순위를 낮춰, 페이지·컴포넌트 CSS(버튼 글씨색 등)가 항상 이 기본값을 덮어쓸 수 있게 한다. */
+[data-testid="stMain"],
+[data-testid="stMain"] :where(h1, h2, h3, h4, h5, h6, p, li, label, [data-testid="stMarkdownContainer"]) {
+  color: var(--content-text);
+}

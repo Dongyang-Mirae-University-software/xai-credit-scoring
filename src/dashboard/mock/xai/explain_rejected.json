@@ -1,0 +1,69 @@
+{
+  "customer_id": "C005678",
+  "approval_status": "REJECTED",
+  "rejection_reasons": [
+    {
+      "rank": 1,
+      "feature": "telecom_payment_rate",
+      "feature_name_kr": "통신비 정상납부율",
+      "current_value": 0.78,
+      "reference_value": 0.92,
+      "shap_contribution": -0.15,
+      "explanation": "통신비 정상납부율이 78%로, 동일 연령대 평균(92%) 대비 낮습니다 (기여도: -0.15)"
+    },
+    {
+      "rank": 2,
+      "feature": "NumberOfTimes90DaysLate",
+      "feature_name_kr": "최근90일 연체횟수",
+      "current_value": 3,
+      "reference_value": 0,
+      "shap_contribution": -0.12,
+      "explanation": "최근 90일 연체 횟수가 3회로, 승인 기준(0회) 대비 높습니다 (기여도: -0.12)"
+    },
+    {
+      "rank": 3,
+      "feature": "RevolvingUtilizationOfUnsecuredLines",
+      "feature_name_kr": "신용한도 소진율",
+      "current_value": 0.92,
+      "reference_value": 0.3,
+      "shap_contribution": -0.09,
+      "explanation": "신용한도 소진율이 92%로, 동일 연령대 평균(30%) 대비 높습니다 (기여도: -0.09)"
+    },
+    {
+      "rank": 4,
+      "feature": "DebtRatio",
+      "feature_name_kr": "부채비율",
+      "current_value": 0.68,
+      "reference_value": 0.35,
+      "shap_contribution": -0.07,
+      "explanation": "부채비율이 68%로, 동일 연령대 평균(35%) 대비 높습니다 (기여도: -0.07)"
+    },
+    {
+      "rank": 5,
+      "feature": "utility_payment_rate",
+      "feature_name_kr": "공과금 납부율",
+      "current_value": 0.81,
+      "reference_value": 0.9,
+      "shap_contribution": -0.05,
+      "explanation": "공과금 납부율이 81%로, 동일 연령대 평균(90%) 대비 낮습니다 (기여도: -0.05)"
+    }
+  ],
+  "shap_values": {
+    "telecom_payment_rate": -0.15,
+    "NumberOfTimes90DaysLate": -0.12,
+    "RevolvingUtilizationOfUnsecuredLines": -0.09,
+    "DebtRatio": -0.07,
+    "utility_payment_rate": -0.05,
+    "NumberOfTime30-59DaysPastDueNotWorse": -0.04,
+    "spending_consistency": -0.03,
+    "MonthlyIncome": -0.03,
+    "NumberOfTime60-89DaysPastDueNotWorse": -0.02,
+    "regular_payment_count": -0.01,
+    "app_login_frequency": -0.01,
+    "age": 0.01,
+    "NumberOfOpenCreditLinesAndLoans": 0.01,
+    "NumberRealEstateLoansOrLines": 0.0,
+    "NumberOfDependents": 0.02
+  },
+  "total_rejection_factors": 5
+}

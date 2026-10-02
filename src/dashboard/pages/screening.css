@@ -1,0 +1,346 @@
+/* 고객 심사 페이지 스타일 */
+:root {
+  --scr-card-bg: #ffffff;
+  --scr-border: #e5e7eb;
+  --scr-input-bg: #f5f7fa;
+  --scr-input-border: #d1d5db;
+  --scr-muted: #6b7280;
+  --scr-label: #4b5563;
+  --scr-blue: #2563eb;
+  --scr-blue-bg: #dbeafe;
+  --scr-blue-text: #1d4ed8;
+  --scr-amber-bg: #fef3c7;
+  --scr-amber-text: #b45309;
+  --scr-low: #16a34a;
+  --scr-low-bg: #dcfce7;
+  --scr-mid: #ca8a04;
+  --scr-mid-bg: #fef3c7;
+  --scr-high: #dc2626;
+  --scr-high-bg: #fee2e2;
+  --scr-code-bg: #111827;
+}
+
+/* 본문 폭·여백 */
+[data-testid="stMainBlockContainer"] {
+  padding: 64px 32px 48px;
+  max-width: none;
+}
+
+/* ---- 헤더 ---- */
+.scr-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+}
+.scr-title {
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 1.3;
+}
+.scr-subtitle {
+  color: var(--scr-muted);
+  font-size: 13px;
+  margin-top: 4px;
+}
+.scr-badges {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+.scr-badge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+.scr-badge.blue { background: var(--scr-blue-bg); color: var(--scr-blue-text); }
+.scr-badge.amber { background: var(--scr-amber-bg); color: var(--scr-amber-text); }
+
+/* ---- 카드 ---- */
+.st-key-scr-form,
+.st-key-scr-result,
+.st-key-scr-recent {
+  background: var(--scr-card-bg);
+  border: 1px solid var(--scr-border);
+  border-radius: 12px;
+  padding: 24px;
+}
+.st-key-scr-form { gap: 10px; }
+.st-key-scr-result,
+.st-key-scr-recent { gap: 14px; }
+.st-key-scr-result { margin-bottom: 8px; }
+
+.scr-card-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.scr-card-title {
+  font-size: 15px;
+  font-weight: 700;
+}
+.scr-card-caption {
+  color: var(--scr-muted);
+  font-size: 12px;
+}
+.scr-empty {
+  color: var(--scr-muted);
+  font-size: 13px;
+  padding: 12px 0;
+}
+
+/* ---- 입력 폼 ---- */
+.scr-section {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-top: 6px;
+}
+.scr-section-title {
+  font-size: 15px;
+  font-weight: 700;
+}
+.scr-section-caption {
+  color: var(--scr-muted);
+  font-size: 12px;
+}
+.st-key-scr-form [data-testid="stWidgetLabel"] p {
+  color: var(--scr-label);
+  font-size: 13px;
+}
+/* 입력칸 테두리는 가장 바깥 요소 하나에만 그린다.
+   number input은 바깥 컨테이너(overflow:hidden) 안에 테두리 있는 박스가 또 있어서,
+   둘의 높이·모서리 반경이 달라 테두리가 잘려 보이므로 안쪽 박스의 테두리는 없앤다. */
+.st-key-scr-form [data-testid="stNumberInputContainer"],
+.st-key-scr-form [data-testid="stTextInputRootElement"] {
+  background: var(--scr-input-bg);
+  border: 1px solid var(--scr-input-border) !important;
+  border-radius: 6px !important;
+  overflow: hidden;
+}
+.st-key-scr-form [data-testid="stNumberInputContainer"]:focus-within,
+.st-key-scr-form [data-testid="stTextInputRootElement"]:focus-within {
+  border-color: var(--scr-blue) !important;
+}
+.st-key-scr-form [data-testid="stNumberInputContainer"] > [data-baseweb="input"] {
+  box-sizing: border-box;
+  height: 100%;
+  margin: 0;
+  border: none !important;
+  border-radius: 0 !important;
+  background: transparent;
+}
+.st-key-scr-form [data-baseweb="input"] > div,
+.st-key-scr-form input {
+  background: transparent;
+}
+.st-key-scr-form input {
+  font-family: var(--font-mono);
+  font-size: 15px;
+  color: #111827;
+  padding: 10px 12px;
+}
+.st-key-scr-form [data-testid="stNumberInputStepUp"],
+.st-key-scr-form [data-testid="stNumberInputStepDown"] {
+  display: none;
+}
+
+.scr-notice {
+  background: var(--scr-blue-bg);
+  color: var(--scr-blue-text);
+  border-radius: 6px;
+  padding: 10px 14px;
+  font-size: 12.5px;
+  margin: 6px 0;
+}
+.scr-code {
+  background: var(--scr-code-bg);
+  color: #e5e7eb;
+  border-radius: 8px;
+  padding: 16px 18px;
+  margin: 8px 0 0;
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  line-height: 1.6;
+  max-height: 260px;
+  overflow: auto;
+  white-space: pre;
+}
+
+/* ---- 버튼 ---- */
+.st-key-scr-form [data-testid="stHorizontalBlock"]:has(.st-key-scr-submit) {
+  margin-top: 12px;
+}
+.st-key-scr-reset button,
+.st-key-scr-submit button {
+  height: 40px;
+  border-radius: 8px;
+  font-weight: 700;
+}
+.st-key-scr-reset button {
+  background: #ffffff;
+  border: 1px solid var(--scr-input-border);
+  color: #111827;
+}
+.st-key-scr-submit button,
+.st-key-scr-submit button:hover,
+.st-key-scr-submit button:focus,
+.st-key-scr-submit button:focus-visible,
+.st-key-scr-submit button:active {
+  background: var(--scr-blue);
+  border: 1px solid var(--scr-blue);
+  color: #ffffff;
+}
+.st-key-scr-submit button:hover { background: #1d4ed8; border-color: #1d4ed8; }
+.st-key-scr-reset button:hover,
+.st-key-scr-reset button:focus,
+.st-key-scr-reset button:active {
+  background: #f9fafb;
+  border-color: var(--scr-input-border);
+  color: #111827;
+}
+.st-key-scr-to-xai button:hover,
+.st-key-scr-to-xai button:focus,
+.st-key-scr-to-xai button:active {
+  background: var(--scr-blue-bg);
+  border-color: var(--scr-blue);
+}
+.st-key-scr-submit button p { font-weight: 700; color: #ffffff; }
+.st-key-scr-reset button p { font-weight: 700; color: #111827; }
+.st-key-scr-to-xai button {
+  height: 40px;
+  border-radius: 8px;
+  background: #ffffff;
+  border: 1px solid var(--scr-blue);
+}
+.st-key-scr-to-xai button p { color: #2563eb; font-weight: 500; }
+
+/* ---- 심사 결과 ---- */
+.scr-decision {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.scr-decision-badge {
+  font-size: 24px;
+  font-weight: 700;
+  padding: 8px 18px;
+  border-radius: 8px;
+}
+.scr-decision-badge.low { background: var(--scr-low-bg); color: var(--scr-low); }
+.scr-decision-badge.high { background: var(--scr-high-bg); color: var(--scr-high); }
+.scr-decision-raw {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--scr-label);
+  line-height: 1.5;
+}
+.scr-score {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin-top: 6px;
+}
+.scr-score-value {
+  font-family: var(--font-mono);
+  font-size: 52px;
+  font-weight: 700;
+  line-height: 1;
+}
+.scr-score-max {
+  font-family: var(--font-mono);
+  font-size: 15px;
+  color: var(--scr-label);
+}
+.scr-score-label {
+  font-size: 12px;
+  color: var(--scr-muted);
+}
+.scr-bar {
+  height: 10px;
+  background: var(--scr-border);
+  border-radius: 999px;
+  overflow: hidden;
+  margin-top: 18px;
+}
+.scr-bar-fill { height: 100%; border-radius: 999px; }
+.scr-bar-fill.low { background: var(--scr-low); }
+.scr-bar-fill.mid { background: var(--scr-mid); }
+.scr-bar-fill.high { background: var(--scr-high); }
+.scr-scale {
+  display: flex;
+  justify-content: space-between;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--scr-muted);
+  margin-top: 6px;
+}
+.scr-tiles {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-top: 16px;
+}
+.scr-tile {
+  background: #f9fafb;
+  border-radius: 8px;
+  padding: 12px 14px;
+}
+.scr-tile-label {
+  font-size: 11px;
+  color: var(--scr-muted);
+}
+.scr-tile-value {
+  font-family: var(--font-mono);
+  white-space: nowrap;
+  font-size: 18px;
+  font-weight: 700;
+  margin-top: 4px;
+}
+.scr-tile-value.risk-low { color: var(--scr-low); }
+.scr-tile-value.risk-mid { color: var(--scr-mid); }
+.scr-tile-value.risk-high { color: var(--scr-high); }
+.scr-legend {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border-top: 1px solid var(--scr-border);
+  margin-top: 16px;
+  padding-top: 16px;
+}
+.scr-legend-label {
+  font-size: 12px;
+  color: var(--scr-label);
+  margin-right: 2px;
+}
+.scr-pill {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+.scr-pill.low { background: var(--scr-low-bg); color: var(--scr-low); }
+.scr-pill.mid { background: var(--scr-mid-bg); color: var(--scr-mid); }
+.scr-pill.high { background: var(--scr-high-bg); color: var(--scr-high); }
+
+/* ---- 최근 심사 ---- */
+.scr-recent-row {
+  display: grid;
+  grid-template-columns: 1fr auto 56px 56px;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 0;
+  border-bottom: 1px solid var(--scr-border);
+  font-size: 13px;
+}
+.scr-recent-row:last-child { border-bottom: none; }
+.scr-recent-id { font-family: var(--font-mono); }
+.scr-recent-score { font-family: var(--font-mono); font-weight: 700; text-align: right; }
+.scr-recent-grade { color: var(--scr-label); font-size: 12px; }
+.scr-recent-row .scr-pill { justify-self: end; }

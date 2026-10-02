@@ -1,0 +1,5 @@
+# Streamlit 설정 (레포 루트에서 streamlit run 실행 시 적용, Docker WORKDIR /app 동일)
+
+[client]
+# Deploy 버튼과 우측 상단 개발자 메뉴(⋮)를 숨긴다
+toolbarMode = "minimal"

@@ -1,0 +1,76 @@
+{
+  "test_1": {
+    "test_name": "피처 그룹별 AUC 비교 (One-way ANOVA)",
+    "groups": [
+      "전통모델",
+      "대안모델",
+      "통합모델"
+    ],
+    "group_means": {
+      "전통모델": 0.72,
+      "대안모델": 0.68,
+      "통합모델": 0.79
+    },
+    "f_statistic": 12.45,
+    "p_value": 0.00023,
+    "effect_size_eta_squared": 0.34,
+    "is_significant": true,
+    "post_hoc_tukey": [
+      {
+        "comparison": "전통 vs 대안",
+        "mean_diff": 0.04,
+        "p_adj": 0.18,
+        "significant": false
+      },
+      {
+        "comparison": "전통 vs 통합",
+        "mean_diff": -0.07,
+        "p_adj": 0.002,
+        "significant": true
+      },
+      {
+        "comparison": "대안 vs 통합",
+        "mean_diff": -0.11,
+        "p_adj": 0.0004,
+        "significant": true
+      }
+    ]
+  },
+  "test_2": {
+    "test_name": "알고리즘별 AUC 비교 (One-way ANOVA)",
+    "groups": [
+      "LogisticRegression",
+      "XGBoost",
+      "LightGBM"
+    ],
+    "group_means": {
+      "LogisticRegression": 0.71,
+      "XGBoost": 0.79,
+      "LightGBM": 0.78
+    },
+    "f_statistic": 8.92,
+    "p_value": 0.0012,
+    "effect_size_eta_squared": 0.28,
+    "is_significant": true,
+    "post_hoc_tukey": [
+      {
+        "comparison": "LogisticRegression vs XGBoost",
+        "mean_diff": -0.08,
+        "p_adj": 0.001,
+        "significant": true
+      },
+      {
+        "comparison": "LogisticRegression vs LightGBM",
+        "mean_diff": -0.07,
+        "p_adj": 0.004,
+        "significant": true
+      },
+      {
+        "comparison": "XGBoost vs LightGBM",
+        "mean_diff": 0.01,
+        "p_adj": 0.62,
+        "significant": false
+      }
+    ]
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "customer_id": "C001234",
+  "approval_status": "APPROVED",
+  "rejection_reasons": [],
+  "shap_values": {
+    "telecom_payment_rate": 0.11,
+    "NumberOfTimes90DaysLate": 0.09,
+    "RevolvingUtilizationOfUnsecuredLines": 0.07,
+    "utility_payment_rate": 0.05,
+    "DebtRatio": 0.04,
+    "spending_consistency": 0.04,
+    "NumberOfTime30-59DaysPastDueNotWorse": 0.03,
+    "MonthlyIncome": 0.03,
+    "regular_payment_count": 0.02,
+    "NumberOfTime60-89DaysPastDueNotWorse": 0.02,
+    "app_login_frequency": 0.01,
+    "age": 0.01,
+    "NumberOfOpenCreditLinesAndLoans": 0.0,
+    "NumberRealEstateLoansOrLines": 0.0,
+    "NumberOfDependents": -0.01
+  },
+  "total_rejection_factors": 0
+}

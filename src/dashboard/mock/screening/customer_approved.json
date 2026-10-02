@@ -1,0 +1,18 @@
+{
+  "customer_id": "C001234",
+  "RevolvingUtilizationOfUnsecuredLines": 0.21,
+  "age": 42,
+  "NumberOfTime30-59DaysPastDueNotWorse": 0,
+  "DebtRatio": 0.31,
+  "MonthlyIncome": 5200.0,
+  "NumberOfOpenCreditLinesAndLoans": 8,
+  "NumberOfTimes90DaysLate": 0,
+  "NumberRealEstateLoansOrLines": 1,
+  "NumberOfTime60-89DaysPastDueNotWorse": 0,
+  "NumberOfDependents": 2,
+  "telecom_payment_rate": 0.97,
+  "utility_payment_rate": 0.95,
+  "spending_consistency": 78.0,
+  "regular_payment_count": 7,
+  "app_login_frequency": 15
+}
