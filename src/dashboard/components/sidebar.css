@@ -1,0 +1,142 @@
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Noto+Sans+KR:wght@400;500;700&display=swap');
+
+:root {
+  --sb-width: 260px;
+  --sb-bg: #111827;
+  --sb-card: #1e2735;
+  --sb-active: #3b63e0;
+  --sb-text: #e5e7eb;
+  --sb-text-strong: #ffffff;
+  --sb-muted: #9ca3af;
+  --sb-num: #6b7280;
+  --sb-ok: #4caf50;
+  --sb-err: #ef4444;
+}
+
+/* 사이드바 컨테이너: 폭 고정, 접기/펼치기·크기 조절 비활성화 */
+section[data-testid="stSidebar"] {
+  background: var(--sb-bg);
+  width: var(--sb-width) !important;
+  min-width: var(--sb-width) !important;
+  max-width: var(--sb-width) !important;
+  transform: none !important;
+  font-family: 'Noto Sans KR', sans-serif;
+}
+section[data-testid="stSidebar"] > div:not([data-testid]),
+[data-testid="stSidebarHeader"],
+[data-testid="stSidebarCollapseButton"],
+[data-testid="stExpandSidebarButton"],
+[data-testid="stSidebarCollapsedControl"] {
+  display: none !important;
+}
+section[data-testid="stSidebar"] [data-testid="stSidebarContent"] {
+  padding: 0;
+  scrollbar-gutter: auto;
+}
+section[data-testid="stSidebar"] [data-testid="stSidebarUserContent"] {
+  padding: 30px 20px 150px 17px;
+}
+section[data-testid="stSidebar"] [data-testid="stVerticalBlock"] {
+  gap: 6px;
+}
+
+/* 브랜드 */
+.sb-brand { padding: 0 12px 21px; }
+.sb-brand-title {
+  color: var(--sb-text-strong);
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.3;
+}
+.sb-brand-sub {
+  color: var(--sb-muted);
+  font-size: 11px;
+  margin-top: 3px;
+}
+
+/* 페이지 링크 */
+section[data-testid="stSidebar"] [class*="st-key-nav-"] {
+  margin-bottom: 6px;
+}
+section[data-testid="stSidebar"] a[data-testid="stPageLink-NavLink"] {
+  display: flex;
+  align-items: center;
+  height: 37px;
+  padding: 0 12px;
+  border-radius: 7px;
+  background: transparent;
+}
+section[data-testid="stSidebar"] a[data-testid="stPageLink-NavLink"]:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+section[data-testid="stSidebar"] a[data-testid="stPageLink-NavLink"] p,
+section[data-testid="stSidebar"] a[data-testid="stPageLink-NavLink"] span {
+  color: var(--sb-text);
+  font-family: 'Noto Sans KR', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+}
+section[data-testid="stSidebar"] a[data-testid="stPageLink-NavLink"] code {
+  background: transparent;
+  color: var(--sb-num);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  padding: 0;
+  margin-right: 12px;
+}
+
+/* 현재 페이지 */
+section[data-testid="stSidebar"] [class*="st-key-nav-active"] a[data-testid="stPageLink-NavLink"] {
+  background: var(--sb-active);
+}
+section[data-testid="stSidebar"] [class*="st-key-nav-active"] a[data-testid="stPageLink-NavLink"] p,
+section[data-testid="stSidebar"] [class*="st-key-nav-active"] a[data-testid="stPageLink-NavLink"] span {
+  color: var(--sb-text-strong);
+}
+section[data-testid="stSidebar"] [class*="st-key-nav-active"] a[data-testid="stPageLink-NavLink"] code {
+  color: #dbe4ff;
+}
+
+/* 하단 상태 카드: 사이드바(stSidebarContent) 기준으로 바닥에 고정 */
+section[data-testid="stSidebar"] .stElementContainer:has(.sb-status) {
+  position: static;
+}
+.sb-status {
+  position: absolute;
+  left: 17px;
+  right: 20px;
+  bottom: 23px;
+  background: var(--sb-card);
+  border-radius: 9px;
+  padding: 12px 15px 13px;
+  font-family: 'Noto Sans KR', sans-serif;
+}
+.sb-status-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--sb-text-strong);
+  font-size: 11px;
+  font-weight: 500;
+  margin-bottom: 8px;
+}
+.sb-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--sb-ok);
+}
+.sb-dot.err { background: var(--sb-err); }
+.sb-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 10px;
+  line-height: 2;
+}
+.sb-row-label { color: var(--sb-muted); }
+.sb-row-value {
+  color: var(--sb-text-strong);
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 500;
+}

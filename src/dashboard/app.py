@@ -1,9 +1,12 @@
 """
 Streamlit 대시보드 진입점.
 페이지: 고객 심사 / XAI 분석 / 공정성 / 모델 성능 / 통계 검증
-각 페이지는 pages/ 아래 파일이며, st.navigation으로 사이드바에 등록한다.
+각 페이지는 pages/ 아래 파일이며, st.navigation으로 등록한다.
+기본 사이드바 메뉴는 숨기고 components/sidebar.py에서 직접 그린다.
 """
 import streamlit as st
+
+from components.sidebar import render_sidebar
 
 st.set_page_config(page_title="XAI 기반 대안신용평가 시스템", layout="wide")
 
@@ -14,7 +17,8 @@ pages = [
     st.Page("pages/performance.py", title="모델 성능"),
     st.Page("pages/statistical_test.py", title="통계 검증"),
 ]
-pg = st.navigation(pages)
+pg = st.navigation(pages, position="hidden")
+render_sidebar(pages, pg)
 
 st.title("XAI 기반 대안신용평가 시스템")
 
