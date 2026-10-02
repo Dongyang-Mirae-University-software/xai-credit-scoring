@@ -1,0 +1,19 @@
+/* 앱 전역 스타일 (사이드바 스타일은 components/sidebar.css) */
+:root {
+  --content-bg: #f5f7fa;
+  --content-text: #000000;
+}
+
+/* 본문 영역 배경 (상단 헤더 바 포함) */
+[data-testid="stApp"],
+[data-testid="stAppViewContainer"],
+[data-testid="stMain"],
+[data-testid="stHeader"] {
+  background: var(--content-bg);
+}
+
+/* 본문 기본 글씨색 */
+[data-testid="stMain"],
+[data-testid="stMain"] :is(h1, h2, h3, h4, h5, h6, p, li, label, [data-testid="stMarkdownContainer"]) {
+  color: var(--content-text);
+}
