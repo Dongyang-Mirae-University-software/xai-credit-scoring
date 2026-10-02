@@ -209,15 +209,15 @@
   background: var(--scr-blue-bg);
   border-color: var(--scr-blue);
 }
-.st-key-scr-submit button p,
-.st-key-scr-reset button p { font-weight: 700; color: inherit; }
+.st-key-scr-submit button p { font-weight: 700; color: #ffffff; }
+.st-key-scr-reset button p { font-weight: 700; color: #111827; }
 .st-key-scr-to-xai button {
   height: 40px;
   border-radius: 8px;
   background: #ffffff;
   border: 1px solid var(--scr-blue);
 }
-.st-key-scr-to-xai button p { color: var(--scr-blue-text); font-weight: 500; }
+.st-key-scr-to-xai button p { color: #2563eb; font-weight: 500; }
 
 /* ---- 심사 결과 ---- */
 .scr-decision {
