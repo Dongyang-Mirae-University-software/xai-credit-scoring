@@ -25,6 +25,4 @@ pages = [
 pg = st.navigation(pages, position="hidden")
 render_sidebar(pages, pg)
 
-st.title("XAI 기반 대안신용평가 시스템")
-
 pg.run()
