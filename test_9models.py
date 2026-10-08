@@ -18,7 +18,8 @@ from src.data.preprocessor import preprocess, split_data
 from src.models.train import train_all_models_by_data_type
 
 # MLflow 설정 (선택사항)
-os.environ['MLFLOW_TRACKING_URI'] = 'http://mlflow.gosky.kr'
+# 임시로 비활성화: 인증 정보 없이 로컬에만 저장
+# os.environ['MLFLOW_TRACKING_URI'] = 'http://mlflow.gosky.kr'
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
