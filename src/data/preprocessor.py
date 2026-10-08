@@ -1,220 +1,172 @@
 """
-결측치 처리, 스케일링, 인코딩, Train/Validation/Test 분할.
-분할은 Stratified Split만 사용한다.
+데이터 전처리: 결측치 처리, 스케일링, Train/Validation/Test 분할
 """
 
-import pandas as pd
+import logging
 import numpy as np
+import pandas as pd
 from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import train_test_split
-import logging
 
 logger = logging.getLogger(__name__)
 
 
-def preprocess(df, target_col: str = 'SeriousDlqin2yrs') -> pd.DataFrame:
-    """
-    데이터 전처리 (결측치 처리, 정규화)
+def _setup_logger():
+    """로깅 설정"""
+    if not logger.handlers:
+        handler = logging.StreamHandler()
+        formatter = logging.Formatter(
+            '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+        )
+        handler.setFormatter(formatter)
+        logger.addHandler(handler)
+        logger.setLevel(logging.INFO)
 
-    단계:
-    1. 결측치 처리 (중앙값/최빈값 대체)
-    2. 이상치 제거 (IQR 방식)
-    3. 정규화 (StandardScaler)
+
+def preprocess(df, target_col='SeriousDlqin2yrs', drop_cols=None):
+    """
+    데이터 전처리: 결측치 처리, 범주형 인코딩, 수치형 스케일링
 
     Args:
-        df (pd.DataFrame): 원본 데이터
-        target_col (str): 타겟 컬럼명
+        df: 입력 데이터프레임
+        target_col: 타겟 컬럼명
+        drop_cols: 제거할 컬럼 (기본값: ['Unnamed: 0'])
 
     Returns:
-        pd.DataFrame: 전처리된 데이터
+        전처리된 데이터프레임, 스케일러 객체
     """
-    df = df.copy()
-    logger.info(f"✓ 전처리 시작")
+    _setup_logger()
 
-    # 1단계: 결측치 처리
-    logger.info(f"\n  1단계: 결측치 처리")
+    df_processed = df.copy()
 
-    # MonthlyIncome: 중앙값으로 대체
-    if 'MonthlyIncome' in df.columns and df['MonthlyIncome'].isnull().sum() > 0:
-        median_income = df['MonthlyIncome'].median()
-        df['MonthlyIncome'].fillna(median_income, inplace=True)
-        logger.info(f"    - MonthlyIncome: 중앙값({median_income:,.0f})로 대체")
+    # 제거할 컬럼 설정 (인덱스 컬럼 등)
+    if drop_cols is None:
+        drop_cols = ['Unnamed: 0']
 
-    # NumberOfDependents: 최빈값으로 대체
-    if 'NumberOfDependents' in df.columns and df['NumberOfDependents'].isnull().sum() > 0:
-        mode_dependents = df['NumberOfDependents'].mode()[0]
-        df['NumberOfDependents'].fillna(mode_dependents, inplace=True)
-        logger.info(f"    - NumberOfDependents: 최빈값({mode_dependents})으로 대체")
+    logger.info(f"전처리 시작 (샘플: {len(df_processed):,})")
 
-    # 결측치 확인
-    remaining_missing = df.isnull().sum().sum()
-    logger.info(f"    - 결측치 남음: {remaining_missing}개")
+    # ===== 단계 1: 불필요한 컬럼 제거 =====
+    cols_to_drop = [col for col in drop_cols if col in df_processed.columns]
+    if cols_to_drop:
+        df_processed = df_processed.drop(columns=cols_to_drop)
+        logger.info(f"제거된 컬럼: {cols_to_drop}")
 
-    # 2단계: 이상치 제거 (IQR 방식)
-    logger.info(f"\n  2단계: 이상치 제거")
+    # ===== 단계 2: 결측치 처리 =====
+    logger.info(f"\n결측치 처리:")
 
-    before_rows = len(df)
+    # 결측치 현황
+    missing_before = df_processed.isnull().sum()
+    missing_cols = missing_before[missing_before > 0].index.tolist()
 
-    if 'DebtRatio' in df.columns:
-        Q1 = df['DebtRatio'].quantile(0.25)
-        Q3 = df['DebtRatio'].quantile(0.75)
-        IQR = Q3 - Q1
-        lower_bound = Q1 - 1.5 * IQR
-        upper_bound = Q3 + 1.5 * IQR
+    for col in missing_cols:
+        missing_count = df_processed[col].isnull().sum()
+        missing_pct = (missing_count / len(df_processed)) * 100
 
-        outliers = df[(df['DebtRatio'] < lower_bound) | (df['DebtRatio'] > upper_bound)].shape[0]
-        df = df[(df['DebtRatio'] >= lower_bound) & (df['DebtRatio'] <= upper_bound)]
-        logger.info(f"    - DebtRatio: {outliers}개 이상치 제거")
+        # 중앙값으로 대체
+        median_val = df_processed[col].median()
+        df_processed[col] = df_processed[col].fillna(median_val)
 
-    after_rows = len(df)
-    logger.info(f"    - 제거 후: {before_rows:,} → {after_rows:,}건")
+        logger.info(f"  {col}: {missing_count:,}개 ({missing_pct:.2f}%) → 중앙값({median_val:.2f})으로 대체")
 
-    # 3단계: 정규화 (StandardScaler)
-    logger.info(f"\n  3단계: 정규화")
+    # ===== 단계 3: 범주형 변수 인코딩 =====
+    logger.info(f"\n범주형 변수 인코딩:")
 
-    # 수치형 컬럼 선택 (타겟 제외)
-    numeric_cols = df.select_dtypes(include=[np.number]).columns.tolist()
-    if target_col in numeric_cols:
-        numeric_cols.remove(target_col)
+    categorical_cols = df_processed.select_dtypes(include=['object']).columns.tolist()
 
-    # StandardScaler 적용
+    # 제외할 범주형 컬럼 (이미 인코딩됨)
+    exclude_categorical = [target_col, 'is_thin_filer']
+    categorical_cols = [col for col in categorical_cols if col not in exclude_categorical]
+
+    if categorical_cols:
+        logger.info(f"  발견된 범주형 변수: {categorical_cols}")
+        # One-Hot Encoding 적용 (drop_first=True로 다중공선성 방지)
+        df_processed = pd.get_dummies(df_processed, columns=categorical_cols, drop_first=True)
+        logger.info(f"  One-Hot Encoding 적용 완료")
+    else:
+        logger.info(f"  범주형 변수 없음")
+
+    # ===== 단계 4: 수치형 변수 스케일링 =====
+    logger.info(f"\n수치형 변수 스케일링 (StandardScaler):")
+
+    # 타겟, 이진 변수, 인구통계 변수 제외한 특성 변수
+    exclude_scaling = [target_col, 'is_thin_filer', 'Gender', 'AgeGroup']
+    feature_cols = [col for col in df_processed.columns
+                    if col not in exclude_scaling]
+
     scaler = StandardScaler()
-    df[numeric_cols] = scaler.fit_transform(df[numeric_cols])
-    logger.info(f"    - {len(numeric_cols)}개 수치형 변수 정규화 완료")
+    df_processed[feature_cols] = scaler.fit_transform(df_processed[feature_cols])
 
-    # 정규화 검증
-    means = df[numeric_cols].mean()
-    stds = df[numeric_cols].std()
-    logger.info(f"    - 평균: {means.mean():.6f} (≈0)")
-    logger.info(f"    - 표준편차: {stds.mean():.6f} (≈1)")
+    logger.info(f"  {len(feature_cols)}개 변수 스케일링 완료")
+    logger.info(f"  (타겟/이진변수 제외)")
 
-    logger.info(f"\n✓ 전처리 완료 ({after_rows:,}건)")
+    logger.info(f"\n전처리 완료")
+    logger.info(f"  최종 샘플: {len(df_processed):,}")
+    logger.info(f"  최종 컬럼: {df_processed.shape[1]}")
 
-    return df
+    return df_processed, scaler
 
 
-def split_data(df, target_col: str = 'SeriousDlqin2yrs',
+def split_data(df, target_col='SeriousDlqin2yrs',
                train_ratio: float = 0.7,
                val_ratio: float = 0.15,
                test_ratio: float = 0.15,
                random_seed: int = 42):
     """
-    Train/Validation/Test 분할 (Stratified Split)
-
-    비율: 훈련 70% / 검증 15% / 테스트 15%
+    Stratified Train/Validation/Test 분할
 
     Args:
-        df (pd.DataFrame): 전처리된 데이터
-        target_col (str): 타겟 컬럼명
-        train_ratio (float): 훈련 비율
-        val_ratio (float): 검증 비율
-        test_ratio (float): 테스트 비율
-        random_seed (int): 재현성을 위한 시드
+        df: 전처리된 데이터프레임
+        target_col: 타겟 컬럼명
+        train_ratio: 훈련 데이터 비율
+        val_ratio: 검증 데이터 비율
+        test_ratio: 테스트 데이터 비율
+        random_seed: 난수 시드
 
     Returns:
-        tuple: (X_train, X_val, X_test, y_train, y_val, y_test)
+        (X_train, X_val, X_test, y_train, y_val, y_test)
     """
-    logger.info(f"✓ 데이터 분할 시작")
+    _setup_logger()
 
-    # 입력 변수와 타겟 분리
-    X = df.drop(target_col, axis=1)
+    logger.info(f"\n데이터 분할 (Stratified Split):")
+    logger.info(f"  Train : Val : Test = {train_ratio} : {val_ratio} : {test_ratio}")
+
+    # 특성과 타겟 분리 (Gender, AgeGroup, is_thin_filer 제외)
+    cols_to_drop = [target_col, 'Gender', 'AgeGroup', 'is_thin_filer']
+    cols_to_drop = [col for col in cols_to_drop if col in df.columns]
+    X = df.drop(columns=cols_to_drop)
     y = df[target_col]
 
-    # 1단계: 70:30 분할 (훈련:테스트)
-    X_temp, X_test, y_temp, y_test = train_test_split(
+    # 1단계: Train / (Val + Test) 분할
+    test_val_ratio = val_ratio + test_ratio
+    X_train, X_test_val, y_train, y_test_val = train_test_split(
         X, y,
-        test_size=test_ratio,
-        stratify=y,
-        random_state=random_seed
+        test_size=test_val_ratio,
+        random_state=random_seed,
+        stratify=y
     )
 
-    logger.info(f"\n  1단계: 훈련 + 검증 : 테스트 = {train_ratio + val_ratio:.0%} : {test_ratio:.0%}")
-    logger.info(f"    - 훈련+검증: {len(X_temp):,}건")
-    logger.info(f"    - 테스트: {len(X_test):,}건")
-
-    # 2단계: 훈련+검증을 다시 분할 (70:15 → 85:15)
-    val_ratio_adjusted = val_ratio / (train_ratio + val_ratio)
-    X_train, X_val, y_train, y_val = train_test_split(
-        X_temp, y_temp,
-        test_size=val_ratio_adjusted,
-        stratify=y_temp,
-        random_state=random_seed
+    # 2단계: (Val + Test) → Val / Test 분할
+    val_test_ratio = test_ratio / test_val_ratio
+    X_val, X_test, y_val, y_test = train_test_split(
+        X_test_val, y_test_val,
+        test_size=val_test_ratio,
+        random_state=random_seed,
+        stratify=y_test_val
     )
 
-    logger.info(f"\n  2단계: 훈련 : 검증 = {train_ratio:.0%} : {val_ratio:.0%}")
-    logger.info(f"    - 훈련: {len(X_train):,}건")
-    logger.info(f"    - 검증: {len(X_val):,}건")
+    logger.info(f"  Train: {len(X_train):,} ({len(X_train)/len(df)*100:.1f}%)")
+    logger.info(f"  Val  : {len(X_val):,} ({len(X_val)/len(df)*100:.1f}%)")
+    logger.info(f"  Test : {len(X_test):,} ({len(X_test)/len(df)*100:.1f}%)")
 
-    # Stratification 확인
-    logger.info(f"\n  Stratification 확인 (타겟 분포):")
+    # 클래스 분포 확인
+    logger.info(f"\n클래스 분포 (Target: {target_col}):")
+    for data_type, y_data in [('Train', y_train), ('Val', y_val), ('Test', y_test)]:
+        if target_col == 'SeriousDlqin2yrs':
+            pos_count = (y_data == 1).sum()
+            neg_count = (y_data == 0).sum()
+            logger.info(f"  {data_type}: Positive={pos_count:,} ({pos_count/len(y_data)*100:.2f}%), "
+                       f"Negative={neg_count:,} ({neg_count/len(y_data)*100:.2f}%)")
 
-    train_dist = y_train.value_counts(normalize=True).sort_index()
-    val_dist = y_val.value_counts(normalize=True).sort_index()
-    test_dist = y_test.value_counts(normalize=True).sort_index()
-
-    for label in sorted(y.unique()):
-        logger.info(f"    - 클래스 {label}:")
-        logger.info(f"      훈련: {train_dist.get(label, 0):.1%}")
-        logger.info(f"      검증: {val_dist.get(label, 0):.1%}")
-        logger.info(f"      테스트: {test_dist.get(label, 0):.1%}")
-
-    logger.info(f"\n✓ 분할 완료")
-    logger.info(f"  - 총 데이터: {len(X):,}건")
-    logger.info(f"  - 입력 변수: {X.shape[1]}개")
+    logger.info(f"\n데이터 분할 완료\n")
 
     return X_train, X_val, X_test, y_train, y_val, y_test
-
-
-if __name__ == '__main__':
-    from pathlib import Path
-    logging.basicConfig(
-        level=logging.INFO,
-        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-    )
-
-    # 중간 데이터 로드 (simulator.py 결과)
-    intermediate_dir = Path('../../data/intermediate')
-    input_path = intermediate_dir / '02_simulated.csv'
-
-    if not input_path.exists():
-        print(f"❌ 파일 없음: {input_path}")
-        print(f"먼저 python simulator.py를 실행하세요!")
-        exit(1)
-
-    df = pd.read_csv(input_path)
-    logger.info(f"✓ 입력 파일 로드: {input_path}")
-
-    # 전처리
-    df_processed = preprocess(df, target_col='SeriousDlqin2yrs')
-
-    # 분할
-    X_train, X_val, X_test, y_train, y_val, y_test = split_data(
-        df_processed,
-        target_col='SeriousDlqin2yrs',
-        train_ratio=0.7,
-        val_ratio=0.15,
-        test_ratio=0.15
-    )
-
-    # 최종 결과 저장 (main_step1.py와 동일한 위치)
-    splits_dir = Path('../../data/splits')
-    splits_dir.mkdir(exist_ok=True, parents=True)
-
-    # 타겟 컬럼 추가해서 저장
-    train_df = X_train.copy()
-    train_df['SeriousDlqin2yrs'] = y_train.values
-    train_df.to_csv(splits_dir / 'train_processed.csv', index=False)
-
-    val_df = X_val.copy()
-    val_df['SeriousDlqin2yrs'] = y_val.values
-    val_df.to_csv(splits_dir / 'val_processed.csv', index=False)
-
-    test_df = X_test.copy()
-    test_df['SeriousDlqin2yrs'] = y_test.values
-    test_df.to_csv(splits_dir / 'test_processed.csv', index=False)
-
-    logger.info(f"\n✓ 최종 결과 저장:")
-    logger.info(f"  - {splits_dir / 'train_processed.csv'}")
-    logger.info(f"  - {splits_dir / 'val_processed.csv'}")
-    logger.info(f"  - {splits_dir / 'test_processed.csv'}")
-    print(f"\n전처리 완료!")

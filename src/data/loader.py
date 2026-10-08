@@ -3,113 +3,112 @@ GMSC(Give Me Some Credit) 또는 German Credit 데이터 로드.
 로드 시 컬럼명, 자료형, 결측치 비율을 로그로 출력한다.
 """
 
-import pandas as pd
 import logging
+import pandas as pd
+from pathlib import Path
 
 logger = logging.getLogger(__name__)
 
 
-def load_gmsc(path: str) -> pd.DataFrame:
+def _setup_logger():
+    """로깅 설정"""
+    if not logger.handlers:
+        handler = logging.StreamHandler()
+        formatter = logging.Formatter(
+            '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+        )
+        handler.setFormatter(formatter)
+        logger.addHandler(handler)
+        logger.setLevel(logging.INFO)
+
+
+def _print_data_info(df: pd.DataFrame, dataset_name: str):
+    """데이터셋 정보 출력 (컬럼명, 자료형, 결측치 비율)"""
+    _setup_logger()
+
+    logger.info(f"\n{'='*80}")
+    logger.info(f"📊 {dataset_name} 데이터 정보")
+    logger.info(f"{'='*80}")
+    logger.info(f"Shape: {df.shape[0]:,} rows × {df.shape[1]} columns")
+
+    logger.info(f"\n{'컬럼명':<30} {'자료형':<15} {'결측치 수':<12} {'결측 비율(%)':<12}")
+    logger.info("-" * 80)
+
+    for col in df.columns:
+        missing_count = df[col].isna().sum()
+        missing_rate = (missing_count / len(df)) * 100
+        logger.info(
+            f"{col:<30} {str(df[col].dtype):<15} {missing_count:<12} {missing_rate:>10.2f}%"
+        )
+
+    total_missing = df.isna().sum().sum()
+    total_cells = df.shape[0] * df.shape[1]
+    logger.info("-" * 80)
+    logger.info(f"{'전체 결측치':<30} {'':<15} {total_missing:<12} {(total_missing/total_cells)*100:>10.2f}%")
+    logger.info(f"{'='*80}\n")
+
+
+def load_gmsc(train_path: str = "data/raw/cs-training.csv",
+              test_path: str = "data/raw/cs-test.csv") -> tuple:
     """
     Give Me Some Credit 데이터셋 로드
 
     Args:
-        path (str): CSV 파일 경로
+        train_path: 훈련 데이터 경로
+        test_path: 테스트 데이터 경로
 
     Returns:
-        pd.DataFrame: 로드된 데이터프레임
+        (train_df, test_df) 튜플
     """
+    _setup_logger()
+
+    logger.info(f"📥 Give Me Some Credit 데이터 로드 중...")
+
     try:
-        df = pd.read_csv(path)
+        train_df = pd.read_csv(train_path)
+        test_df = pd.read_csv(test_path)
 
-        # 로그 출력
-        logger.info(f"✓ GMSC 데이터 로드 완료")
-        logger.info(f"  - 크기: {df.shape[0]:,}건 × {df.shape[1]}개 컬럼")
-        logger.info(f"  - 메모리: {df.memory_usage(deep=True).sum() / 1024**2:.2f}MB")
+        _print_data_info(train_df, "훈련 데이터셋 (cs-training.csv)")
+        _print_data_info(test_df, "테스트 데이터셋 (cs-test.csv)")
 
-        # 컬럼 정보
-        logger.info(f"\n  컬럼 정보:")
-        for col in df.columns:
-            dtype = str(df[col].dtype)
-            missing = df[col].isnull().sum()
-            missing_pct = 100 * missing / len(df)
-            logger.info(f"    - {col}: {dtype} (결측치: {missing:,}건, {missing_pct:.1f}%)")
+        logger.info("✅ 데이터 로드 완료")
+        return train_df, test_df
 
-        # 결측치 요약
-        total_missing = df.isnull().sum().sum()
-        logger.info(f"\n  결측치 총합: {total_missing:,}개 ({100*total_missing/(df.shape[0]*df.shape[1]):.2f}%)")
-
-        # 타겟 변수 분포
-        if 'SeriousDlqin2yrs' in df.columns:
-            logger.info(f"\n  타겟 분포 (SeriousDlqin2yrs):")
-            value_counts = df['SeriousDlqin2yrs'].value_counts(normalize=True)
-            for val in sorted(value_counts.index):
-                pct = 100 * value_counts[val]
-                logger.info(f"    - {int(val)}: {value_counts[val]:.4f} ({pct:.1f}%)")
-
-        return df
-
-    except FileNotFoundError:
-        logger.error(f"✗ 파일을 찾을 수 없습니다: {path}")
+    except FileNotFoundError as e:
+        logger.error(f"❌ 파일을 찾을 수 없습니다: {e}")
         raise
     except Exception as e:
-        logger.error(f"✗ 데이터 로드 중 오류 발생: {str(e)}")
+        logger.error(f"❌ 데이터 로드 중 오류 발생: {e}")
         raise
 
 
-def load_german_credit() -> pd.DataFrame:
+def load_german_credit():
     """
-    German Credit 데이터셋 로드 (UCI ML Repository)
+    German Credit 데이터셋 로드 (UCI ML Repository에서)
 
     Returns:
-        pd.DataFrame: 로드된 데이터프레임
+        (X, y) 튜플
     """
+    _setup_logger()
+
+    logger.info(f"📥 German Credit 데이터 로드 중...")
+
     try:
         from ucimlrepo import fetch_ucirepo
 
-        logger.info("✓ German Credit 데이터 로드 중...")
         german_credit = fetch_ucirepo(id=144)
-
-        # 특성과 타겟 결합
         X = german_credit.data.features
         y = german_credit.data.targets
+
         df = pd.concat([X, y], axis=1)
+        _print_data_info(df, "German Credit 데이터셋")
 
-        # 로그 출력
-        logger.info(f"✓ German Credit 데이터 로드 완료")
-        logger.info(f"  - 크기: {df.shape[0]:,}건 × {df.shape[1]}개 컬럼")
+        logger.info("✅ German Credit 데이터 로드 완료")
+        return X, y
 
-        # 컬럼 정보
-        logger.info(f"\n  컬럼 정보:")
-        for col in df.columns:
-            dtype = str(df[col].dtype)
-            missing = df[col].isnull().sum()
-            logger.info(f"    - {col}: {dtype} (결측치: {missing}개)")
-
-        return df
-
-    except Exception as e:
-        logger.error(f"✗ German Credit 로드 중 오류: {str(e)}")
+    except ImportError:
+        logger.error("❌ ucimlrepo 패키지가 설치되지 않았습니다. pip install ucimlrepo 실행")
         raise
-
-
-if __name__ == '__main__':
-    import logging
-    from pathlib import Path
-    logging.basicConfig(
-        level=logging.INFO,
-        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-    )
-
-    # Give Me Some Credit 데이터 로드
-    df = load_gmsc('../../data/raw/kaggle_datasets/cs-training.csv')
-
-    # 중간 결과 저장
-    intermediate_dir = Path('../../data/intermediate')
-    intermediate_dir.mkdir(exist_ok=True, parents=True)
-
-    output_path = intermediate_dir / '01_loaded.csv'
-    df.to_csv(output_path, index=False)
-
-    logger.info(f'\n✓ 로드된 데이터 저장: {output_path}')
-    print(f'\n데이터 로드 완료: {df.shape}')
+    except Exception as e:
+        logger.error(f"❌ German Credit 데이터 로드 중 오류 발생: {e}")
+        raise
