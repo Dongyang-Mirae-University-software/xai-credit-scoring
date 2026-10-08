@@ -1,0 +1,401 @@
+2026/10/08 18:36:39 INFO mlflow.agent.hint: Load the `instrumenting-with-mlflow-tracing` skill at C:\Users\happy\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\mlflow\assistant\skills\instrumenting-with-mlflow-tracing\SKILL.md before writing any tracing code; it ships with this MLflow install. Set MLFLOW_DISABLE_AGENT_HINT=1 to silence this.
+INFO:__main__:================================================================================
+INFO:__main__:\U0001f680 9개 모델 학습 파이프라인 테스트
+INFO:__main__:================================================================================
+INFO:__main__:
+\U0001f4e5 Step 1: 데이터 로드
+2026-10-08 18:36:39,939 - src.data.loader - INFO - \U0001f4e5 Give Me Some Credit 데이터 로드 중...
+INFO:src.data.loader:\U0001f4e5 Give Me Some Credit 데이터 로드 중...
+2026-10-08 18:36:40,234 - src.data.loader - INFO - 
+================================================================================
+INFO:src.data.loader:
+================================================================================
+2026-10-08 18:36:40,234 - src.data.loader - INFO - \U0001f4ca 훈련 데이터셋 (cs-training.csv) 데이터 정보
+INFO:src.data.loader:\U0001f4ca 훈련 데이터셋 (cs-training.csv) 데이터 정보
+2026-10-08 18:36:40,234 - src.data.loader - INFO - ================================================================================
+INFO:src.data.loader:================================================================================
+2026-10-08 18:36:40,234 - src.data.loader - INFO - Shape: 150,000 rows × 12 columns
+INFO:src.data.loader:Shape: 150,000 rows × 12 columns
+2026-10-08 18:36:40,234 - src.data.loader - INFO - 
+컬럼명                            자료형             결측치 수        결측 비율(%)    
+INFO:src.data.loader:
+컬럼명                            자료형             결측치 수        결측 비율(%)    
+2026-10-08 18:36:40,234 - src.data.loader - INFO - --------------------------------------------------------------------------------
+INFO:src.data.loader:--------------------------------------------------------------------------------
+2026-10-08 18:36:40,235 - src.data.loader - INFO - Unnamed: 0                     int64           0                  0.00%
+INFO:src.data.loader:Unnamed: 0                     int64           0                  0.00%
+2026-10-08 18:36:40,236 - src.data.loader - INFO - SeriousDlqin2yrs               int64           0                  0.00%
+INFO:src.data.loader:SeriousDlqin2yrs               int64           0                  0.00%
+2026-10-08 18:36:40,236 - src.data.loader - INFO - RevolvingUtilizationOfUnsecuredLines float64         0                  0.00%
+INFO:src.data.loader:RevolvingUtilizationOfUnsecuredLines float64         0                  0.00%
+2026-10-08 18:36:40,237 - src.data.loader - INFO - age                            int64           0                  0.00%
+INFO:src.data.loader:age                            int64           0                  0.00%
+2026-10-08 18:36:40,237 - src.data.loader - INFO - NumberOfTime30-59DaysPastDueNotWorse int64           0                  0.00%
+INFO:src.data.loader:NumberOfTime30-59DaysPastDueNotWorse int64           0                  0.00%
+2026-10-08 18:36:40,237 - src.data.loader - INFO - DebtRatio                      float64         0                  0.00%
+INFO:src.data.loader:DebtRatio                      float64         0                  0.00%
+2026-10-08 18:36:40,238 - src.data.loader - INFO - MonthlyIncome                  float64         29731             19.82%
+INFO:src.data.loader:MonthlyIncome                  float64         29731             19.82%
+2026-10-08 18:36:40,238 - src.data.loader - INFO - NumberOfOpenCreditLinesAndLoans int64           0                  0.00%
+INFO:src.data.loader:NumberOfOpenCreditLinesAndLoans int64           0                  0.00%
+2026-10-08 18:36:40,239 - src.data.loader - INFO - NumberOfTimes90DaysLate        int64           0                  0.00%
+INFO:src.data.loader:NumberOfTimes90DaysLate        int64           0                  0.00%
+2026-10-08 18:36:40,239 - src.data.loader - INFO - NumberRealEstateLoansOrLines   int64           0                  0.00%
+INFO:src.data.loader:NumberRealEstateLoansOrLines   int64           0                  0.00%
+2026-10-08 18:36:40,240 - src.data.loader - INFO - NumberOfTime60-89DaysPastDueNotWorse int64           0                  0.00%
+INFO:src.data.loader:NumberOfTime60-89DaysPastDueNotWorse int64           0                  0.00%
+2026-10-08 18:36:40,240 - src.data.loader - INFO - NumberOfDependents             float64         3924               2.62%
+INFO:src.data.loader:NumberOfDependents             float64         3924               2.62%
+2026-10-08 18:36:40,243 - src.data.loader - INFO - --------------------------------------------------------------------------------
+INFO:src.data.loader:--------------------------------------------------------------------------------
+2026-10-08 18:36:40,244 - src.data.loader - INFO - 전체 결측치                                         33655              1.87%
+INFO:src.data.loader:전체 결측치                                         33655              1.87%
+2026-10-08 18:36:40,244 - src.data.loader - INFO - ================================================================================
+
+INFO:src.data.loader:================================================================================
+
+2026-10-08 18:36:40,244 - src.data.loader - INFO - 
+================================================================================
+INFO:src.data.loader:
+================================================================================
+2026-10-08 18:36:40,244 - src.data.loader - INFO - \U0001f4ca 테스트 데이터셋 (cs-test.csv) 데이터 정보
+INFO:src.data.loader:\U0001f4ca 테스트 데이터셋 (cs-test.csv) 데이터 정보
+2026-10-08 18:36:40,244 - src.data.loader - INFO - ================================================================================
+INFO:src.data.loader:================================================================================
+2026-10-08 18:36:40,244 - src.data.loader - INFO - Shape: 101,503 rows × 12 columns
+INFO:src.data.loader:Shape: 101,503 rows × 12 columns
+2026-10-08 18:36:40,244 - src.data.loader - INFO - 
+컬럼명                            자료형             결측치 수        결측 비율(%)    
+INFO:src.data.loader:
+컬럼명                            자료형             결측치 수        결측 비율(%)    
+2026-10-08 18:36:40,244 - src.data.loader - INFO - --------------------------------------------------------------------------------
+INFO:src.data.loader:--------------------------------------------------------------------------------
+2026-10-08 18:36:40,244 - src.data.loader - INFO - Unnamed: 0                     int64           0                  0.00%
+INFO:src.data.loader:Unnamed: 0                     int64           0                  0.00%
+2026-10-08 18:36:40,245 - src.data.loader - INFO - SeriousDlqin2yrs               float64         101503           100.00%
+INFO:src.data.loader:SeriousDlqin2yrs               float64         101503           100.00%
+2026-10-08 18:36:40,245 - src.data.loader - INFO - RevolvingUtilizationOfUnsecuredLines float64         0                  0.00%
+INFO:src.data.loader:RevolvingUtilizationOfUnsecuredLines float64         0                  0.00%
+2026-10-08 18:36:40,245 - src.data.loader - INFO - age                            int64           0                  0.00%
+INFO:src.data.loader:age                            int64           0                  0.00%
+2026-10-08 18:36:40,246 - src.data.loader - INFO - NumberOfTime30-59DaysPastDueNotWorse int64           0                  0.00%
+INFO:src.data.loader:NumberOfTime30-59DaysPastDueNotWorse int64           0                  0.00%
+2026-10-08 18:36:40,246 - src.data.loader - INFO - DebtRatio                      float64         0                  0.00%
+INFO:src.data.loader:DebtRatio                      float64         0                  0.00%
+2026-10-08 18:36:40,246 - src.data.loader - INFO - MonthlyIncome                  float64         20103             19.81%
+INFO:src.data.loader:MonthlyIncome                  float64         20103             19.81%
+2026-10-08 18:36:40,247 - src.data.loader - INFO - NumberOfOpenCreditLinesAndLoans int64           0                  0.00%
+INFO:src.data.loader:NumberOfOpenCreditLinesAndLoans int64           0                  0.00%
+2026-10-08 18:36:40,247 - src.data.loader - INFO - NumberOfTimes90DaysLate        int64           0                  0.00%
+INFO:src.data.loader:NumberOfTimes90DaysLate        int64           0                  0.00%
+2026-10-08 18:36:40,247 - src.data.loader - INFO - NumberRealEstateLoansOrLines   int64           0                  0.00%
+INFO:src.data.loader:NumberRealEstateLoansOrLines   int64           0                  0.00%
+2026-10-08 18:36:40,248 - src.data.loader - INFO - NumberOfTime60-89DaysPastDueNotWorse int64           0                  0.00%
+INFO:src.data.loader:NumberOfTime60-89DaysPastDueNotWorse int64           0                  0.00%
+2026-10-08 18:36:40,248 - src.data.loader - INFO - NumberOfDependents             float64         2626               2.59%
+INFO:src.data.loader:NumberOfDependents             float64         2626               2.59%
+2026-10-08 18:36:40,251 - src.data.loader - INFO - --------------------------------------------------------------------------------
+INFO:src.data.loader:--------------------------------------------------------------------------------
+2026-10-08 18:36:40,251 - src.data.loader - INFO - 전체 결측치                                         124232            10.20%
+INFO:src.data.loader:전체 결측치                                         124232            10.20%
+2026-10-08 18:36:40,251 - src.data.loader - INFO - ================================================================================
+
+INFO:src.data.loader:================================================================================
+
+2026-10-08 18:36:40,252 - src.data.loader - INFO - \u2705 데이터 로드 완료
+INFO:src.data.loader:\u2705 데이터 로드 완료
+INFO:__main__:\u2705 데이터 로드 완료: 150,000 샘플, 12 컬럼
+INFO:__main__:
+\U0001f52e Step 2: 대안 데이터 생성
+2026-10-08 18:36:40,272 - src.data.simulator - INFO - 대안 데이터 시뮬레이터 실행 중...
+INFO:src.data.simulator:대안 데이터 시뮬레이터 실행 중...
+2026-10-08 18:36:40,273 - src.data.simulator - INFO -    샘플 크기: 150,000
+INFO:src.data.simulator:   샘플 크기: 150,000
+2026-10-08 18:36:40,273 - src.data.simulator - INFO -    목표 상관계수 범위: 0.30~0.50
+INFO:src.data.simulator:   목표 상관계수 범위: 0.30~0.50
+2026-10-08 18:36:40,273 - src.data.simulator - INFO -    생성 방법: 공분산 행렬 기반 + 실제 Target 연결
+INFO:src.data.simulator:   생성 방법: 공분산 행렬 기반 + 실제 Target 연결
+2026-10-08 18:36:40,275 - src.data.simulator - INFO - 
+   설정된 목표 상관계수:
+INFO:src.data.simulator:
+   설정된 목표 상관계수:
+2026-10-08 18:36:40,276 - src.data.simulator - INFO -       telecom_payment_rate: 0.4518
+INFO:src.data.simulator:      telecom_payment_rate: 0.4518
+2026-10-08 18:36:40,276 - src.data.simulator - INFO -       utility_payment_rate: 0.4919
+INFO:src.data.simulator:      utility_payment_rate: 0.4919
+2026-10-08 18:36:40,276 - src.data.simulator - INFO -       spending_consistency: 0.3544
+INFO:src.data.simulator:      spending_consistency: 0.3544
+2026-10-08 18:36:40,276 - src.data.simulator - INFO -       regular_payment_count: 0.4224
+INFO:src.data.simulator:      regular_payment_count: 0.4224
+2026-10-08 18:36:40,276 - src.data.simulator - INFO -       app_login_frequency: 0.3694
+INFO:src.data.simulator:      app_login_frequency: 0.3694
+2026-10-08 18:36:40,303 - src.data.simulator - INFO -    공분산 행렬 기반 샘플링 성공
+INFO:src.data.simulator:   공분산 행렬 기반 샘플링 성공
+2026-10-08 18:36:40,304 - src.data.simulator - INFO -    공식 적용: Y = r*X + sqrt(1-r^2)*Z
+INFO:src.data.simulator:   공식 적용: Y = r*X + sqrt(1-r^2)*Z
+2026-10-08 18:36:40,389 - src.data.simulator - INFO - 인구통계 변수 생성 완료:
+INFO:src.data.simulator:인구통계 변수 생성 완료:
+2026-10-08 18:36:40,389 - src.data.simulator - INFO -    Gender: 74,988 (여성), 75,012 (남성)
+INFO:src.data.simulator:   Gender: 74,988 (여성), 75,012 (남성)
+2026-10-08 18:36:40,389 - src.data.simulator - INFO -    AgeGroup:
+INFO:src.data.simulator:   AgeGroup:
+2026-10-08 18:36:40,389 - src.data.simulator - INFO -       0 (20~29): 7,132
+INFO:src.data.simulator:      0 (20~29): 7,132
+2026-10-08 18:36:40,389 - src.data.simulator - INFO -       1 (30~39): 21,898
+INFO:src.data.simulator:      1 (30~39): 21,898
+2026-10-08 18:36:40,389 - src.data.simulator - INFO -       2 (40~49): 33,527
+INFO:src.data.simulator:      2 (40~49): 33,527
+2026-10-08 18:36:40,389 - src.data.simulator - INFO -       3 (50~59): 35,858
+INFO:src.data.simulator:      3 (50~59): 35,858
+2026-10-08 18:36:40,389 - src.data.simulator - INFO -       4 (60+):   51,585
+INFO:src.data.simulator:      4 (60+):   51,585
+2026-10-08 18:36:40,389 - src.data.simulator - INFO -    (편향 강도: 10.0%)
+
+INFO:src.data.simulator:   (편향 강도: 10.0%)
+
+2026-10-08 18:36:40,430 - src.data.simulator - INFO - 씬파일러 판정 완료:
+INFO:src.data.simulator:씬파일러 판정 완료:
+2026-10-08 18:36:40,430 - src.data.simulator - INFO -    총 샘플: 150,000
+INFO:src.data.simulator:   총 샘플: 150,000
+2026-10-08 18:36:40,430 - src.data.simulator - INFO -    씬파일러: 45,000 (30.00%)
+INFO:src.data.simulator:   씬파일러: 45,000 (30.00%)
+2026-10-08 18:36:40,430 - src.data.simulator - INFO -    일반: 105,000 (70.00%)
+INFO:src.data.simulator:   일반: 105,000 (70.00%)
+2026-10-08 18:36:40,430 - src.data.simulator - INFO -    (파라미터로 조정됨: 30.0%)
+
+INFO:src.data.simulator:   (파라미터로 조정됨: 30.0%)
+
+2026-10-08 18:36:40,430 - src.data.simulator - INFO - 
+===========================================================================
+INFO:src.data.simulator:
+===========================================================================
+2026-10-08 18:36:40,430 - src.data.simulator - INFO - 생성된 대안 변수와 타겟(SeriousDlqin2yrs) 간 실제 상관계수 (사후 검증)
+INFO:src.data.simulator:생성된 대안 변수와 타겟(SeriousDlqin2yrs) 간 실제 상관계수 (사후 검증)
+2026-10-08 18:36:40,430 - src.data.simulator - INFO - ===========================================================================
+INFO:src.data.simulator:===========================================================================
+2026-10-08 18:36:40,431 - src.data.simulator - INFO - 변수명                            실제 상관계수            범위 확인               
+INFO:src.data.simulator:변수명                            실제 상관계수            범위 확인               
+2026-10-08 18:36:40,431 - src.data.simulator - INFO - ---------------------------------------------------------------------------
+INFO:src.data.simulator:---------------------------------------------------------------------------
+2026-10-08 18:36:40,434 - src.data.simulator - INFO - telecom_payment_rate                   0.3133    OK (0.30~0.50)      
+INFO:src.data.simulator:telecom_payment_rate                   0.3133    OK (0.30~0.50)      
+2026-10-08 18:36:40,438 - src.data.simulator - INFO - utility_payment_rate                   0.3443    OK (0.30~0.50)      
+INFO:src.data.simulator:utility_payment_rate                   0.3443    OK (0.30~0.50)      
+2026-10-08 18:36:40,441 - src.data.simulator - INFO - spending_consistency                   0.2483    OUT (0.2483)        
+INFO:src.data.simulator:spending_consistency                   0.2483    OUT (0.2483)        
+2026-10-08 18:36:40,446 - src.data.simulator - INFO - regular_payment_count                  0.2719    OUT (0.2719)        
+INFO:src.data.simulator:regular_payment_count                  0.2719    OUT (0.2719)        
+2026-10-08 18:36:40,450 - src.data.simulator - INFO - app_login_frequency                    0.2508    OUT (0.2508)        
+INFO:src.data.simulator:app_login_frequency                    0.2508    OUT (0.2508)        
+2026-10-08 18:36:40,450 - src.data.simulator - INFO - ---------------------------------------------------------------------------
+INFO:src.data.simulator:---------------------------------------------------------------------------
+2026-10-08 18:36:40,450 - src.data.simulator - INFO - 평균 상관계수 절대값                            0.2857
+INFO:src.data.simulator:평균 상관계수 절대값                            0.2857
+2026-10-08 18:36:40,450 - src.data.simulator - INFO - 범위 내 변수 개수                     2/5
+INFO:src.data.simulator:범위 내 변수 개수                     2/5
+2026-10-08 18:36:40,450 - src.data.simulator - INFO - ===========================================================================
+
+INFO:src.data.simulator:===========================================================================
+
+2026-10-08 18:36:40,450 - src.data.simulator - INFO - 대안 변수 간 상관계수 행렬:
+INFO:src.data.simulator:대안 변수 간 상관계수 행렬:
+2026-10-08 18:36:40,469 - src.data.simulator - INFO - 
+                       telecom_payment_rate  utility_payment_rate  spending_consistency  regular_payment_count  app_login_frequency
+telecom_payment_rate               1.000000              0.402910              0.466280               0.455026             0.442759
+utility_payment_rate               0.402910              1.000000              0.381871               0.478265             0.403493
+spending_consistency               0.466280              0.381871              1.000000               0.334266             0.381309
+regular_payment_count              0.455026              0.478265              0.334266               1.000000             0.412873
+app_login_frequency                0.442759              0.403493              0.381309               0.412873             1.000000
+
+INFO:src.data.simulator:
+                       telecom_payment_rate  utility_payment_rate  spending_consistency  regular_payment_count  app_login_frequency
+telecom_payment_rate               1.000000              0.402910              0.466280               0.455026             0.442759
+utility_payment_rate               0.402910              1.000000              0.381871               0.478265             0.403493
+spending_consistency               0.466280              0.381871              1.000000               0.334266             0.381309
+regular_payment_count              0.455026              0.478265              0.334266               1.000000             0.412873
+app_login_frequency                0.442759              0.403493              0.381309               0.412873             1.000000
+
+2026-10-08 18:36:41,826 - src.data.simulator - INFO - 시뮬레이션 데이터 저장: C:\Users\happy\Desktop\J\동양미래대학교\전공심화\2학기\코디세이\03. 프로젝트 코드\xai-credit-scoring\src\data\..\..\data\intermediate\02_simulated.csv (150,000 rows)
+
+INFO:src.data.simulator:시뮬레이션 데이터 저장: C:\Users\happy\Desktop\J\동양미래대학교\전공심화\2학기\코디세이\03. 프로젝트 코드\xai-credit-scoring\src\data\..\..\data\intermediate\02_simulated.csv (150,000 rows)
+
+2026-10-08 18:36:41,826 - src.data.simulator - INFO - 대안 데이터 생성 완료
+
+INFO:src.data.simulator:대안 데이터 생성 완료
+
+INFO:__main__:\u2705 대안 데이터 추가 완료: 20 컬럼
+INFO:__main__:
+\U0001f9f9 Step 3: 데이터 전처리
+2026-10-08 18:36:41,855 - src.data.preprocessor - INFO - 전처리 시작 (샘플: 150,000)
+INFO:src.data.preprocessor:전처리 시작 (샘플: 150,000)
+2026-10-08 18:36:41,856 - src.data.preprocessor - INFO - 제거된 컬럼: ['Unnamed: 0']
+INFO:src.data.preprocessor:제거된 컬럼: ['Unnamed: 0']
+2026-10-08 18:36:41,856 - src.data.preprocessor - INFO - 
+결측치 처리:
+INFO:src.data.preprocessor:
+결측치 처리:
+2026-10-08 18:36:41,866 - src.data.preprocessor - INFO -   MonthlyIncome: 29,731개 (19.82%) → 중앙값(5400.00)으로 대체
+INFO:src.data.preprocessor:  MonthlyIncome: 29,731개 (19.82%) → 중앙값(5400.00)으로 대체
+2026-10-08 18:36:41,871 - src.data.preprocessor - INFO -   NumberOfDependents: 3,924개 (2.62%) → 중앙값(0.00)으로 대체
+INFO:src.data.preprocessor:  NumberOfDependents: 3,924개 (2.62%) → 중앙값(0.00)으로 대체
+2026-10-08 18:36:41,871 - src.data.preprocessor - INFO - 
+범주형 변수 인코딩:
+INFO:src.data.preprocessor:
+범주형 변수 인코딩:
+2026-10-08 18:36:41,872 - src.data.preprocessor - INFO -   범주형 변수 없음
+INFO:src.data.preprocessor:  범주형 변수 없음
+2026-10-08 18:36:41,872 - src.data.preprocessor - INFO - 
+수치형 변수 스케일링 (StandardScaler):
+INFO:src.data.preprocessor:
+수치형 변수 스케일링 (StandardScaler):
+2026-10-08 18:36:41,974 - src.data.preprocessor - INFO -   15개 변수 스케일링 완료
+INFO:src.data.preprocessor:  15개 변수 스케일링 완료
+2026-10-08 18:36:41,974 - src.data.preprocessor - INFO -   (타겟/이진변수 제외)
+INFO:src.data.preprocessor:  (타겟/이진변수 제외)
+2026-10-08 18:36:41,974 - src.data.preprocessor - INFO - 
+전처리 완료
+INFO:src.data.preprocessor:
+전처리 완료
+2026-10-08 18:36:41,974 - src.data.preprocessor - INFO -   최종 샘플: 150,000
+INFO:src.data.preprocessor:  최종 샘플: 150,000
+2026-10-08 18:36:41,975 - src.data.preprocessor - INFO -   최종 컬럼: 19
+INFO:src.data.preprocessor:  최종 컬럼: 19
+2026-10-08 18:36:41,977 - src.data.preprocessor - INFO - 
+데이터 분할 (Stratified Split):
+INFO:src.data.preprocessor:
+데이터 분할 (Stratified Split):
+2026-10-08 18:36:41,977 - src.data.preprocessor - INFO -   Train : Val : Test = 0.7 : 0.15 : 0.15
+INFO:src.data.preprocessor:  Train : Val : Test = 0.7 : 0.15 : 0.15
+2026-10-08 18:36:42,108 - src.data.preprocessor - INFO -   Train: 105,000 (70.0%)
+INFO:src.data.preprocessor:  Train: 105,000 (70.0%)
+2026-10-08 18:36:42,108 - src.data.preprocessor - INFO -   Val  : 22,500 (15.0%)
+INFO:src.data.preprocessor:  Val  : 22,500 (15.0%)
+2026-10-08 18:36:42,108 - src.data.preprocessor - INFO -   Test : 22,500 (15.0%)
+INFO:src.data.preprocessor:  Test : 22,500 (15.0%)
+2026-10-08 18:36:42,108 - src.data.preprocessor - INFO - 
+클래스 분포 (Target: SeriousDlqin2yrs):
+INFO:src.data.preprocessor:
+클래스 분포 (Target: SeriousDlqin2yrs):
+2026-10-08 18:36:42,109 - src.data.preprocessor - INFO -   Train: Positive=13,665 (13.01%), Negative=91,335 (86.99%)
+INFO:src.data.preprocessor:  Train: Positive=13,665 (13.01%), Negative=91,335 (86.99%)
+2026-10-08 18:36:42,109 - src.data.preprocessor - INFO -   Val: Positive=2,929 (13.02%), Negative=19,571 (86.98%)
+INFO:src.data.preprocessor:  Val: Positive=2,929 (13.02%), Negative=19,571 (86.98%)
+2026-10-08 18:36:42,110 - src.data.preprocessor - INFO -   Test: Positive=2,928 (13.01%), Negative=19,572 (86.99%)
+INFO:src.data.preprocessor:  Test: Positive=2,928 (13.01%), Negative=19,572 (86.99%)
+2026-10-08 18:36:42,110 - src.data.preprocessor - INFO - 
+데이터 분할 완료
+
+INFO:src.data.preprocessor:
+데이터 분할 완료
+
+2026-10-08 18:36:44,068 - src.data.preprocessor - INFO - Train 데이터 저장: C:\Users\happy\Desktop\J\동양미래대학교\전공심화\2학기\코디세이\03. 프로젝트 코드\xai-credit-scoring\src\data\..\..\data\splits\train_processed.csv (105,000 rows)
+INFO:src.data.preprocessor:Train 데이터 저장: C:\Users\happy\Desktop\J\동양미래대학교\전공심화\2학기\코디세이\03. 프로젝트 코드\xai-credit-scoring\src\data\..\..\data\splits\train_processed.csv (105,000 rows)
+2026-10-08 18:36:44,537 - src.data.preprocessor - INFO - Val 데이터 저장: C:\Users\happy\Desktop\J\동양미래대학교\전공심화\2학기\코디세이\03. 프로젝트 코드\xai-credit-scoring\src\data\..\..\data\splits\val_processed.csv (22,500 rows)
+INFO:src.data.preprocessor:Val 데이터 저장: C:\Users\happy\Desktop\J\동양미래대학교\전공심화\2학기\코디세이\03. 프로젝트 코드\xai-credit-scoring\src\data\..\..\data\splits\val_processed.csv (22,500 rows)
+2026-10-08 18:36:45,076 - src.data.preprocessor - INFO - Test 데이터 저장: C:\Users\happy\Desktop\J\동양미래대학교\전공심화\2학기\코디세이\03. 프로젝트 코드\xai-credit-scoring\src\data\..\..\data\splits\test_processed.csv (22,500 rows)
+
+INFO:src.data.preprocessor:Test 데이터 저장: C:\Users\happy\Desktop\J\동양미래대학교\전공심화\2학기\코디세이\03. 프로젝트 코드\xai-credit-scoring\src\data\..\..\data\splits\test_processed.csv (22,500 rows)
+
+INFO:__main__:\u2705 데이터 전처리 완료
+INFO:__main__:   훈련: 105,000 샘플, 15 특성
+INFO:__main__:   검증: 22,500 샘플
+INFO:__main__:   테스트: 22,500 샘플
+INFO:__main__:   클래스 분포 (훈련): 91,335 (0), 13,665 (1)
+INFO:__main__:
+\U0001f916 Step 4: 9개 모델 학습 (금융/대안/통합 × 3 알고리즘)
+2026-10-08 18:36:45,595 - src.models.train - INFO - \u2705 MLflow 활성화: mlflow.gosky.kr
+
+INFO:src.models.train:\u2705 MLflow 활성화: mlflow.gosky.kr
+
+2026-10-08 18:36:45,596 - src.models.train - INFO - 모델 학습 시작 (9개 조합)
+INFO:src.models.train:모델 학습 시작 (9개 조합)
+2026-10-08 18:36:45,596 - src.models.train - INFO - 훈련 데이터: 105,000 샘플, 15 특성
+INFO:src.models.train:훈련 데이터: 105,000 샘플, 15 특성
+2026-10-08 18:36:45,597 - src.models.train - INFO - 클래스 분포: 91,335 (0), 13,665 (1)
+INFO:src.models.train:클래스 분포: 91,335 (0), 13,665 (1)
+2026-10-08 18:36:45,597 - src.models.train - INFO - 버전: 1.0
+
+INFO:src.models.train:버전: 1.0
+
+2026-10-08 18:36:45,597 - src.models.train - INFO - 
+================================================================================
+INFO:src.models.train:
+================================================================================
+2026-10-08 18:36:45,597 - src.models.train - INFO - 데이터 타입: financial_only
+INFO:src.models.train:데이터 타입: financial_only
+2026-10-08 18:36:45,597 - src.models.train - INFO - ================================================================================
+INFO:src.models.train:================================================================================
+2026-10-08 18:36:45,598 - src.models.train - INFO - 선택된 특성: 10개
+
+INFO:src.models.train:선택된 특성: 10개
+
+2026-10-08 18:36:45,599 - src.models.train - INFO - 
+[방식 1] class_weight='balanced'
+INFO:src.models.train:
+[방식 1] class_weight='balanced'
+2026-10-08 18:36:45,599 - src.models.train - INFO - --------------------------------------------------------------------------------
+INFO:src.models.train:--------------------------------------------------------------------------------
+ERROR:__main__:\u274c 모델 학습 실패: API request to endpoint /api/2.0/mlflow/runs/create failed with error code 405 != 200. Response body: '<!doctype html>
+<html lang=en>
+<title>405 Method Not Allowed</title>
+<h1>Method Not Allowed</h1>
+<p>The method is not allowed for the requested URL.</p>
+'
+Traceback (most recent call last):
+  File "C:\Users\happy\Desktop\J\동양미래대학교\전공심화\2학기\코디세이\03. 프로젝트 코드\xai-credit-scoring\test_9models.py", line 72, in main
+    results = train_all_models_by_data_type(X_train, y_train, models_dir='models', version='1.0')
+  File "C:\Users\happy\Desktop\J\동양미래대학교\전공심화\2학기\코디세이\03. 프로젝트 코드\xai-credit-scoring\src\models\train.py", line 545, in train_all_models_by_data_type
+    results['LogisticRegression'] = train_logistic_regression(
+                                    ~~~~~~~~~~~~~~~~~~~~~~~~~^
+        X_train_subset, y_train, skf, models_dir, version, data_type
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\happy\Desktop\J\동양미래대학교\전공심화\2학기\코디세이\03. 프로젝트 코드\xai-credit-scoring\src\models\train.py", line 141, in train_logistic_regression
+    with mlflow.start_run(run_name=f"LR_class_weight{run_name_suffix}"):
+         ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\happy\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\mlflow\tracking\fluent.py", line 668, in start_run
+    active_run_obj = client.create_run(
+        experiment_id=exp_id_for_run,
+        tags=resolved_tags,
+        run_name=run_name,
+    )
+  File "C:\Users\happy\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\mlflow\tracking\client.py", line 633, in create_run
+    return self._tracking_client.create_run(experiment_id, start_time, tags, run_name)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\happy\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\mlflow\telemetry\track.py", line 30, in wrapper
+    result = func(*args, **kwargs)
+  File "C:\Users\happy\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\mlflow\tracking\_tracking_service\client.py", line 185, in create_run
+    return self.store.create_run(
+           ~~~~~~~~~~~~~~~~~~~~~^
+        experiment_id=experiment_id,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<3 lines>...
+        run_name=run_name,
+        ^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\happy\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\mlflow\store\tracking\rest_store.py", line 406, in create_run
+    response_proto = self._call_endpoint(CreateRun, req_body)
+  File "C:\Users\happy\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\mlflow\store\tracking\rest_store.py", line 269, in _call_endpoint
+    return call_endpoint(
+        self.get_host_creds(),
+    ...<4 lines>...
+        retry_timeout_seconds=retry_timeout_seconds,
+    )
+  File "C:\Users\happy\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\mlflow\utils\rest_utils.py", line 673, in call_endpoint
+    response = verify_rest_response(
+        response,
+        endpoint,
+        expected_status=expected_status,
+    )
+  File "C:\Users\happy\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\mlflow\utils\rest_utils.py", line 389, in verify_rest_response
+    raise MlflowException(
+    ...<4 lines>...
+    )
+mlflow.exceptions.MlflowException: API request to endpoint /api/2.0/mlflow/runs/create failed with error code 405 != 200. Response body: '<!doctype html>
+<html lang=en>
+<title>405 Method Not Allowed</title>
+<h1>Method Not Allowed</h1>
+<p>The method is not allowed for the requested URL.</p>
+'

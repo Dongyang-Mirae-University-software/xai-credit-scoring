@@ -18,8 +18,10 @@ from src.data.preprocessor import preprocess, split_data
 from src.models.train import train_all_models_by_data_type
 
 # MLflow 설정 (선택사항)
-# 임시로 비활성화: 인증 정보 없이 로컬에만 저장
-# os.environ['MLFLOW_TRACKING_URI'] = 'http://mlflow.gosky.kr'
+os.environ['MLFLOW_TRACKING_URI'] = 'https://mlflow.gosky.kr'
+os.environ['MLFLOW_TRACKING_USERNAME'] = 'gosky'
+os.environ['MLFLOW_TRACKING_PASSWORD'] = 'gqDAkGZlbr63JUpixDO6yPld'
+os.environ['MLFLOW_EXPERIMENT_NAME'] = 'xai-credit-scoring'
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
