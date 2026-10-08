@@ -177,6 +177,14 @@ def generate_alternative_data(df, target_col="SeriousDlqin2yrs",
     # 생성된 대안 변수와 실제 Target의 상관계수 계산
     _validate_correlations(df_new, target_col)
 
+    # ===== 단계 8: 시뮬레이션 데이터 저장 =====
+    import os
+    output_dir = os.path.join(os.path.dirname(__file__), '..', '..', 'data', 'intermediate')
+    os.makedirs(output_dir, exist_ok=True)
+    output_path = os.path.join(output_dir, '02_simulated.csv')
+    df_new.to_csv(output_path, index=False, encoding='utf-8')
+    logger.info(f"시뮬레이션 데이터 저장: {output_path} ({len(df_new):,} rows)\n")
+
     logger.info(f"대안 데이터 생성 완료\n")
 
     return df_new

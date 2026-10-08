@@ -505,22 +505,15 @@ def train_all_models_by_data_type(X_train, y_train, models_dir='models', version
     mlflow_pass = os.getenv('MLFLOW_TRACKING_PASSWORD')
 
     if mlflow_uri:
-        # MLflow 클라이언트에 자격증명 직접 설정
-        if mlflow_user and mlflow_pass:
-            from mlflow.utils.credentials import MlflowHostCreds
-            from mlflow.tracking._tracking_service import client as tracking_client
-
-            # host_creds 생성
-            host_creds = MlflowHostCreds(
-                host=mlflow_uri,
-                username=mlflow_user,
-                password=mlflow_pass
-            )
-
-            # 글로벌 클라이언트 초기화
-            tracking_client._get_store().get_host_creds = lambda: host_creds
-
         mlflow.set_tracking_uri(mlflow_uri)
+
+        # MLflow HTTP Basic Auth 설정
+        if mlflow_user and mlflow_pass:
+            import base64
+            # requests 세션에 Basic Auth 추가
+            import requests
+            from requests.auth import HTTPBasicAuth
+            requests.Session().auth = HTTPBasicAuth(mlflow_user, mlflow_pass)
 
         try:
             mlflow.set_experiment("xai-credit-scoring")
