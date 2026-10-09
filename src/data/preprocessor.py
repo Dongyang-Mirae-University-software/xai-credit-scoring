@@ -169,4 +169,30 @@ def split_data(df, target_col='SeriousDlqin2yrs',
 
     logger.info(f"\n데이터 분할 완료\n")
 
+    # ===== Train/Val/Test 데이터 저장 =====
+    import os
+    output_dir = os.path.join(os.path.dirname(__file__), '..', '..', 'data', 'splits')
+    os.makedirs(output_dir, exist_ok=True)
+
+    # Train 데이터
+    train_df = X_train.copy()
+    train_df[target_col] = y_train
+    train_path = os.path.join(output_dir, 'train_processed.csv')
+    train_df.to_csv(train_path, index=False, encoding='utf-8')
+    logger.info(f"Train 데이터 저장: {train_path} ({len(train_df):,} rows)")
+
+    # Validation 데이터
+    val_df = X_val.copy()
+    val_df[target_col] = y_val
+    val_path = os.path.join(output_dir, 'val_processed.csv')
+    val_df.to_csv(val_path, index=False, encoding='utf-8')
+    logger.info(f"Val 데이터 저장: {val_path} ({len(val_df):,} rows)")
+
+    # Test 데이터
+    test_df = X_test.copy()
+    test_df[target_col] = y_test
+    test_path = os.path.join(output_dir, 'test_processed.csv')
+    test_df.to_csv(test_path, index=False, encoding='utf-8')
+    logger.info(f"Test 데이터 저장: {test_path} ({len(test_df):,} rows)\n")
+
     return X_train, X_val, X_test, y_train, y_val, y_test
