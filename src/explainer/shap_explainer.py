@@ -68,19 +68,48 @@ def base_value_for_default(explainer):
         return float(base)
 
 
+# 한글이 들어 있는 글꼴 이름 후보 (앞에 있을수록 먼저 고른다)
+KOREAN_FONT_HINTS = ('NanumGothic', 'Noto Sans CJK', 'Noto Sans KR', 'Malgun Gothic',
+                     'AppleGothic', 'Nanum', 'Noto Serif CJK', 'Noto Serif KR')
+_korean_font_ready = False
+
+
+def _label(feature):
+    """그림에 쓸 이름. 한글 글꼴이 있으면 한글 이름, 없으면 네모로 깨지지 않게 영어 코드 이름."""
+    return korean_name(feature) if _korean_font_ready else feature
+
+
 def _korean_frame(X):
-    """그림 축에 한글 이름이 나오도록 칸 이름을 바꾼 복사본."""
-    return X.rename(columns={c: korean_name(c) for c in X.columns})
+    """그림 축 이름을 _label 로 바꾼 복사본."""
+    return X.rename(columns={c: _label(c) for c in X.columns})
+
+
+def _find_korean_font():
+    from matplotlib import font_manager
+    names = sorted({f.name for f in font_manager.fontManager.ttflist})
+    for hint in KOREAN_FONT_HINTS:
+        for name in names:
+            if hint.lower() in name.lower():
+                return name
+    return None
 
 
 def _setup_font():
-    """한글이 깨지지 않게 글꼴을 고른다. 환경 변수 PLOT_FONT 로 바꿀 수 있다."""
+    """한글이 깨지지 않게 글꼴을 고른다. 환경 변수 PLOT_FONT 로 직접 정할 수 있다.
+    한글 글꼴을 찾지 못하면 그림에는 영어 코드 이름을 쓴다."""
+    global _korean_font_ready
+    import logging
     import matplotlib
     matplotlib.use('Agg')
     import matplotlib.pyplot as plt
-    font = os.getenv('PLOT_FONT')
+    font = os.getenv('PLOT_FONT') or _find_korean_font()
     if font:
         plt.rcParams['font.family'] = font
+        _korean_font_ready = True
+    else:
+        _korean_font_ready = False
+        logging.getLogger(__name__).warning(
+            "한글 글꼴을 찾지 못해 그림에 영어 변수 이름을 씁니다 (예: sudo apt install fonts-nanum 후 다시 실행)")
     plt.rcParams['axes.unicode_minus'] = False
     return plt
 
@@ -116,7 +145,7 @@ def save_dependence_plots(shap_values, X, out_dir, features=None, k=2):
     Xk = _korean_frame(X)
     paths = []
     for f in features:
-        shap.dependence_plot(korean_name(f), shap_values, Xk, show=False)
+        shap.dependence_plot(_label(f), shap_values, Xk, show=False)
         p = out_dir / f"dependence_{f}.png"
         plt.tight_layout()
         plt.savefig(p, dpi=150)
@@ -135,7 +164,7 @@ def save_waterfall(explainer, shap_values, X, index, path, max_display=10):
         values=shap_values[index],
         base_values=base_value_for_default(explainer),
         data=X.iloc[index].values,
-        feature_names=[korean_name(c) for c in X.columns],
+        feature_names=[_label(c) for c in X.columns],
     )
     shap.plots.waterfall(explanation, max_display=max_display, show=False)
     plt.tight_layout()
