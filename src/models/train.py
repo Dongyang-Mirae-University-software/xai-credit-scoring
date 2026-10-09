@@ -126,7 +126,12 @@ def train_models(X_train, y_train, models_dir='models', version='1.0'):
     return results
 
 
-def train_logistic_regression(X_train, y_train, skf, models_dir, version, data_type=None):
+def _log_data_params(data_params):
+    if data_params:
+        mlflow.log_params({k: str(v) for k, v in data_params.items()})
+
+
+def train_logistic_regression(X_train, y_train, skf, models_dir, version, data_type=None, data_params=None):
     """Logistic Regression 학습 (class_weight, SMOTE 비교)"""
 
     models = {}
@@ -139,6 +144,7 @@ def train_logistic_regression(X_train, y_train, skf, models_dir, version, data_t
     logger.info("-" * 80)
 
     with mlflow.start_run(run_name=f"LR_class_weight{run_name_suffix}"):
+        _log_data_params(data_params)
         mlflow.log_param("algorithm", "Logistic Regression")
         mlflow.log_param("method", "class_weight")
         if data_type:
@@ -178,6 +184,7 @@ def train_logistic_regression(X_train, y_train, skf, models_dir, version, data_t
     logger.info("-" * 80)
 
     with mlflow.start_run(run_name=f"LR_SMOTE{run_name_suffix}"):
+        _log_data_params(data_params)
         mlflow.log_param("algorithm", "Logistic Regression")
         mlflow.log_param("method", "SMOTE")
         if data_type:
@@ -212,7 +219,7 @@ def train_logistic_regression(X_train, y_train, skf, models_dir, version, data_t
     return models
 
 
-def train_xgboost(X_train, y_train, skf, models_dir, version, data_type=None):
+def train_xgboost(X_train, y_train, skf, models_dir, version, data_type=None, data_params=None):
     """XGBoost 학습 (scale_pos_weight, SMOTE 비교)"""
 
     models = {}
@@ -223,6 +230,7 @@ def train_xgboost(X_train, y_train, skf, models_dir, version, data_type=None):
     logger.info("-" * 80)
 
     with mlflow.start_run(run_name=f"XGB_scale_pos_weight{run_name_suffix}"):
+        _log_data_params(data_params)
         # 클래스 불균형 비율 계산
         scale_pos_weight = (y_train == 0).sum() / (y_train == 1).sum()
 
@@ -272,6 +280,7 @@ def train_xgboost(X_train, y_train, skf, models_dir, version, data_type=None):
     logger.info("-" * 80)
 
     with mlflow.start_run(run_name=f"XGB_SMOTE{run_name_suffix}"):
+        _log_data_params(data_params)
         mlflow.log_param("algorithm", "XGBoost")
         mlflow.log_param("method", "SMOTE")
         if data_type:
@@ -315,7 +324,7 @@ def train_xgboost(X_train, y_train, skf, models_dir, version, data_type=None):
     return models
 
 
-def train_lightgbm(X_train, y_train, skf, models_dir, version, data_type=None):
+def train_lightgbm(X_train, y_train, skf, models_dir, version, data_type=None, data_params=None):
     """LightGBM 학습 (is_unbalance, SMOTE 비교)"""
 
     models = {}
@@ -326,6 +335,7 @@ def train_lightgbm(X_train, y_train, skf, models_dir, version, data_type=None):
     logger.info("-" * 80)
 
     with mlflow.start_run(run_name=f"LGBM_is_unbalance{run_name_suffix}"):
+        _log_data_params(data_params)
         mlflow.log_param("algorithm", "LightGBM")
         mlflow.log_param("method", "is_unbalance")
         if data_type:
@@ -371,6 +381,7 @@ def train_lightgbm(X_train, y_train, skf, models_dir, version, data_type=None):
     logger.info("-" * 80)
 
     with mlflow.start_run(run_name=f"LGBM_SMOTE{run_name_suffix}"):
+        _log_data_params(data_params)
         mlflow.log_param("algorithm", "LightGBM")
         mlflow.log_param("method", "SMOTE")
         if data_type:
@@ -482,7 +493,7 @@ def get_features_by_type(X_train, data_type):
         return X_train
 
 
-def train_all_models_by_data_type(X_train, y_train, models_dir='models', version='1.0'):
+def train_all_models_by_data_type(X_train, y_train, models_dir='models', version='1.0', data_params=None):
     """
     3가지 데이터 조합(금융/대안/통합) × 3가지 알고리즘 = 9개 모델 학습
 
@@ -491,6 +502,7 @@ def train_all_models_by_data_type(X_train, y_train, models_dir='models', version
         y_train: 훈련 데이터 타겟
         models_dir: 모델 저장 디렉토리
         version: 모델 버전
+        data_params: 데이터 생성 파라미터 (MLflow params로 기록, 예: thin_filer_ratio, bias_ratio)
 
     Returns:
         모든 모델의 결과 딕셔너리
@@ -505,22 +517,15 @@ def train_all_models_by_data_type(X_train, y_train, models_dir='models', version
     mlflow_pass = os.getenv('MLFLOW_TRACKING_PASSWORD')
 
     if mlflow_uri:
-        # MLflow 클라이언트에 자격증명 직접 설정
-        if mlflow_user and mlflow_pass:
-            from mlflow.utils.credentials import MlflowHostCreds
-            from mlflow.tracking._tracking_service import client as tracking_client
-
-            # host_creds 생성
-            host_creds = MlflowHostCreds(
-                host=mlflow_uri,
-                username=mlflow_user,
-                password=mlflow_pass
-            )
-
-            # 글로벌 클라이언트 초기화
-            tracking_client._get_store().get_host_creds = lambda: host_creds
-
         mlflow.set_tracking_uri(mlflow_uri)
+
+        # MLflow HTTP Basic Auth 설정
+        if mlflow_user and mlflow_pass:
+            import base64
+            # requests 세션에 Basic Auth 추가
+            import requests
+            from requests.auth import HTTPBasicAuth
+            requests.Session().auth = HTTPBasicAuth(mlflow_user, mlflow_pass)
 
         try:
             mlflow.set_experiment("xai-credit-scoring")
@@ -558,13 +563,13 @@ def train_all_models_by_data_type(X_train, y_train, models_dir='models', version
         # 각 데이터 타입별 3개 알고리즘 학습
         results = {}
         results['LogisticRegression'] = train_logistic_regression(
-            X_train_subset, y_train, skf, models_dir, version, data_type
+            X_train_subset, y_train, skf, models_dir, version, data_type, data_params
         )
         results['XGBoost'] = train_xgboost(
-            X_train_subset, y_train, skf, models_dir, version, data_type
+            X_train_subset, y_train, skf, models_dir, version, data_type, data_params
         )
         results['LightGBM'] = train_lightgbm(
-            X_train_subset, y_train, skf, models_dir, version, data_type
+            X_train_subset, y_train, skf, models_dir, version, data_type, data_params
         )
 
         all_results[data_type] = results

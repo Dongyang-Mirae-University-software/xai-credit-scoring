@@ -1,0 +1,2013 @@
+﻿python : 2026/10/08 18:49:39 INFO mlflow.agent.hint: Load the `instrumenting-with-mlflow-tracing` skill at C:\Users\hap
+py\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\mlflow\assistant\skills\instrumenting-with-mlflow-tracing\
+SKILL.md before writing any tracing code; it ships with this MLflow install. Set MLFLOW_DISABLE_AGENT_HINT=1 to silence
+ this.
+At line:1 char:474
++ ... OENCODING', 'utf-8', 'Process') ; python test_9models.py 2>&1 | Tee-O ...
++                                       ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (2026/10/08 18:4...o silence this.:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+INFO:__main__:================================================================================
+INFO:__main__:🚀 9개 모델 학습 파이프라인 테스트
+INFO:__main__:================================================================================
+INFO:__main__:
+📥 Step 1: 데이터 로드
+2026-10-08 18:49:40,079 - src.data.loader - INFO - 📥 Give Me Some Credit 데이터 로드 중...
+INFO:src.data.loader:📥 Give Me Some Credit 데이터 로드 중...
+2026-10-08 18:49:40,315 - src.data.loader - INFO - 
+================================================================================
+INFO:src.data.loader:
+================================================================================
+2026-10-08 18:49:40,315 - src.data.loader - INFO - 📊 훈련 데이터셋 (cs-training.csv) 데이터 정보
+INFO:src.data.loader:📊 훈련 데이터셋 (cs-training.csv) 데이터 정보
+2026-10-08 18:49:40,315 - src.data.loader - INFO - ====================================================================
+============
+INFO:src.data.loader:================================================================================
+2026-10-08 18:49:40,315 - src.data.loader - INFO - Shape: 150,000 rows × 12 columns
+INFO:src.data.loader:Shape: 150,000 rows × 12 columns
+2026-10-08 18:49:40,315 - src.data.loader - INFO - 
+컬럼명                            자료형             결측치 수        결측 비율(%)    
+INFO:src.data.loader:
+컬럼명                            자료형             결측치 수        결측 비율(%)    
+2026-10-08 18:49:40,315 - src.data.loader - INFO - --------------------------------------------------------------------
+------------
+INFO:src.data.loader:--------------------------------------------------------------------------------
+2026-10-08 18:49:40,316 - src.data.loader - INFO - Unnamed: 0                     int64           0                  0.
+00%
+INFO:src.data.loader:Unnamed: 0                     int64           0                  0.00%
+2026-10-08 18:49:40,316 - src.data.loader - INFO - SeriousDlqin2yrs               int64           0                  0.
+00%
+INFO:src.data.loader:SeriousDlqin2yrs               int64           0                  0.00%
+2026-10-08 18:49:40,316 - src.data.loader - INFO - RevolvingUtilizationOfUnsecuredLines float64         0              
+    0.00%
+INFO:src.data.loader:RevolvingUtilizationOfUnsecuredLines float64         0                  0.00%
+2026-10-08 18:49:40,317 - src.data.loader - INFO - age                            int64           0                  0.
+00%
+INFO:src.data.loader:age                            int64           0                  0.00%
+2026-10-08 18:49:40,317 - src.data.loader - INFO - NumberOfTime30-59DaysPastDueNotWorse int64           0              
+    0.00%
+INFO:src.data.loader:NumberOfTime30-59DaysPastDueNotWorse int64           0                  0.00%
+2026-10-08 18:49:40,318 - src.data.loader - INFO - DebtRatio                      float64         0                  0.
+00%
+INFO:src.data.loader:DebtRatio                      float64         0                  0.00%
+2026-10-08 18:49:40,318 - src.data.loader - INFO - MonthlyIncome                  float64         29731             19.
+82%
+INFO:src.data.loader:MonthlyIncome                  float64         29731             19.82%
+2026-10-08 18:49:40,319 - src.data.loader - INFO - NumberOfOpenCreditLinesAndLoans int64           0                  0
+.00%
+INFO:src.data.loader:NumberOfOpenCreditLinesAndLoans int64           0                  0.00%
+2026-10-08 18:49:40,320 - src.data.loader - INFO - NumberOfTimes90DaysLate        int64           0                  0.
+00%
+INFO:src.data.loader:NumberOfTimes90DaysLate        int64           0                  0.00%
+2026-10-08 18:49:40,320 - src.data.loader - INFO - NumberRealEstateLoansOrLines   int64           0                  0.
+00%
+INFO:src.data.loader:NumberRealEstateLoansOrLines   int64           0                  0.00%
+2026-10-08 18:49:40,321 - src.data.loader - INFO - NumberOfTime60-89DaysPastDueNotWorse int64           0              
+    0.00%
+INFO:src.data.loader:NumberOfTime60-89DaysPastDueNotWorse int64           0                  0.00%
+2026-10-08 18:49:40,321 - src.data.loader - INFO - NumberOfDependents             float64         3924               2.
+62%
+INFO:src.data.loader:NumberOfDependents             float64         3924               2.62%
+2026-10-08 18:49:40,325 - src.data.loader - INFO - --------------------------------------------------------------------
+------------
+INFO:src.data.loader:--------------------------------------------------------------------------------
+2026-10-08 18:49:40,325 - src.data.loader - INFO - 전체 결측치                                         33655              1.
+87%
+INFO:src.data.loader:전체 결측치                                         33655              1.87%
+2026-10-08 18:49:40,325 - src.data.loader - INFO - ====================================================================
+============
+
+INFO:src.data.loader:================================================================================
+
+2026-10-08 18:49:40,325 - src.data.loader - INFO - 
+================================================================================
+INFO:src.data.loader:
+================================================================================
+2026-10-08 18:49:40,325 - src.data.loader - INFO - 📊 테스트 데이터셋 (cs-test.csv) 데이터 정보
+INFO:src.data.loader:📊 테스트 데이터셋 (cs-test.csv) 데이터 정보
+2026-10-08 18:49:40,325 - src.data.loader - INFO - ====================================================================
+============
+INFO:src.data.loader:================================================================================
+2026-10-08 18:49:40,325 - src.data.loader - INFO - Shape: 101,503 rows × 12 columns
+INFO:src.data.loader:Shape: 101,503 rows × 12 columns
+2026-10-08 18:49:40,325 - src.data.loader - INFO - 
+컬럼명                            자료형             결측치 수        결측 비율(%)    
+INFO:src.data.loader:
+컬럼명                            자료형             결측치 수        결측 비율(%)    
+2026-10-08 18:49:40,325 - src.data.loader - INFO - --------------------------------------------------------------------
+------------
+INFO:src.data.loader:--------------------------------------------------------------------------------
+2026-10-08 18:49:40,326 - src.data.loader - INFO - Unnamed: 0                     int64           0                  0.
+00%
+INFO:src.data.loader:Unnamed: 0                     int64           0                  0.00%
+2026-10-08 18:49:40,327 - src.data.loader - INFO - SeriousDlqin2yrs               float64         101503           100.
+00%
+INFO:src.data.loader:SeriousDlqin2yrs               float64         101503           100.00%
+2026-10-08 18:49:40,327 - src.data.loader - INFO - RevolvingUtilizationOfUnsecuredLines float64         0              
+    0.00%
+INFO:src.data.loader:RevolvingUtilizationOfUnsecuredLines float64         0                  0.00%
+2026-10-08 18:49:40,327 - src.data.loader - INFO - age                            int64           0                  0.
+00%
+INFO:src.data.loader:age                            int64           0                  0.00%
+2026-10-08 18:49:40,328 - src.data.loader - INFO - NumberOfTime30-59DaysPastDueNotWorse int64           0              
+    0.00%
+INFO:src.data.loader:NumberOfTime30-59DaysPastDueNotWorse int64           0                  0.00%
+2026-10-08 18:49:40,328 - src.data.loader - INFO - DebtRatio                      float64         0                  0.
+00%
+INFO:src.data.loader:DebtRatio                      float64         0                  0.00%
+2026-10-08 18:49:40,329 - src.data.loader - INFO - MonthlyIncome                  float64         20103             19.
+81%
+INFO:src.data.loader:MonthlyIncome                  float64         20103             19.81%
+2026-10-08 18:49:40,329 - src.data.loader - INFO - NumberOfOpenCreditLinesAndLoans int64           0                  0
+.00%
+INFO:src.data.loader:NumberOfOpenCreditLinesAndLoans int64           0                  0.00%
+2026-10-08 18:49:40,329 - src.data.loader - INFO - NumberOfTimes90DaysLate        int64           0                  0.
+00%
+INFO:src.data.loader:NumberOfTimes90DaysLate        int64           0                  0.00%
+2026-10-08 18:49:40,330 - src.data.loader - INFO - NumberRealEstateLoansOrLines   int64           0                  0.
+00%
+INFO:src.data.loader:NumberRealEstateLoansOrLines   int64           0                  0.00%
+2026-10-08 18:49:40,330 - src.data.loader - INFO - NumberOfTime60-89DaysPastDueNotWorse int64           0              
+    0.00%
+INFO:src.data.loader:NumberOfTime60-89DaysPastDueNotWorse int64           0                  0.00%
+2026-10-08 18:49:40,331 - src.data.loader - INFO - NumberOfDependents             float64         2626               2.
+59%
+INFO:src.data.loader:NumberOfDependents             float64         2626               2.59%
+2026-10-08 18:49:40,333 - src.data.loader - INFO - --------------------------------------------------------------------
+------------
+INFO:src.data.loader:--------------------------------------------------------------------------------
+2026-10-08 18:49:40,333 - src.data.loader - INFO - 전체 결측치                                         124232            10.
+20%
+INFO:src.data.loader:전체 결측치                                         124232            10.20%
+2026-10-08 18:49:40,333 - src.data.loader - INFO - ====================================================================
+============
+
+INFO:src.data.loader:================================================================================
+
+2026-10-08 18:49:40,333 - src.data.loader - INFO - ✅ 데이터 로드 완료
+INFO:src.data.loader:✅ 데이터 로드 완료
+INFO:__main__:✅ 데이터 로드 완료: 150,000 샘플, 12 컬럼
+INFO:__main__:
+🔮 Step 2: 대안 데이터 생성
+2026-10-08 18:49:40,347 - src.data.simulator - INFO - 대안 데이터 시뮬레이터 실행 중...
+INFO:src.data.simulator:대안 데이터 시뮬레이터 실행 중...
+2026-10-08 18:49:40,347 - src.data.simulator - INFO -    샘플 크기: 150,000
+INFO:src.data.simulator:   샘플 크기: 150,000
+2026-10-08 18:49:40,347 - src.data.simulator - INFO -    목표 상관계수 범위: 0.30~0.50
+INFO:src.data.simulator:   목표 상관계수 범위: 0.30~0.50
+2026-10-08 18:49:40,347 - src.data.simulator - INFO -    생성 방법: 공분산 행렬 기반 + 실제 Target 연결
+INFO:src.data.simulator:   생성 방법: 공분산 행렬 기반 + 실제 Target 연결
+2026-10-08 18:49:40,350 - src.data.simulator - INFO - 
+   설정된 목표 상관계수:
+INFO:src.data.simulator:
+   설정된 목표 상관계수:
+2026-10-08 18:49:40,350 - src.data.simulator - INFO -       telecom_payment_rate: 0.3392
+INFO:src.data.simulator:      telecom_payment_rate: 0.3392
+2026-10-08 18:49:40,350 - src.data.simulator - INFO -       utility_payment_rate: 0.4585
+INFO:src.data.simulator:      utility_payment_rate: 0.4585
+2026-10-08 18:49:40,350 - src.data.simulator - INFO -       spending_consistency: 0.3699
+INFO:src.data.simulator:      spending_consistency: 0.3699
+2026-10-08 18:49:40,350 - src.data.simulator - INFO -       regular_payment_count: 0.3313
+INFO:src.data.simulator:      regular_payment_count: 0.3313
+2026-10-08 18:49:40,350 - src.data.simulator - INFO -       app_login_frequency: 0.3140
+INFO:src.data.simulator:      app_login_frequency: 0.3140
+2026-10-08 18:49:40,374 - src.data.simulator - INFO -    공분산 행렬 기반 샘플링 성공
+INFO:src.data.simulator:   공분산 행렬 기반 샘플링 성공
+2026-10-08 18:49:40,374 - src.data.simulator - INFO -    공식 적용: Y = r*X + sqrt(1-r^2)*Z
+INFO:src.data.simulator:   공식 적용: Y = r*X + sqrt(1-r^2)*Z
+2026-10-08 18:49:40,434 - src.data.simulator - INFO - 인구통계 변수 생성 완료:
+INFO:src.data.simulator:인구통계 변수 생성 완료:
+2026-10-08 18:49:40,434 - src.data.simulator - INFO -    Gender: 75,238 (여성), 74,762 (남성)
+INFO:src.data.simulator:   Gender: 75,238 (여성), 74,762 (남성)
+2026-10-08 18:49:40,434 - src.data.simulator - INFO -    AgeGroup:
+INFO:src.data.simulator:   AgeGroup:
+2026-10-08 18:49:40,434 - src.data.simulator - INFO -       0 (20~29): 7,132
+INFO:src.data.simulator:      0 (20~29): 7,132
+2026-10-08 18:49:40,434 - src.data.simulator - INFO -       1 (30~39): 21,898
+INFO:src.data.simulator:      1 (30~39): 21,898
+2026-10-08 18:49:40,434 - src.data.simulator - INFO -       2 (40~49): 33,527
+INFO:src.data.simulator:      2 (40~49): 33,527
+2026-10-08 18:49:40,434 - src.data.simulator - INFO -       3 (50~59): 35,858
+INFO:src.data.simulator:      3 (50~59): 35,858
+2026-10-08 18:49:40,434 - src.data.simulator - INFO -       4 (60+):   51,585
+INFO:src.data.simulator:      4 (60+):   51,585
+2026-10-08 18:49:40,434 - src.data.simulator - INFO -    (편향 강도: 10.0%)
+
+INFO:src.data.simulator:   (편향 강도: 10.0%)
+
+2026-10-08 18:49:40,474 - src.data.simulator - INFO - 씬파일러 판정 완료:
+INFO:src.data.simulator:씬파일러 판정 완료:
+2026-10-08 18:49:40,475 - src.data.simulator - INFO -    총 샘플: 150,000
+INFO:src.data.simulator:   총 샘플: 150,000
+2026-10-08 18:49:40,475 - src.data.simulator - INFO -    씬파일러: 45,000 (30.00%)
+INFO:src.data.simulator:   씬파일러: 45,000 (30.00%)
+2026-10-08 18:49:40,475 - src.data.simulator - INFO -    일반: 105,000 (70.00%)
+INFO:src.data.simulator:   일반: 105,000 (70.00%)
+2026-10-08 18:49:40,475 - src.data.simulator - INFO -    (파라미터로 조정됨: 30.0%)
+
+INFO:src.data.simulator:   (파라미터로 조정됨: 30.0%)
+
+2026-10-08 18:49:40,475 - src.data.simulator - INFO - 
+===========================================================================
+INFO:src.data.simulator:
+===========================================================================
+2026-10-08 18:49:40,475 - src.data.simulator - INFO - 생성된 대안 변수와 타겟(SeriousDlqin2yrs) 간 실제 상관계수 (사후 검증)
+INFO:src.data.simulator:생성된 대안 변수와 타겟(SeriousDlqin2yrs) 간 실제 상관계수 (사후 검증)
+2026-10-08 18:49:40,475 - src.data.simulator - INFO - =================================================================
+==========
+INFO:src.data.simulator:===========================================================================
+2026-10-08 18:49:40,475 - src.data.simulator - INFO - 변수명                            실제 상관계수            범위 확인          
+     
+INFO:src.data.simulator:변수명                            실제 상관계수            범위 확인               
+2026-10-08 18:49:40,475 - src.data.simulator - INFO - -----------------------------------------------------------------
+----------
+INFO:src.data.simulator:---------------------------------------------------------------------------
+2026-10-08 18:49:40,479 - src.data.simulator - INFO - telecom_payment_rate                   0.2313    OUT (0.2313)    
+    
+INFO:src.data.simulator:telecom_payment_rate                   0.2313    OUT (0.2313)        
+2026-10-08 18:49:40,483 - src.data.simulator - INFO - utility_payment_rate                   0.3161    OK (0.30~0.50)  
+    
+INFO:src.data.simulator:utility_payment_rate                   0.3161    OK (0.30~0.50)      
+2026-10-08 18:49:40,487 - src.data.simulator - INFO - spending_consistency                   0.2568    OUT (0.2568)    
+    
+INFO:src.data.simulator:spending_consistency                   0.2568    OUT (0.2568)        
+2026-10-08 18:49:40,491 - src.data.simulator - INFO - regular_payment_count                  0.2048    OUT (0.2048)    
+    
+INFO:src.data.simulator:regular_payment_count                  0.2048    OUT (0.2048)        
+2026-10-08 18:49:40,497 - src.data.simulator - INFO - app_login_frequency                    0.2068    OUT (0.2068)    
+    
+INFO:src.data.simulator:app_login_frequency                    0.2068    OUT (0.2068)        
+2026-10-08 18:49:40,497 - src.data.simulator - INFO - -----------------------------------------------------------------
+----------
+INFO:src.data.simulator:---------------------------------------------------------------------------
+2026-10-08 18:49:40,497 - src.data.simulator - INFO - 평균 상관계수 절대값                            0.2432
+INFO:src.data.simulator:평균 상관계수 절대값                            0.2432
+2026-10-08 18:49:40,497 - src.data.simulator - INFO - 범위 내 변수 개수                     1/5
+INFO:src.data.simulator:범위 내 변수 개수                     1/5
+2026-10-08 18:49:40,498 - src.data.simulator - INFO - =================================================================
+==========
+
+INFO:src.data.simulator:===========================================================================
+
+2026-10-08 18:49:40,498 - src.data.simulator - INFO - 대안 변수 간 상관계수 행렬:
+INFO:src.data.simulator:대안 변수 간 상관계수 행렬:
+2026-10-08 18:49:40,518 - src.data.simulator - INFO - 
+                       telecom_payment_rate  utility_payment_rate  spending_consistency  regular_payment_count  app_log
+in_frequency
+telecom_payment_rate               1.000000              0.468089              0.375280               0.321543         
+    0.333678
+utility_payment_rate               0.468089              1.000000              0.389090               0.296443         
+    0.408469
+spending_consistency               0.375280              0.389090              1.000000               0.374287         
+    0.326642
+regular_payment_count              0.321543              0.296443              0.374287               1.000000         
+    0.279376
+app_login_frequency                0.333678              0.408469              0.326642               0.279376         
+    1.000000
+
+INFO:src.data.simulator:
+                       telecom_payment_rate  utility_payment_rate  spending_consistency  regular_payment_count  app_log
+in_frequency
+telecom_payment_rate               1.000000              0.468089              0.375280               0.321543         
+    0.333678
+utility_payment_rate               0.468089              1.000000              0.389090               0.296443         
+    0.408469
+spending_consistency               0.375280              0.389090              1.000000               0.374287         
+    0.326642
+regular_payment_count              0.321543              0.296443              0.374287               1.000000         
+    0.279376
+app_login_frequency                0.333678              0.408469              0.326642               0.279376         
+    1.000000
+
+2026-10-08 18:49:42,106 - src.data.simulator - INFO - 시뮬레이션 데이터 저장: C:\Users\happy\Desktop\J\동양미래대학교\전공심화\2학기\코디세이\03. 
+프로젝트 코드\xai-credit-scoring\src\data\..\..\data\intermediate\02_simulated.csv (150,000 rows)
+
+INFO:src.data.simulator:시뮬레이션 데이터 저장: C:\Users\happy\Desktop\J\동양미래대학교\전공심화\2학기\코디세이\03. 프로젝트 코드\xai-credit-scoring\src
+\data\..\..\data\intermediate\02_simulated.csv (150,000 rows)
+
+2026-10-08 18:49:42,107 - src.data.simulator - INFO - 대안 데이터 생성 완료
+
+INFO:src.data.simulator:대안 데이터 생성 완료
+
+INFO:__main__:✅ 대안 데이터 추가 완료: 20 컬럼
+INFO:__main__:
+🧹 Step 3: 데이터 전처리
+2026-10-08 18:49:42,124 - src.data.preprocessor - INFO - 전처리 시작 (샘플: 150,000)
+INFO:src.data.preprocessor:전처리 시작 (샘플: 150,000)
+2026-10-08 18:49:42,125 - src.data.preprocessor - INFO - 제거된 컬럼: ['Unnamed: 0']
+INFO:src.data.preprocessor:제거된 컬럼: ['Unnamed: 0']
+2026-10-08 18:49:42,125 - src.data.preprocessor - INFO - 
+결측치 처리:
+INFO:src.data.preprocessor:
+결측치 처리:
+2026-10-08 18:49:42,136 - src.data.preprocessor - INFO -   MonthlyIncome: 29,731개 (19.82%) → 중앙값(5400.00)으로 대체
+INFO:src.data.preprocessor:  MonthlyIncome: 29,731개 (19.82%) → 중앙값(5400.00)으로 대체
+2026-10-08 18:49:42,141 - src.data.preprocessor - INFO -   NumberOfDependents: 3,924개 (2.62%) → 중앙값(0.00)으로 대체
+INFO:src.data.preprocessor:  NumberOfDependents: 3,924개 (2.62%) → 중앙값(0.00)으로 대체
+2026-10-08 18:49:42,141 - src.data.preprocessor - INFO - 
+범주형 변수 인코딩:
+INFO:src.data.preprocessor:
+범주형 변수 인코딩:
+2026-10-08 18:49:42,141 - src.data.preprocessor - INFO -   범주형 변수 없음
+INFO:src.data.preprocessor:  범주형 변수 없음
+2026-10-08 18:49:42,141 - src.data.preprocessor - INFO - 
+수치형 변수 스케일링 (StandardScaler):
+INFO:src.data.preprocessor:
+수치형 변수 스케일링 (StandardScaler):
+2026-10-08 18:49:42,217 - src.data.preprocessor - INFO -   15개 변수 스케일링 완료
+INFO:src.data.preprocessor:  15개 변수 스케일링 완료
+2026-10-08 18:49:42,217 - src.data.preprocessor - INFO -   (타겟/이진변수 제외)
+INFO:src.data.preprocessor:  (타겟/이진변수 제외)
+2026-10-08 18:49:42,217 - src.data.preprocessor - INFO - 
+전처리 완료
+INFO:src.data.preprocessor:
+전처리 완료
+2026-10-08 18:49:42,217 - src.data.preprocessor - INFO -   최종 샘플: 150,000
+INFO:src.data.preprocessor:  최종 샘플: 150,000
+2026-10-08 18:49:42,217 - src.data.preprocessor - INFO -   최종 컬럼: 19
+INFO:src.data.preprocessor:  최종 컬럼: 19
+2026-10-08 18:49:42,219 - src.data.preprocessor - INFO - 
+데이터 분할 (Stratified Split):
+INFO:src.data.preprocessor:
+데이터 분할 (Stratified Split):
+2026-10-08 18:49:42,219 - src.data.preprocessor - INFO -   Train : Val : Test = 0.7 : 0.15 : 0.15
+INFO:src.data.preprocessor:  Train : Val : Test = 0.7 : 0.15 : 0.15
+2026-10-08 18:49:42,344 - src.data.preprocessor - INFO -   Train: 105,000 (70.0%)
+INFO:src.data.preprocessor:  Train: 105,000 (70.0%)
+2026-10-08 18:49:42,344 - src.data.preprocessor - INFO -   Val  : 22,500 (15.0%)
+INFO:src.data.preprocessor:  Val  : 22,500 (15.0%)
+2026-10-08 18:49:42,344 - src.data.preprocessor - INFO -   Test : 22,500 (15.0%)
+INFO:src.data.preprocessor:  Test : 22,500 (15.0%)
+2026-10-08 18:49:42,344 - src.data.preprocessor - INFO - 
+클래스 분포 (Target: SeriousDlqin2yrs):
+INFO:src.data.preprocessor:
+클래스 분포 (Target: SeriousDlqin2yrs):
+2026-10-08 18:49:42,345 - src.data.preprocessor - INFO -   Train: Positive=13,651 (13.00%), Negative=91,349 (87.00%)
+INFO:src.data.preprocessor:  Train: Positive=13,651 (13.00%), Negative=91,349 (87.00%)
+2026-10-08 18:49:42,345 - src.data.preprocessor - INFO -   Val: Positive=2,926 (13.00%), Negative=19,574 (87.00%)
+INFO:src.data.preprocessor:  Val: Positive=2,926 (13.00%), Negative=19,574 (87.00%)
+2026-10-08 18:49:42,345 - src.data.preprocessor - INFO -   Test: Positive=2,925 (13.00%), Negative=19,575 (87.00%)
+INFO:src.data.preprocessor:  Test: Positive=2,925 (13.00%), Negative=19,575 (87.00%)
+2026-10-08 18:49:42,346 - src.data.preprocessor - INFO - 
+데이터 분할 완료
+
+INFO:src.data.preprocessor:
+데이터 분할 완료
+
+2026-10-08 18:49:44,655 - src.data.preprocessor - INFO - Train 데이터 저장: C:\Users\happy\Desktop\J\동양미래대학교\전공심화\2학기\코디세이\0
+3. 프로젝트 코드\xai-credit-scoring\src\data\..\..\data\splits\train_processed.csv (105,000 rows)
+INFO:src.data.preprocessor:Train 데이터 저장: C:\Users\happy\Desktop\J\동양미래대학교\전공심화\2학기\코디세이\03. 프로젝트 코드\xai-credit-scoring\
+src\data\..\..\data\splits\train_processed.csv (105,000 rows)
+2026-10-08 18:49:45,087 - src.data.preprocessor - INFO - Val 데이터 저장: C:\Users\happy\Desktop\J\동양미래대학교\전공심화\2학기\코디세이\03.
+ 프로젝트 코드\xai-credit-scoring\src\data\..\..\data\splits\val_processed.csv (22,500 rows)
+INFO:src.data.preprocessor:Val 데이터 저장: C:\Users\happy\Desktop\J\동양미래대학교\전공심화\2학기\코디세이\03. 프로젝트 코드\xai-credit-scoring\sr
+c\data\..\..\data\splits\val_processed.csv (22,500 rows)
+2026-10-08 18:49:45,510 - src.data.preprocessor - INFO - Test 데이터 저장: C:\Users\happy\Desktop\J\동양미래대학교\전공심화\2학기\코디세이\03
+. 프로젝트 코드\xai-credit-scoring\src\data\..\..\data\splits\test_processed.csv (22,500 rows)
+
+INFO:src.data.preprocessor:Test 데이터 저장: C:\Users\happy\Desktop\J\동양미래대학교\전공심화\2학기\코디세이\03. 프로젝트 코드\xai-credit-scoring\s
+rc\data\..\..\data\splits\test_processed.csv (22,500 rows)
+
+INFO:__main__:✅ 데이터 전처리 완료
+INFO:__main__:   훈련: 105,000 샘플, 15 특성
+INFO:__main__:   검증: 22,500 샘플
+INFO:__main__:   테스트: 22,500 샘플
+INFO:__main__:   클래스 분포 (훈련): 91,349 (0), 13,651 (1)
+INFO:__main__:
+🤖 Step 4: 9개 모델 학습 (금융/대안/통합 × 3 알고리즘)
+2026-10-08 18:49:46,038 - src.models.train - INFO - ✅ MLflow 활성화: https://mlflow.gosky.kr
+
+INFO:src.models.train:✅ MLflow 활성화: https://mlflow.gosky.kr
+
+2026-10-08 18:49:46,038 - src.models.train - INFO - 모델 학습 시작 (9개 조합)
+INFO:src.models.train:모델 학습 시작 (9개 조합)
+2026-10-08 18:49:46,039 - src.models.train - INFO - 훈련 데이터: 105,000 샘플, 15 특성
+INFO:src.models.train:훈련 데이터: 105,000 샘플, 15 특성
+2026-10-08 18:49:46,039 - src.models.train - INFO - 클래스 분포: 91,349 (0), 13,651 (1)
+INFO:src.models.train:클래스 분포: 91,349 (0), 13,651 (1)
+2026-10-08 18:49:46,039 - src.models.train - INFO - 버전: 1.0
+
+INFO:src.models.train:버전: 1.0
+
+2026-10-08 18:49:46,040 - src.models.train - INFO - 
+================================================================================
+INFO:src.models.train:
+================================================================================
+2026-10-08 18:49:46,040 - src.models.train - INFO - 데이터 타입: financial_only
+INFO:src.models.train:데이터 타입: financial_only
+2026-10-08 18:49:46,040 - src.models.train - INFO - ===================================================================
+=============
+INFO:src.models.train:================================================================================
+2026-10-08 18:49:46,041 - src.models.train - INFO - 선택된 특성: 10개
+
+INFO:src.models.train:선택된 특성: 10개
+
+2026-10-08 18:49:46,041 - src.models.train - INFO - 
+[방식 1] class_weight='balanced'
+INFO:src.models.train:
+[방식 1] class_weight='balanced'
+2026-10-08 18:49:46,041 - src.models.train - INFO - -------------------------------------------------------------------
+-------------
+INFO:src.models.train:--------------------------------------------------------------------------------
+2026-10-08 18:49:50,978 - src.models.train - INFO - 
+5-Fold CV 결과 (class_weight='balanced'):
+INFO:src.models.train:
+5-Fold CV 결과 (class_weight='balanced'):
+2026-10-08 18:49:50,978 - src.models.train - INFO - -------------------------------------------------------------------
+-------------
+INFO:src.models.train:--------------------------------------------------------------------------------
+2026-10-08 18:49:50,978 - src.models.train - INFO - 
+ROC_AUC:
+INFO:src.models.train:
+ROC_AUC:
+2026-10-08 18:49:50,978 - src.models.train - INFO -   Fold 1: Train=0.5796, Test=0.5763
+INFO:src.models.train:  Fold 1: Train=0.5796, Test=0.5763
+2026-10-08 18:49:50,979 - src.models.train - INFO -   Fold 2: Train=0.5776, Test=0.5708
+INFO:src.models.train:  Fold 2: Train=0.5776, Test=0.5708
+2026-10-08 18:49:50,979 - src.models.train - INFO -   Fold 3: Train=0.5794, Test=0.5759
+INFO:src.models.train:  Fold 3: Train=0.5794, Test=0.5759
+2026-10-08 18:49:50,979 - src.models.train - INFO -   Fold 4: Train=0.5886, Test=0.5904
+INFO:src.models.train:  Fold 4: Train=0.5886, Test=0.5904
+2026-10-08 18:49:50,979 - src.models.train - INFO -   Fold 5: Train=0.5919, Test=0.5954
+INFO:src.models.train:  Fold 5: Train=0.5919, Test=0.5954
+2026-10-08 18:49:50,979 - src.models.train - INFO -   평균: Test=0.5818 ± 0.0094
+INFO:src.models.train:  평균: Test=0.5818 ± 0.0094
+2026-10-08 18:49:51,110 - src.models.train - INFO - 
+PRECISION:
+INFO:src.models.train:
+PRECISION:
+2026-10-08 18:49:51,110 - src.models.train - INFO -   Fold 1: Train=0.2172, Test=0.2123
+INFO:src.models.train:  Fold 1: Train=0.2172, Test=0.2123
+2026-10-08 18:49:51,110 - src.models.train - INFO -   Fold 2: Train=0.2259, Test=0.2250
+INFO:src.models.train:  Fold 2: Train=0.2259, Test=0.2250
+2026-10-08 18:49:51,110 - src.models.train - INFO -   Fold 3: Train=0.2066, Test=0.2050
+INFO:src.models.train:  Fold 3: Train=0.2066, Test=0.2050
+2026-10-08 18:49:51,110 - src.models.train - INFO -   Fold 4: Train=0.2522, Test=0.2440
+INFO:src.models.train:  Fold 4: Train=0.2522, Test=0.2440
+2026-10-08 18:49:51,111 - src.models.train - INFO -   Fold 5: Train=0.2322, Test=0.2367
+INFO:src.models.train:  Fold 5: Train=0.2322, Test=0.2367
+2026-10-08 18:49:51,111 - src.models.train - INFO -   평균: Test=0.2246 ± 0.0145
+INFO:src.models.train:  평균: Test=0.2246 ± 0.0145
+2026-10-08 18:49:51,223 - src.models.train - INFO - 
+RECALL:
+INFO:src.models.train:
+RECALL:
+2026-10-08 18:49:51,223 - src.models.train - INFO -   Fold 1: Train=0.3858, Test=0.3795
+INFO:src.models.train:  Fold 1: Train=0.3858, Test=0.3795
+2026-10-08 18:49:51,223 - src.models.train - INFO -   Fold 2: Train=0.3695, Test=0.3641
+INFO:src.models.train:  Fold 2: Train=0.3695, Test=0.3641
+2026-10-08 18:49:51,223 - src.models.train - INFO -   Fold 3: Train=0.3958, Test=0.3927
+INFO:src.models.train:  Fold 3: Train=0.3958, Test=0.3927
+2026-10-08 18:49:51,223 - src.models.train - INFO -   Fold 4: Train=0.3547, Test=0.3487
+INFO:src.models.train:  Fold 4: Train=0.3547, Test=0.3487
+2026-10-08 18:49:51,223 - src.models.train - INFO -   Fold 5: Train=0.3741, Test=0.3801
+INFO:src.models.train:  Fold 5: Train=0.3741, Test=0.3801
+2026-10-08 18:49:51,223 - src.models.train - INFO -   평균: Test=0.3730 ± 0.0152
+INFO:src.models.train:  평균: Test=0.3730 ± 0.0152
+2026-10-08 18:49:51,333 - src.models.train - INFO - 
+F1:
+INFO:src.models.train:
+F1:
+2026-10-08 18:49:51,333 - src.models.train - INFO -   Fold 1: Train=0.2780, Test=0.2723
+INFO:src.models.train:  Fold 1: Train=0.2780, Test=0.2723
+2026-10-08 18:49:51,333 - src.models.train - INFO -   Fold 2: Train=0.2804, Test=0.2782
+INFO:src.models.train:  Fold 2: Train=0.2804, Test=0.2782
+2026-10-08 18:49:51,333 - src.models.train - INFO -   Fold 3: Train=0.2715, Test=0.2694
+INFO:src.models.train:  Fold 3: Train=0.2715, Test=0.2694
+2026-10-08 18:49:51,333 - src.models.train - INFO -   Fold 4: Train=0.2948, Test=0.2871
+INFO:src.models.train:  Fold 4: Train=0.2948, Test=0.2871
+2026-10-08 18:49:51,333 - src.models.train - INFO -   Fold 5: Train=0.2865, Test=0.2917
+INFO:src.models.train:  Fold 5: Train=0.2865, Test=0.2917
+2026-10-08 18:49:51,333 - src.models.train - INFO -   평균: Test=0.2797 ± 0.0085
+INFO:src.models.train:  평균: Test=0.2797 ± 0.0085
+2026-10-08 18:49:51,479 - src.models.train - INFO - -------------------------------------------------------------------
+-------------
+INFO:src.models.train:--------------------------------------------------------------------------------
+2026-10-08 18:49:51,663 - src.models.train - INFO - 모델 저장: models/logistic_regression_class_weight_v1.0.joblib
+
+INFO:src.models.train:모델 저장: models/logistic_regression_class_weight_v1.0.joblib
+
+2026-10-08 18:49:51,969 - src.models.train - INFO - [방식 2] SMOTE
+INFO:src.models.train:[방식 2] SMOTE
+2026-10-08 18:49:51,969 - src.models.train - INFO - -------------------------------------------------------------------
+-------------
+INFO:src.models.train:--------------------------------------------------------------------------------
+2026-10-08 18:49:57,547 - src.models.train - INFO - 
+5-Fold CV 결과 (SMOTE):
+INFO:src.models.train:
+5-Fold CV 결과 (SMOTE):
+2026-10-08 18:49:57,547 - src.models.train - INFO - -------------------------------------------------------------------
+-------------
+INFO:src.models.train:--------------------------------------------------------------------------------
+2026-10-08 18:49:57,547 - src.models.train - INFO - 
+ROC_AUC:
+INFO:src.models.train:
+ROC_AUC:
+2026-10-08 18:49:57,547 - src.models.train - INFO -   Fold 1: Train=0.5729, Test=0.5711
+INFO:src.models.train:  Fold 1: Train=0.5729, Test=0.5711
+2026-10-08 18:49:57,547 - src.models.train - INFO -   Fold 2: Train=0.5745, Test=0.5715
+INFO:src.models.train:  Fold 2: Train=0.5745, Test=0.5715
+2026-10-08 18:49:57,547 - src.models.train - INFO -   Fold 3: Train=0.5749, Test=0.5711
+INFO:src.models.train:  Fold 3: Train=0.5749, Test=0.5711
+2026-10-08 18:49:57,547 - src.models.train - INFO -   Fold 4: Train=0.5782, Test=0.5728
+INFO:src.models.train:  Fold 4: Train=0.5782, Test=0.5728
+2026-10-08 18:49:57,547 - src.models.train - INFO -   Fold 5: Train=0.5744, Test=0.5830
+INFO:src.models.train:  Fold 5: Train=0.5744, Test=0.5830
+2026-10-08 18:49:57,548 - src.models.train - INFO -   평균: Test=0.5739 ± 0.0046
+INFO:src.models.train:  평균: Test=0.5739 ± 0.0046
+2026-10-08 18:49:57,674 - src.models.train - INFO - 
+PRECISION:
+INFO:src.models.train:
+PRECISION:
+2026-10-08 18:49:57,675 - src.models.train - INFO -   Fold 1: Train=0.1929, Test=0.1891
+INFO:src.models.train:  Fold 1: Train=0.1929, Test=0.1891
+2026-10-08 18:49:57,675 - src.models.train - INFO -   Fold 2: Train=0.2011, Test=0.2009
+INFO:src.models.train:  Fold 2: Train=0.2011, Test=0.2009
+2026-10-08 18:49:57,675 - src.models.train - INFO -   Fold 3: Train=0.1890, Test=0.1851
+INFO:src.models.train:  Fold 3: Train=0.1890, Test=0.1851
+2026-10-08 18:49:57,675 - src.models.train - INFO -   Fold 4: Train=0.1963, Test=0.1948
+INFO:src.models.train:  Fold 4: Train=0.1963, Test=0.1948
+2026-10-08 18:49:57,675 - src.models.train - INFO -   Fold 5: Train=0.1869, Test=0.1882
+INFO:src.models.train:  Fold 5: Train=0.1869, Test=0.1882
+2026-10-08 18:49:57,675 - src.models.train - INFO -   평균: Test=0.1916 ± 0.0056
+INFO:src.models.train:  평균: Test=0.1916 ± 0.0056
+2026-10-08 18:49:57,786 - src.models.train - INFO - 
+RECALL:
+INFO:src.models.train:
+RECALL:
+2026-10-08 18:49:57,786 - src.models.train - INFO -   Fold 1: Train=0.4075, Test=0.4000
+INFO:src.models.train:  Fold 1: Train=0.4075, Test=0.4000
+2026-10-08 18:49:57,787 - src.models.train - INFO -   Fold 2: Train=0.3949, Test=0.3938
+INFO:src.models.train:  Fold 2: Train=0.3949, Test=0.3938
+2026-10-08 18:49:57,787 - src.models.train - INFO -   Fold 3: Train=0.4187, Test=0.4125
+INFO:src.models.train:  Fold 3: Train=0.4187, Test=0.4125
+2026-10-08 18:49:57,787 - src.models.train - INFO -   Fold 4: Train=0.4088, Test=0.4059
+INFO:src.models.train:  Fold 4: Train=0.4088, Test=0.4059
+2026-10-08 18:49:57,787 - src.models.train - INFO -   Fold 5: Train=0.4203, Test=0.4240
+INFO:src.models.train:  Fold 5: Train=0.4203, Test=0.4240
+2026-10-08 18:49:57,787 - src.models.train - INFO -   평균: Test=0.4072 ± 0.0104
+INFO:src.models.train:  평균: Test=0.4072 ± 0.0104
+2026-10-08 18:49:57,909 - src.models.train - INFO - 
+F1:
+INFO:src.models.train:
+F1:
+2026-10-08 18:49:57,909 - src.models.train - INFO -   Fold 1: Train=0.2618, Test=0.2568
+INFO:src.models.train:  Fold 1: Train=0.2618, Test=0.2568
+2026-10-08 18:49:57,909 - src.models.train - INFO -   Fold 2: Train=0.2665, Test=0.2661
+INFO:src.models.train:  Fold 2: Train=0.2665, Test=0.2661
+2026-10-08 18:49:57,909 - src.models.train - INFO -   Fold 3: Train=0.2604, Test=0.2556
+INFO:src.models.train:  Fold 3: Train=0.2604, Test=0.2556
+2026-10-08 18:49:57,909 - src.models.train - INFO -   Fold 4: Train=0.2653, Test=0.2632
+INFO:src.models.train:  Fold 4: Train=0.2653, Test=0.2632
+2026-10-08 18:49:57,909 - src.models.train - INFO -   Fold 5: Train=0.2588, Test=0.2607
+INFO:src.models.train:  Fold 5: Train=0.2588, Test=0.2607
+2026-10-08 18:49:57,909 - src.models.train - INFO -   평균: Test=0.2605 ± 0.0039
+INFO:src.models.train:  평균: Test=0.2605 ± 0.0039
+2026-10-08 18:49:58,024 - src.models.train - INFO - -------------------------------------------------------------------
+-------------
+INFO:src.models.train:--------------------------------------------------------------------------------
+2026-10-08 18:49:59,298 - src.models.train - INFO - 모델 저장: models/logistic_regression_smote_v1.0.joblib
+
+INFO:src.models.train:모델 저장: models/logistic_regression_smote_v1.0.joblib
+
+2026-10-08 18:49:59,846 - src.models.train - INFO - 
+[방식 1] scale_pos_weight
+INFO:src.models.train:
+[방식 1] scale_pos_weight
+2026-10-08 18:49:59,846 - src.models.train - INFO - -------------------------------------------------------------------
+-------------
+INFO:src.models.train:--------------------------------------------------------------------------------
+2026-10-08 18:50:02,170 - src.models.train - INFO - 
+5-Fold CV 결과 (scale_pos_weight):
+INFO:src.models.train:
+5-Fold CV 결과 (scale_pos_weight):
+2026-10-08 18:50:02,170 - src.models.train - INFO - -------------------------------------------------------------------
+-------------
+INFO:src.models.train:--------------------------------------------------------------------------------
+2026-10-08 18:50:02,170 - src.models.train - INFO - 
+ROC_AUC:
+INFO:src.models.train:
+ROC_AUC:
+2026-10-08 18:50:02,170 - src.models.train - INFO -   Fold 1: Train=0.7476, Test=0.6798
+INFO:src.models.train:  Fold 1: Train=0.7476, Test=0.6798
+2026-10-08 18:50:02,170 - src.models.train - INFO -   Fold 2: Train=0.7424, Test=0.6990
+INFO:src.models.train:  Fold 2: Train=0.7424, Test=0.6990
+2026-10-08 18:50:02,170 - src.models.train - INFO -   Fold 3: Train=0.7484, Test=0.6873
+INFO:src.models.train:  Fold 3: Train=0.7484, Test=0.6873
+2026-10-08 18:50:02,170 - src.models.train - INFO -   Fold 4: Train=0.7513, Test=0.6719
+INFO:src.models.train:  Fold 4: Train=0.7513, Test=0.6719
+2026-10-08 18:50:02,170 - src.models.train - INFO -   Fold 5: Train=0.7479, Test=0.6857
+INFO:src.models.train:  Fold 5: Train=0.7479, Test=0.6857
+2026-10-08 18:50:02,170 - src.models.train - INFO -   평균: Test=0.6847 ± 0.0089
+INFO:src.models.train:  평균: Test=0.6847 ± 0.0089
+2026-10-08 18:50:02,300 - src.models.train - INFO - 
+PRECISION:
+INFO:src.models.train:
+PRECISION:
+2026-10-08 18:50:02,300 - src.models.train - INFO -   Fold 1: Train=0.3058, Test=0.2642
+INFO:src.models.train:  Fold 1: Train=0.3058, Test=0.2642
+2026-10-08 18:50:02,300 - src.models.train - INFO -   Fold 2: Train=0.3032, Test=0.2738
+INFO:src.models.train:  Fold 2: Train=0.3032, Test=0.2738
+2026-10-08 18:50:02,300 - src.models.train - INFO -   Fold 3: Train=0.3052, Test=0.2655
+INFO:src.models.train:  Fold 3: Train=0.3052, Test=0.2655
+2026-10-08 18:50:02,300 - src.models.train - INFO -   Fold 4: Train=0.3051, Test=0.2557
+INFO:src.models.train:  Fold 4: Train=0.3051, Test=0.2557
+2026-10-08 18:50:02,300 - src.models.train - INFO -   Fold 5: Train=0.3117, Test=0.2666
+INFO:src.models.train:  Fold 5: Train=0.3117, Test=0.2666
+2026-10-08 18:50:02,300 - src.models.train - INFO -   평균: Test=0.2652 ± 0.0058
+INFO:src.models.train:  평균: Test=0.2652 ± 0.0058
+2026-10-08 18:50:02,414 - src.models.train - INFO - 
+RECALL:
+INFO:src.models.train:
+RECALL:
+2026-10-08 18:50:02,414 - src.models.train - INFO -   Fold 1: Train=0.5343, Test=0.4604
+INFO:src.models.train:  Fold 1: Train=0.5343, Test=0.4604
+2026-10-08 18:50:02,414 - src.models.train - INFO -   Fold 2: Train=0.5308, Test=0.4817
+INFO:src.models.train:  Fold 2: Train=0.5308, Test=0.4817
+2026-10-08 18:50:02,414 - src.models.train - INFO -   Fold 3: Train=0.5268, Test=0.4634
+INFO:src.models.train:  Fold 3: Train=0.5268, Test=0.4634
+2026-10-08 18:50:02,414 - src.models.train - INFO -   Fold 4: Train=0.5407, Test=0.4505
+INFO:src.models.train:  Fold 4: Train=0.5407, Test=0.4505
+2026-10-08 18:50:02,414 - src.models.train - INFO -   Fold 5: Train=0.5173, Test=0.4475
+INFO:src.models.train:  Fold 5: Train=0.5173, Test=0.4475
+2026-10-08 18:50:02,414 - src.models.train - INFO -   평균: Test=0.4607 ± 0.0121
+INFO:src.models.train:  평균: Test=0.4607 ± 0.0121
+2026-10-08 18:50:02,852 - src.models.train - INFO - 
+F1:
+INFO:src.models.train:
+F1:
+2026-10-08 18:50:02,852 - src.models.train - INFO -   Fold 1: Train=0.3890, Test=0.3358
+INFO:src.models.train:  Fold 1: Train=0.3890, Test=0.3358
+2026-10-08 18:50:02,853 - src.models.train - INFO -   Fold 2: Train=0.3859, Test=0.3491
+INFO:src.models.train:  Fold 2: Train=0.3859, Test=0.3491
+2026-10-08 18:50:02,853 - src.models.train - INFO -   Fold 3: Train=0.3865, Test=0.3376
+INFO:src.models.train:  Fold 3: Train=0.3865, Test=0.3376
+2026-10-08 18:50:02,853 - src.models.train - INFO -   Fold 4: Train=0.3901, Test=0.3263
+INFO:src.models.train:  Fold 4: Train=0.3901, Test=0.3263
+2026-10-08 18:50:02,853 - src.models.train - INFO -   Fold 5: Train=0.3890, Test=0.3341
+INFO:src.models.train:  Fold 5: Train=0.3890, Test=0.3341
+2026-10-08 18:50:02,853 - src.models.train - INFO -   평균: Test=0.3366 ± 0.0074
+INFO:src.models.train:  평균: Test=0.3366 ± 0.0074
+2026-10-08 18:50:02,963 - src.models.train - INFO - -------------------------------------------------------------------
+-------------
+INFO:src.models.train:--------------------------------------------------------------------------------
+2026-10-08 18:50:03,416 - src.models.train - INFO - 모델 저장: models/xgboost_scale_pos_weight_v1.0.joblib
+
+INFO:src.models.train:모델 저장: models/xgboost_scale_pos_weight_v1.0.joblib
+
+2026-10-08 18:50:03,591 - src.models.train - INFO - [방식 2] SMOTE
+INFO:src.models.train:[방식 2] SMOTE
+2026-10-08 18:50:03,591 - src.models.train - INFO - -------------------------------------------------------------------
+-------------
+INFO:src.models.train:--------------------------------------------------------------------------------
+2026-10-08 18:50:08,674 - src.models.train - INFO - 
+5-Fold CV 결과 (SMOTE):
+INFO:src.models.train:
+5-Fold CV 결과 (SMOTE):
+2026-10-08 18:50:08,674 - src.models.train - INFO - -------------------------------------------------------------------
+-------------
+INFO:src.models.train:--------------------------------------------------------------------------------
+2026-10-08 18:50:08,674 - src.models.train - INFO - 
+ROC_AUC:
+INFO:src.models.train:
+ROC_AUC:
+2026-10-08 18:50:08,674 - src.models.train - INFO -   Fold 1: Train=0.6787, Test=0.6418
+INFO:src.models.train:  Fold 1: Train=0.6787, Test=0.6418
+2026-10-08 18:50:08,674 - src.models.train - INFO -   Fold 2: Train=0.6750, Test=0.6537
+INFO:src.models.train:  Fold 2: Train=0.6750, Test=0.6537
+2026-10-08 18:50:08,674 - src.models.train - INFO -   Fold 3: Train=0.6783, Test=0.6398
+INFO:src.models.train:  Fold 3: Train=0.6783, Test=0.6398
+2026-10-08 18:50:08,675 - src.models.train - INFO -   Fold 4: Train=0.6855, Test=0.6306
+INFO:src.models.train:  Fold 4: Train=0.6855, Test=0.6306
+2026-10-08 18:50:08,675 - src.models.train - INFO -   Fold 5: Train=0.6797, Test=0.6452
+INFO:src.models.train:  Fold 5: Train=0.6797, Test=0.6452
+2026-10-08 18:50:08,675 - src.models.train - INFO -   평균: Test=0.6422 ± 0.0075
+INFO:src.models.train:  평균: Test=0.6422 ± 0.0075
+2026-10-08 18:50:08,800 - src.models.train - INFO - 
+PRECISION:
+INFO:src.models.train:
+PRECISION:
+2026-10-08 18:50:08,800 - src.models.train - INFO -   Fold 1: Train=0.4584, Test=0.4254
+INFO:src.models.train:  Fold 1: Train=0.4584, Test=0.4254
+2026-10-08 18:50:08,800 - src.models.train - INFO -   Fold 2: Train=0.4461, Test=0.4097
+INFO:src.models.train:  Fold 2: Train=0.4461, Test=0.4097
+2026-10-08 18:50:08,801 - src.models.train - INFO -   Fold 3: Train=0.4415, Test=0.4060
+INFO:src.models.train:  Fold 3: Train=0.4415, Test=0.4060
+2026-10-08 18:50:08,801 - src.models.train - INFO -   Fold 4: Train=0.4452, Test=0.3765
+INFO:src.models.train:  Fold 4: Train=0.4452, Test=0.3765
+2026-10-08 18:50:08,801 - src.models.train - INFO -   Fold 5: Train=0.4635, Test=0.3990
+INFO:src.models.train:  Fold 5: Train=0.4635, Test=0.3990
+2026-10-08 18:50:08,801 - src.models.train - INFO -   평균: Test=0.4033 ± 0.0160
+INFO:src.models.train:  평균: Test=0.4033 ± 0.0160
+2026-10-08 18:50:08,909 - src.models.train - INFO - 
+RECALL:
+INFO:src.models.train:
+RECALL:
+2026-10-08 18:50:08,910 - src.models.train - INFO -   Fold 1: Train=0.2406, Test=0.2278
+INFO:src.models.train:  Fold 1: Train=0.2406, Test=0.2278
+2026-10-08 18:50:08,910 - src.models.train - INFO -   Fold 2: Train=0.2437, Test=0.2311
+INFO:src.models.train:  Fold 2: Train=0.2437, Test=0.2311
+2026-10-08 18:50:08,910 - src.models.train - INFO -   Fold 3: Train=0.2463, Test=0.2183
+INFO:src.models.train:  Fold 3: Train=0.2463, Test=0.2183
+2026-10-08 18:50:08,910 - src.models.train - INFO -   Fold 4: Train=0.2564, Test=0.2161
+INFO:src.models.train:  Fold 4: Train=0.2564, Test=0.2161
+2026-10-08 18:50:08,910 - src.models.train - INFO -   Fold 5: Train=0.2497, Test=0.2226
+INFO:src.models.train:  Fold 5: Train=0.2497, Test=0.2226
+2026-10-08 18:50:08,910 - src.models.train - INFO -   평균: Test=0.2232 ± 0.0056
+INFO:src.models.train:  평균: Test=0.2232 ± 0.0056
+2026-10-08 18:50:09,023 - src.models.train - INFO - 
+F1:
+INFO:src.models.train:
+F1:
+2026-10-08 18:50:09,023 - src.models.train - INFO -   Fold 1: Train=0.3156, Test=0.2968
+INFO:src.models.train:  Fold 1: Train=0.3156, Test=0.2968
+2026-10-08 18:50:09,023 - src.models.train - INFO -   Fold 2: Train=0.3152, Test=0.2956
+INFO:src.models.train:  Fold 2: Train=0.3152, Test=0.2956
+2026-10-08 18:50:09,023 - src.models.train - INFO -   Fold 3: Train=0.3162, Test=0.2839
+INFO:src.models.train:  Fold 3: Train=0.3162, Test=0.2839
+2026-10-08 18:50:09,023 - src.models.train - INFO -   Fold 4: Train=0.3254, Test=0.2746
+INFO:src.models.train:  Fold 4: Train=0.3254, Test=0.2746
+2026-10-08 18:50:09,023 - src.models.train - INFO -   Fold 5: Train=0.3246, Test=0.2858
+INFO:src.models.train:  Fold 5: Train=0.3246, Test=0.2858
+2026-10-08 18:50:09,023 - src.models.train - INFO -   평균: Test=0.2873 ± 0.0081
+INFO:src.models.train:  평균: Test=0.2873 ± 0.0081
+2026-10-08 18:50:09,145 - src.models.train - INFO - -------------------------------------------------------------------
+-------------
+INFO:src.models.train:--------------------------------------------------------------------------------
+2026-10-08 18:50:10,899 - src.models.train - INFO - 모델 저장: models/xgboost_smote_v1.0.joblib
+
+INFO:src.models.train:모델 저장: models/xgboost_smote_v1.0.joblib
+
+2026-10-08 18:50:11,523 - src.models.train - INFO - 
+[방식 1] is_unbalance=True
+INFO:src.models.train:
+[방식 1] is_unbalance=True
+2026-10-08 18:50:11,523 - src.models.train - INFO - -------------------------------------------------------------------
+-------------
+INFO:src.models.train:--------------------------------------------------------------------------------
+2026-10-08 18:50:14,459 - src.models.train - INFO - 
+5-Fold CV 결과 (is_unbalance=True):
+INFO:src.models.train:
+5-Fold CV 결과 (is_unbalance=True):
+2026-10-08 18:50:14,459 - src.models.train - INFO - -------------------------------------------------------------------
+-------------
+INFO:src.models.train:--------------------------------------------------------------------------------
+2026-10-08 18:50:14,459 - src.models.train - INFO - 
+ROC_AUC:
+INFO:src.models.train:
+ROC_AUC:
+2026-10-08 18:50:14,459 - src.models.train - INFO -   Fold 1: Train=0.7402, Test=0.6838
+INFO:src.models.train:  Fold 1: Train=0.7402, Test=0.6838
+2026-10-08 18:50:14,459 - src.models.train - INFO -   Fold 2: Train=0.7356, Test=0.7015
+INFO:src.models.train:  Fold 2: Train=0.7356, Test=0.7015
+2026-10-08 18:50:14,459 - src.models.train - INFO -   Fold 3: Train=0.7400, Test=0.6896
+INFO:src.models.train:  Fold 3: Train=0.7400, Test=0.6896
+2026-10-08 18:50:14,459 - src.models.train - INFO -   Fold 4: Train=0.7407, Test=0.6762
+INFO:src.models.train:  Fold 4: Train=0.7407, Test=0.6762
+2026-10-08 18:50:14,459 - src.models.train - INFO -   Fold 5: Train=0.7405, Test=0.6867
+INFO:src.models.train:  Fold 5: Train=0.7405, Test=0.6867
+2026-10-08 18:50:14,459 - src.models.train - INFO -   평균: Test=0.6876 ± 0.0083
+INFO:src.models.train:  평균: Test=0.6876 ± 0.0083
+2026-10-08 18:50:14,591 - src.models.train - INFO - 
+PRECISION:
+INFO:src.models.train:
+PRECISION:
+2026-10-08 18:50:14,591 - src.models.train - INFO -   Fold 1: Train=0.2949, Test=0.2629
+INFO:src.models.train:  Fold 1: Train=0.2949, Test=0.2629
+2026-10-08 18:50:14,591 - src.models.train - INFO -   Fold 2: Train=0.2939, Test=0.2748
+INFO:src.models.train:  Fold 2: Train=0.2939, Test=0.2748
+2026-10-08 18:50:14,591 - src.models.train - INFO -   Fold 3: Train=0.2968, Test=0.2624
+INFO:src.models.train:  Fold 3: Train=0.2968, Test=0.2624
+2026-10-08 18:50:14,591 - src.models.train - INFO -   Fold 4: Train=0.2992, Test=0.2568
+INFO:src.models.train:  Fold 4: Train=0.2992, Test=0.2568
+2026-10-08 18:50:14,591 - src.models.train - INFO -   Fold 5: Train=0.3054, Test=0.2700
+INFO:src.models.train:  Fold 5: Train=0.3054, Test=0.2700
+2026-10-08 18:50:14,591 - src.models.train - INFO -   평균: Test=0.2654 ± 0.0063
+INFO:src.models.train:  평균: Test=0.2654 ± 0.0063
+2026-10-08 18:50:14,705 - src.models.train - INFO - 
+RECALL:
+INFO:src.models.train:
+RECALL:
+2026-10-08 18:50:14,705 - src.models.train - INFO -   Fold 1: Train=0.5334, Test=0.4681
+INFO:src.models.train:  Fold 1: Train=0.5334, Test=0.4681
+2026-10-08 18:50:14,705 - src.models.train - INFO -   Fold 2: Train=0.5261, Test=0.4934
+INFO:src.models.train:  Fold 2: Train=0.5261, Test=0.4934
+2026-10-08 18:50:14,705 - src.models.train - INFO -   Fold 3: Train=0.5270, Test=0.4700
+INFO:src.models.train:  Fold 3: Train=0.5270, Test=0.4700
+2026-10-08 18:50:14,705 - src.models.train - INFO -   Fold 4: Train=0.5302, Test=0.4582
+INFO:src.models.train:  Fold 4: Train=0.5302, Test=0.4582
+2026-10-08 18:50:14,705 - src.models.train - INFO -   Fold 5: Train=0.5135, Test=0.4599
+INFO:src.models.train:  Fold 5: Train=0.5135, Test=0.4599
+2026-10-08 18:50:14,705 - src.models.train - INFO -   평균: Test=0.4699 ± 0.0126
+INFO:src.models.train:  평균: Test=0.4699 ± 0.0126
+2026-10-08 18:50:14,818 - src.models.train - INFO - 
+F1:
+INFO:src.models.train:
+F1:
+2026-10-08 18:50:14,818 - src.models.train - INFO -   Fold 1: Train=0.3798, Test=0.3367
+INFO:src.models.train:  Fold 1: Train=0.3798, Test=0.3367
+2026-10-08 18:50:14,818 - src.models.train - INFO -   Fold 2: Train=0.3771, Test=0.3530
+INFO:src.models.train:  Fold 2: Train=0.3771, Test=0.3530
+2026-10-08 18:50:14,818 - src.models.train - INFO -   Fold 3: Train=0.3797, Test=0.3367
+INFO:src.models.train:  Fold 3: Train=0.3797, Test=0.3367
+2026-10-08 18:50:14,819 - src.models.train - INFO -   Fold 4: Train=0.3825, Test=0.3292
+INFO:src.models.train:  Fold 4: Train=0.3825, Test=0.3292
+2026-10-08 18:50:14,819 - src.models.train - INFO -   Fold 5: Train=0.3830, Test=0.3403
+INFO:src.models.train:  Fold 5: Train=0.3830, Test=0.3403
+2026-10-08 18:50:14,819 - src.models.train - INFO -   평균: Test=0.3392 ± 0.0078
+INFO:src.models.train:  평균: Test=0.3392 ± 0.0078
+2026-10-08 18:50:14,932 - src.models.train - INFO - -------------------------------------------------------------------
+-------------
+INFO:src.models.train:--------------------------------------------------------------------------------
+2026-10-08 18:50:15,369 - src.models.train - INFO - 모델 저장: models/lightgbm_is_unbalance_v1.0.joblib
+
+INFO:src.models.train:모델 저장: models/lightgbm_is_unbalance_v1.0.joblib
+
+2026-10-08 18:50:15,581 - src.models.train - INFO - [방식 2] SMOTE
+INFO:src.models.train:[방식 2] SMOTE
+2026-10-08 18:50:15,582 - src.models.train - INFO - -------------------------------------------------------------------
+-------------
+INFO:src.models.train:--------------------------------------------------------------------------------
+2026-10-08 18:50:20,565 - src.models.train - INFO - 
+5-Fold CV 결과 (SMOTE):
+INFO:src.models.train:
+5-Fold CV 결과 (SMOTE):
+2026-10-08 18:50:20,565 - src.models.train - INFO - -------------------------------------------------------------------
+-------------
+INFO:src.models.train:--------------------------------------------------------------------------------
+2026-10-08 18:50:20,565 - src.models.train - INFO - 
+ROC_AUC:
+INFO:src.models.train:
+ROC_AUC:
+2026-10-08 18:50:20,565 - src.models.train - INFO -   Fold 1: Train=0.6739, Test=0.6460
+INFO:src.models.train:  Fold 1: Train=0.6739, Test=0.6460
+2026-10-08 18:50:20,565 - src.models.train - INFO -   Fold 2: Train=0.6713, Test=0.6540
+INFO:src.models.train:  Fold 2: Train=0.6713, Test=0.6540
+2026-10-08 18:50:20,565 - src.models.train - INFO -   Fold 3: Train=0.6732, Test=0.6410
+INFO:src.models.train:  Fold 3: Train=0.6732, Test=0.6410
+2026-10-08 18:50:20,565 - src.models.train - INFO -   Fold 4: Train=0.6783, Test=0.6291
+INFO:src.models.train:  Fold 4: Train=0.6783, Test=0.6291
+2026-10-08 18:50:20,565 - src.models.train - INFO -   Fold 5: Train=0.6747, Test=0.6465
+INFO:src.models.train:  Fold 5: Train=0.6747, Test=0.6465
+2026-10-08 18:50:20,566 - src.models.train - INFO -   평균: Test=0.6433 ± 0.0082
+INFO:src.models.train:  평균: Test=0.6433 ± 0.0082
+2026-10-08 18:50:21,054 - src.models.train - INFO - 
+PRECISION:
+INFO:src.models.train:
+PRECISION:
+2026-10-08 18:50:21,054 - src.models.train - INFO -   Fold 1: Train=0.4508, Test=0.4260
+INFO:src.models.train:  Fold 1: Train=0.4508, Test=0.4260
+2026-10-08 18:50:21,054 - src.models.train - INFO -   Fold 2: Train=0.4581, Test=0.4272
+INFO:src.models.train:  Fold 2: Train=0.4581, Test=0.4272
+2026-10-08 18:50:21,054 - src.models.train - INFO -   Fold 3: Train=0.4413, Test=0.3996
+INFO:src.models.train:  Fold 3: Train=0.4413, Test=0.3996
+2026-10-08 18:50:21,054 - src.models.train - INFO -   Fold 4: Train=0.4308, Test=0.3744
+INFO:src.models.train:  Fold 4: Train=0.4308, Test=0.3744
+2026-10-08 18:50:21,054 - src.models.train - INFO -   Fold 5: Train=0.4482, Test=0.3955
+INFO:src.models.train:  Fold 5: Train=0.4482, Test=0.3955
+2026-10-08 18:50:21,054 - src.models.train - INFO -   평균: Test=0.4045 ± 0.0199
+INFO:src.models.train:  평균: Test=0.4045 ± 0.0199
+2026-10-08 18:50:21,173 - src.models.train - INFO - 
+RECALL:
+INFO:src.models.train:
+RECALL:
+2026-10-08 18:50:21,173 - src.models.train - INFO -   Fold 1: Train=0.2376, Test=0.2308
+INFO:src.models.train:  Fold 1: Train=0.2376, Test=0.2308
+2026-10-08 18:50:21,173 - src.models.train - INFO -   Fold 2: Train=0.2363, Test=0.2278
+INFO:src.models.train:  Fold 2: Train=0.2363, Test=0.2278
+2026-10-08 18:50:21,173 - src.models.train - INFO -   Fold 3: Train=0.2374, Test=0.2077
+INFO:src.models.train:  Fold 3: Train=0.2374, Test=0.2077
+2026-10-08 18:50:21,173 - src.models.train - INFO -   Fold 4: Train=0.2532, Test=0.2139
+INFO:src.models.train:  Fold 4: Train=0.2532, Test=0.2139
+2026-10-08 18:50:21,173 - src.models.train - INFO -   Fold 5: Train=0.2467, Test=0.2252
+INFO:src.models.train:  Fold 5: Train=0.2467, Test=0.2252
+2026-10-08 18:50:21,174 - src.models.train - INFO -   평균: Test=0.2211 ± 0.0088
+INFO:src.models.train:  평균: Test=0.2211 ± 0.0088
+2026-10-08 18:50:21,294 - src.models.train - INFO - 
+F1:
+INFO:src.models.train:
+F1:
+2026-10-08 18:50:21,294 - src.models.train - INFO -   Fold 1: Train=0.3112, Test=0.2994
+INFO:src.models.train:  Fold 1: Train=0.3112, Test=0.2994
+2026-10-08 18:50:21,294 - src.models.train - INFO -   Fold 2: Train=0.3118, Test=0.2972
+INFO:src.models.train:  Fold 2: Train=0.3118, Test=0.2972
+2026-10-08 18:50:21,294 - src.models.train - INFO -   Fold 3: Train=0.3087, Test=0.2733
+INFO:src.models.train:  Fold 3: Train=0.3087, Test=0.2733
+2026-10-08 18:50:21,294 - src.models.train - INFO -   Fold 4: Train=0.3189, Test=0.2723
+INFO:src.models.train:  Fold 4: Train=0.3189, Test=0.2723
+2026-10-08 18:50:21,295 - src.models.train - INFO -   Fold 5: Train=0.3182, Test=0.2870
+INFO:src.models.train:  Fold 5: Train=0.3182, Test=0.2870
+2026-10-08 18:50:21,295 - src.models.train - INFO -   평균: Test=0.2858 ± 0.0114
+INFO:src.models.train:  평균: Test=0.2858 ± 0.0114
+2026-10-08 18:50:21,419 - src.models.train - INFO - -------------------------------------------------------------------
+-------------
+INFO:src.models.train:--------------------------------------------------------------------------------
+2026-10-08 18:50:23,336 - src.models.train - INFO - 모델 저장: models/lightgbm_smote_v1.0.joblib
+
+INFO:src.models.train:모델 저장: models/lightgbm_smote_v1.0.joblib
+
+2026-10-08 18:50:23,871 - src.models.train - INFO - 
+================================================================================
+INFO:src.models.train:
+================================================================================
+2026-10-08 18:50:23,871 - src.models.train - INFO - 데이터 타입: alternative_only
+INFO:src.models.train:데이터 타입: alternative_only
+2026-10-08 18:50:23,871 - src.models.train - INFO - ===================================================================
+=============
+INFO:src.models.train:================================================================================
+2026-10-08 18:50:23,873 - src.models.train - INFO - 선택된 특성: 5개
+
+INFO:src.models.train:선택된 특성: 5개
+
+2026-10-08 18:50:23,873 - src.models.train - INFO - 
+[방식 1] class_weight='balanced'
+INFO:src.models.train:
+[방식 1] class_weight='balanced'
+2026-10-08 18:50:23,873 - src.models.train - INFO - -------------------------------------------------------------------
+-------------
+INFO:src.models.train:--------------------------------------------------------------------------------
+2026-10-08 18:50:24,371 - src.models.train - INFO - 
+5-Fold CV 결과 (class_weight='balanced'):
+INFO:src.models.train:
+5-Fold CV 결과 (class_weight='balanced'):
+2026-10-08 18:50:24,371 - src.models.train - INFO - -------------------------------------------------------------------
+-------------
+INFO:src.models.train:--------------------------------------------------------------------------------
+2026-10-08 18:50:24,371 - src.models.train - INFO - 
+ROC_AUC:
+INFO:src.models.train:
+ROC_AUC:
+2026-10-08 18:50:24,371 - src.models.train - INFO -   Fold 1: Train=0.7361, Test=0.7308
+INFO:src.models.train:  Fold 1: Train=0.7361, Test=0.7308
+2026-10-08 18:50:24,371 - src.models.train - INFO -   Fold 2: Train=0.7324, Test=0.7451
+INFO:src.models.train:  Fold 2: Train=0.7324, Test=0.7451
+2026-10-08 18:50:24,371 - src.models.train - INFO -   Fold 3: Train=0.7356, Test=0.7325
+INFO:src.models.train:  Fold 3: Train=0.7356, Test=0.7325
+2026-10-08 18:50:24,371 - src.models.train - INFO -   Fold 4: Train=0.7351, Test=0.7347
+INFO:src.models.train:  Fold 4: Train=0.7351, Test=0.7347
+2026-10-08 18:50:24,371 - src.models.train - INFO -   Fold 5: Train=0.7360, Test=0.7312
+INFO:src.models.train:  Fold 5: Train=0.7360, Test=0.7312
+2026-10-08 18:50:24,371 - src.models.train - INFO -   평균: Test=0.7349 ± 0.0053
+INFO:src.models.train:  평균: Test=0.7349 ± 0.0053
+2026-10-08 18:50:24,504 - src.models.train - INFO - 
+PRECISION:
+INFO:src.models.train:
+PRECISION:
+2026-10-08 18:50:24,504 - src.models.train - INFO -   Fold 1: Train=0.2542, Test=0.2536
+INFO:src.models.train:  Fold 1: Train=0.2542, Test=0.2536
+2026-10-08 18:50:24,504 - src.models.train - INFO -   Fold 2: Train=0.2528, Test=0.2542
+INFO:src.models.train:  Fold 2: Train=0.2528, Test=0.2542
+2026-10-08 18:50:24,504 - src.models.train - INFO -   Fold 3: Train=0.2547, Test=0.2536
+INFO:src.models.train:  Fold 3: Train=0.2547, Test=0.2536
+2026-10-08 18:50:24,504 - src.models.train - INFO -   Fold 4: Train=0.2535, Test=0.2538
+INFO:src.models.train:  Fold 4: Train=0.2535, Test=0.2538
+2026-10-08 18:50:24,504 - src.models.train - INFO -   Fold 5: Train=0.2538, Test=0.2545
+INFO:src.models.train:  Fold 5: Train=0.2538, Test=0.2545
+2026-10-08 18:50:24,505 - src.models.train - INFO -   평균: Test=0.2540 ± 0.0003
+INFO:src.models.train:  평균: Test=0.2540 ± 0.0003
+2026-10-08 18:50:24,622 - src.models.train - INFO - 
+RECALL:
+INFO:src.models.train:
+RECALL:
+2026-10-08 18:50:24,622 - src.models.train - INFO -   Fold 1: Train=0.6316, Test=0.6267
+INFO:src.models.train:  Fold 1: Train=0.6316, Test=0.6267
+2026-10-08 18:50:24,623 - src.models.train - INFO -   Fold 2: Train=0.6293, Test=0.6432
+INFO:src.models.train:  Fold 2: Train=0.6293, Test=0.6432
+2026-10-08 18:50:24,623 - src.models.train - INFO -   Fold 3: Train=0.6317, Test=0.6242
+INFO:src.models.train:  Fold 3: Train=0.6317, Test=0.6242
+2026-10-08 18:50:24,623 - src.models.train - INFO -   Fold 4: Train=0.6314, Test=0.6315
+INFO:src.models.train:  Fold 4: Train=0.6314, Test=0.6315
+2026-10-08 18:50:24,623 - src.models.train - INFO -   Fold 5: Train=0.6310, Test=0.6305
+INFO:src.models.train:  Fold 5: Train=0.6310, Test=0.6305
+2026-10-08 18:50:24,623 - src.models.train - INFO -   평균: Test=0.6312 ± 0.0065
+INFO:src.models.train:  평균: Test=0.6312 ± 0.0065
+2026-10-08 18:50:24,739 - src.models.train - INFO - 
+F1:
+INFO:src.models.train:
+F1:
+2026-10-08 18:50:24,740 - src.models.train - INFO -   Fold 1: Train=0.3625, Test=0.3611
+INFO:src.models.train:  Fold 1: Train=0.3625, Test=0.3611
+2026-10-08 18:50:24,740 - src.models.train - INFO -   Fold 2: Train=0.3607, Test=0.3644
+INFO:src.models.train:  Fold 2: Train=0.3607, Test=0.3644
+2026-10-08 18:50:24,740 - src.models.train - INFO -   Fold 3: Train=0.3630, Test=0.3607
+INFO:src.models.train:  Fold 3: Train=0.3630, Test=0.3607
+2026-10-08 18:50:24,740 - src.models.train - INFO -   Fold 4: Train=0.3618, Test=0.3621
+INFO:src.models.train:  Fold 4: Train=0.3618, Test=0.3621
+2026-10-08 18:50:24,740 - src.models.train - INFO -   Fold 5: Train=0.3620, Test=0.3626
+INFO:src.models.train:  Fold 5: Train=0.3620, Test=0.3626
+2026-10-08 18:50:24,740 - src.models.train - INFO -   평균: Test=0.3622 ± 0.0013
+INFO:src.models.train:  평균: Test=0.3622 ± 0.0013
+2026-10-08 18:50:24,860 - src.models.train - INFO - -------------------------------------------------------------------
+-------------
+INFO:src.models.train:--------------------------------------------------------------------------------
+2026-10-08 18:50:24,932 - src.models.train - INFO - 모델 저장: models/logistic_regression_class_weight_v1.0.joblib
+
+INFO:src.models.train:모델 저장: models/logistic_regression_class_weight_v1.0.joblib
+
+2026-10-08 18:50:25,024 - src.models.train - INFO - [방식 2] SMOTE
+INFO:src.models.train:[방식 2] SMOTE
+2026-10-08 18:50:25,024 - src.models.train - INFO - -------------------------------------------------------------------
+-------------
+INFO:src.models.train:--------------------------------------------------------------------------------
+2026-10-08 18:50:25,799 - src.models.train - INFO - 
+5-Fold CV 결과 (SMOTE):
+INFO:src.models.train:
+5-Fold CV 결과 (SMOTE):
+2026-10-08 18:50:25,799 - src.models.train - INFO - -------------------------------------------------------------------
+-------------
+INFO:src.models.train:--------------------------------------------------------------------------------
+2026-10-08 18:50:25,799 - src.models.train - INFO - 
+ROC_AUC:
+INFO:src.models.train:
+ROC_AUC:
+2026-10-08 18:50:25,799 - src.models.train - INFO -   Fold 1: Train=0.7361, Test=0.7308
+INFO:src.models.train:  Fold 1: Train=0.7361, Test=0.7308
+2026-10-08 18:50:25,799 - src.models.train - INFO -   Fold 2: Train=0.7324, Test=0.7450
+INFO:src.models.train:  Fold 2: Train=0.7324, Test=0.7450
+2026-10-08 18:50:25,799 - src.models.train - INFO -   Fold 3: Train=0.7356, Test=0.7326
+INFO:src.models.train:  Fold 3: Train=0.7356, Test=0.7326
+2026-10-08 18:50:25,799 - src.models.train - INFO -   Fold 4: Train=0.7351, Test=0.7347
+INFO:src.models.train:  Fold 4: Train=0.7351, Test=0.7347
+2026-10-08 18:50:25,799 - src.models.train - INFO -   Fold 5: Train=0.7360, Test=0.7312
+INFO:src.models.train:  Fold 5: Train=0.7360, Test=0.7312
+2026-10-08 18:50:25,800 - src.models.train - INFO -   평균: Test=0.7349 ± 0.0052
+INFO:src.models.train:  평균: Test=0.7349 ± 0.0052
+2026-10-08 18:50:25,935 - src.models.train - INFO - 
+PRECISION:
+INFO:src.models.train:
+PRECISION:
+2026-10-08 18:50:25,935 - src.models.train - INFO -   Fold 1: Train=0.2535, Test=0.2523
+INFO:src.models.train:  Fold 1: Train=0.2535, Test=0.2523
+2026-10-08 18:50:25,935 - src.models.train - INFO -   Fold 2: Train=0.2525, Test=0.2543
+INFO:src.models.train:  Fold 2: Train=0.2525, Test=0.2543
+2026-10-08 18:50:25,935 - src.models.train - INFO -   Fold 3: Train=0.2548, Test=0.2539
+INFO:src.models.train:  Fold 3: Train=0.2548, Test=0.2539
+2026-10-08 18:50:25,935 - src.models.train - INFO -   Fold 4: Train=0.2533, Test=0.2534
+INFO:src.models.train:  Fold 4: Train=0.2533, Test=0.2534
+2026-10-08 18:50:25,935 - src.models.train - INFO -   Fold 5: Train=0.2539, Test=0.2547
+INFO:src.models.train:  Fold 5: Train=0.2539, Test=0.2547
+2026-10-08 18:50:25,935 - src.models.train - INFO -   평균: Test=0.2537 ± 0.0008
+INFO:src.models.train:  평균: Test=0.2537 ± 0.0008
+2026-10-08 18:50:26,044 - src.models.train - INFO - 
+RECALL:
+INFO:src.models.train:
+RECALL:
+2026-10-08 18:50:26,045 - src.models.train - INFO -   Fold 1: Train=0.6331, Test=0.6278
+INFO:src.models.train:  Fold 1: Train=0.6331, Test=0.6278
+2026-10-08 18:50:26,045 - src.models.train - INFO -   Fold 2: Train=0.6292, Test=0.6443
+INFO:src.models.train:  Fold 2: Train=0.6292, Test=0.6443
+2026-10-08 18:50:26,045 - src.models.train - INFO -   Fold 3: Train=0.6317, Test=0.6231
+INFO:src.models.train:  Fold 3: Train=0.6317, Test=0.6231
+2026-10-08 18:50:26,045 - src.models.train - INFO -   Fold 4: Train=0.6314, Test=0.6311
+INFO:src.models.train:  Fold 4: Train=0.6314, Test=0.6311
+2026-10-08 18:50:26,045 - src.models.train - INFO -   Fold 5: Train=0.6309, Test=0.6320
+INFO:src.models.train:  Fold 5: Train=0.6309, Test=0.6320
+2026-10-08 18:50:26,045 - src.models.train - INFO -   평균: Test=0.6317 ± 0.0071
+INFO:src.models.train:  평균: Test=0.6317 ± 0.0071
+2026-10-08 18:50:26,159 - src.models.train - INFO - 
+F1:
+INFO:src.models.train:
+F1:
+2026-10-08 18:50:26,159 - src.models.train - INFO -   Fold 1: Train=0.3620, Test=0.3600
+INFO:src.models.train:  Fold 1: Train=0.3620, Test=0.3600
+2026-10-08 18:50:26,159 - src.models.train - INFO -   Fold 2: Train=0.3604, Test=0.3647
+INFO:src.models.train:  Fold 2: Train=0.3604, Test=0.3647
+2026-10-08 18:50:26,159 - src.models.train - INFO -   Fold 3: Train=0.3631, Test=0.3608
+INFO:src.models.train:  Fold 3: Train=0.3631, Test=0.3608
+2026-10-08 18:50:26,159 - src.models.train - INFO -   Fold 4: Train=0.3615, Test=0.3616
+INFO:src.models.train:  Fold 4: Train=0.3615, Test=0.3616
+2026-10-08 18:50:26,159 - src.models.train - INFO -   Fold 5: Train=0.3621, Test=0.3631
+INFO:src.models.train:  Fold 5: Train=0.3621, Test=0.3631
+2026-10-08 18:50:26,159 - src.models.train - INFO -   평균: Test=0.3620 ± 0.0017
+INFO:src.models.train:  평균: Test=0.3620 ± 0.0017
+2026-10-08 18:50:26,649 - src.models.train - INFO - -------------------------------------------------------------------
+-------------
+INFO:src.models.train:--------------------------------------------------------------------------------
+2026-10-08 18:50:26,917 - src.models.train - INFO - 모델 저장: models/logistic_regression_smote_v1.0.joblib
+
+INFO:src.models.train:모델 저장: models/logistic_regression_smote_v1.0.joblib
+
+2026-10-08 18:50:27,265 - src.models.train - INFO - 
+[방식 1] scale_pos_weight
+INFO:src.models.train:
+[방식 1] scale_pos_weight
+2026-10-08 18:50:27,265 - src.models.train - INFO - -------------------------------------------------------------------
+-------------
+INFO:src.models.train:--------------------------------------------------------------------------------
+2026-10-08 18:50:29,205 - src.models.train - INFO - 
+5-Fold CV 결과 (scale_pos_weight):
+INFO:src.models.train:
+5-Fold CV 결과 (scale_pos_weight):
+2026-10-08 18:50:29,205 - src.models.train - INFO - -------------------------------------------------------------------
+-------------
+INFO:src.models.train:--------------------------------------------------------------------------------
+2026-10-08 18:50:29,205 - src.models.train - INFO - 
+ROC_AUC:
+INFO:src.models.train:
+ROC_AUC:
+2026-10-08 18:50:29,206 - src.models.train - INFO -   Fold 1: Train=0.8106, Test=0.7231
+INFO:src.models.train:  Fold 1: Train=0.8106, Test=0.7231
+2026-10-08 18:50:29,206 - src.models.train - INFO -   Fold 2: Train=0.8031, Test=0.7320
+INFO:src.models.train:  Fold 2: Train=0.8031, Test=0.7320
+2026-10-08 18:50:29,206 - src.models.train - INFO -   Fold 3: Train=0.8121, Test=0.7269
+INFO:src.models.train:  Fold 3: Train=0.8121, Test=0.7269
+2026-10-08 18:50:29,206 - src.models.train - INFO -   Fold 4: Train=0.8043, Test=0.7271
+INFO:src.models.train:  Fold 4: Train=0.8043, Test=0.7271
+2026-10-08 18:50:29,206 - src.models.train - INFO -   Fold 5: Train=0.8034, Test=0.7321
+INFO:src.models.train:  Fold 5: Train=0.8034, Test=0.7321
+2026-10-08 18:50:29,206 - src.models.train - INFO -   평균: Test=0.7282 ± 0.0034
+INFO:src.models.train:  평균: Test=0.7282 ± 0.0034
+2026-10-08 18:50:29,351 - src.models.train - INFO - 
+PRECISION:
+INFO:src.models.train:
+PRECISION:
+2026-10-08 18:50:29,351 - src.models.train - INFO -   Fold 1: Train=0.4545, Test=0.4242
+INFO:src.models.train:  Fold 1: Train=0.4545, Test=0.4242
+2026-10-08 18:50:29,351 - src.models.train - INFO -   Fold 2: Train=0.4526, Test=0.4368
+INFO:src.models.train:  Fold 2: Train=0.4526, Test=0.4368
+2026-10-08 18:50:29,351 - src.models.train - INFO -   Fold 3: Train=0.4461, Test=0.4246
+INFO:src.models.train:  Fold 3: Train=0.4461, Test=0.4246
+2026-10-08 18:50:29,351 - src.models.train - INFO -   Fold 4: Train=0.4445, Test=0.4291
+INFO:src.models.train:  Fold 4: Train=0.4445, Test=0.4291
+2026-10-08 18:50:29,351 - src.models.train - INFO -   Fold 5: Train=0.4510, Test=0.4257
+INFO:src.models.train:  Fold 5: Train=0.4510, Test=0.4257
+2026-10-08 18:50:29,351 - src.models.train - INFO -   평균: Test=0.4281 ± 0.0047
+INFO:src.models.train:  평균: Test=0.4281 ± 0.0047
+2026-10-08 18:50:29,487 - src.models.train - INFO - 
+RECALL:
+INFO:src.models.train:
+RECALL:
+2026-10-08 18:50:29,487 - src.models.train - INFO -   Fold 1: Train=0.5287, Test=0.4963
+INFO:src.models.train:  Fold 1: Train=0.5287, Test=0.4963
+2026-10-08 18:50:29,488 - src.models.train - INFO -   Fold 2: Train=0.5243, Test=0.5128
+INFO:src.models.train:  Fold 2: Train=0.5243, Test=0.5128
+2026-10-08 18:50:29,488 - src.models.train - INFO -   Fold 3: Train=0.5334, Test=0.4875
+INFO:src.models.train:  Fold 3: Train=0.5334, Test=0.4875
+2026-10-08 18:50:29,488 - src.models.train - INFO -   Fold 4: Train=0.5305, Test=0.5062
+INFO:src.models.train:  Fold 4: Train=0.5305, Test=0.5062
+2026-10-08 18:50:29,488 - src.models.train - INFO -   Fold 5: Train=0.5280, Test=0.4969
+INFO:src.models.train:  Fold 5: Train=0.5280, Test=0.4969
+2026-10-08 18:50:29,488 - src.models.train - INFO -   평균: Test=0.5000 ± 0.0087
+INFO:src.models.train:  평균: Test=0.5000 ± 0.0087
+2026-10-08 18:50:29,627 - src.models.train - INFO - 
+F1:
+INFO:src.models.train:
+F1:
+2026-10-08 18:50:29,627 - src.models.train - INFO -   Fold 1: Train=0.4888, Test=0.4575
+INFO:src.models.train:  Fold 1: Train=0.4888, Test=0.4575
+2026-10-08 18:50:29,627 - src.models.train - INFO -   Fold 2: Train=0.4858, Test=0.4718
+INFO:src.models.train:  Fold 2: Train=0.4858, Test=0.4718
+2026-10-08 18:50:29,627 - src.models.train - INFO -   Fold 3: Train=0.4858, Test=0.4539
+INFO:src.models.train:  Fold 3: Train=0.4858, Test=0.4539
+2026-10-08 18:50:29,627 - src.models.train - INFO -   Fold 4: Train=0.4837, Test=0.4645
+INFO:src.models.train:  Fold 4: Train=0.4837, Test=0.4645
+2026-10-08 18:50:29,627 - src.models.train - INFO -   Fold 5: Train=0.4865, Test=0.4585
+INFO:src.models.train:  Fold 5: Train=0.4865, Test=0.4585
+2026-10-08 18:50:29,627 - src.models.train - INFO -   평균: Test=0.4612 ± 0.0063
+INFO:src.models.train:  평균: Test=0.4612 ± 0.0063
+2026-10-08 18:50:29,759 - src.models.train - INFO - -------------------------------------------------------------------
+-------------
+INFO:src.models.train:--------------------------------------------------------------------------------
+2026-10-08 18:50:30,224 - src.models.train - INFO - 모델 저장: models/xgboost_scale_pos_weight_v1.0.joblib
+
+INFO:src.models.train:모델 저장: models/xgboost_scale_pos_weight_v1.0.joblib
+
+2026-10-08 18:50:30,408 - src.models.train - INFO - [방식 2] SMOTE
+INFO:src.models.train:[방식 2] SMOTE
+2026-10-08 18:50:30,408 - src.models.train - INFO - -------------------------------------------------------------------
+-------------
+INFO:src.models.train:--------------------------------------------------------------------------------
+2026-10-08 18:50:33,161 - src.models.train - INFO - 
+5-Fold CV 결과 (SMOTE):
+INFO:src.models.train:
+5-Fold CV 결과 (SMOTE):
+2026-10-08 18:50:33,162 - src.models.train - INFO - -------------------------------------------------------------------
+-------------
+INFO:src.models.train:--------------------------------------------------------------------------------
+2026-10-08 18:50:33,162 - src.models.train - INFO - 
+ROC_AUC:
+INFO:src.models.train:
+ROC_AUC:
+2026-10-08 18:50:33,162 - src.models.train - INFO -   Fold 1: Train=0.7825, Test=0.7195
+INFO:src.models.train:  Fold 1: Train=0.7825, Test=0.7195
+2026-10-08 18:50:33,162 - src.models.train - INFO -   Fold 2: Train=0.7758, Test=0.7338
+INFO:src.models.train:  Fold 2: Train=0.7758, Test=0.7338
+2026-10-08 18:50:33,162 - src.models.train - INFO -   Fold 3: Train=0.7786, Test=0.7291
+INFO:src.models.train:  Fold 3: Train=0.7786, Test=0.7291
+2026-10-08 18:50:33,162 - src.models.train - INFO -   Fold 4: Train=0.7783, Test=0.7270
+INFO:src.models.train:  Fold 4: Train=0.7783, Test=0.7270
+2026-10-08 18:50:33,162 - src.models.train - INFO -   Fold 5: Train=0.7782, Test=0.7324
+INFO:src.models.train:  Fold 5: Train=0.7782, Test=0.7324
+2026-10-08 18:50:33,162 - src.models.train - INFO -   평균: Test=0.7284 ± 0.0051
+INFO:src.models.train:  평균: Test=0.7284 ± 0.0051
+2026-10-08 18:50:33,311 - src.models.train - INFO - 
+PRECISION:
+INFO:src.models.train:
+PRECISION:
+2026-10-08 18:50:33,311 - src.models.train - INFO -   Fold 1: Train=0.4535, Test=0.4253
+INFO:src.models.train:  Fold 1: Train=0.4535, Test=0.4253
+2026-10-08 18:50:33,311 - src.models.train - INFO -   Fold 2: Train=0.4462, Test=0.4297
+INFO:src.models.train:  Fold 2: Train=0.4462, Test=0.4297
+2026-10-08 18:50:33,311 - src.models.train - INFO -   Fold 3: Train=0.4379, Test=0.4193
+INFO:src.models.train:  Fold 3: Train=0.4379, Test=0.4193
+2026-10-08 18:50:33,311 - src.models.train - INFO -   Fold 4: Train=0.4361, Test=0.4260
+INFO:src.models.train:  Fold 4: Train=0.4361, Test=0.4260
+2026-10-08 18:50:33,311 - src.models.train - INFO -   Fold 5: Train=0.4425, Test=0.4208
+INFO:src.models.train:  Fold 5: Train=0.4425, Test=0.4208
+2026-10-08 18:50:33,312 - src.models.train - INFO -   평균: Test=0.4242 ± 0.0038
+INFO:src.models.train:  평균: Test=0.4242 ± 0.0038
+2026-10-08 18:50:33,432 - src.models.train - INFO - 
+RECALL:
+INFO:src.models.train:
+RECALL:
+2026-10-08 18:50:33,432 - src.models.train - INFO -   Fold 1: Train=0.5176, Test=0.4945
+INFO:src.models.train:  Fold 1: Train=0.5176, Test=0.4945
+2026-10-08 18:50:33,432 - src.models.train - INFO -   Fold 2: Train=0.5162, Test=0.5117
+INFO:src.models.train:  Fold 2: Train=0.5162, Test=0.5117
+2026-10-08 18:50:33,432 - src.models.train - INFO -   Fold 3: Train=0.5259, Test=0.4890
+INFO:src.models.train:  Fold 3: Train=0.5259, Test=0.4890
+2026-10-08 18:50:33,432 - src.models.train - INFO -   Fold 4: Train=0.5205, Test=0.5059
+INFO:src.models.train:  Fold 4: Train=0.5205, Test=0.5059
+2026-10-08 18:50:33,432 - src.models.train - INFO -   Fold 5: Train=0.5208, Test=0.5016
+INFO:src.models.train:  Fold 5: Train=0.5208, Test=0.5016
+2026-10-08 18:50:33,432 - src.models.train - INFO -   평균: Test=0.5005 ± 0.0080
+INFO:src.models.train:  평균: Test=0.5005 ± 0.0080
+2026-10-08 18:50:33,550 - src.models.train - INFO - 
+F1:
+INFO:src.models.train:
+F1:
+2026-10-08 18:50:33,550 - src.models.train - INFO -   Fold 1: Train=0.4835, Test=0.4573
+INFO:src.models.train:  Fold 1: Train=0.4835, Test=0.4573
+2026-10-08 18:50:33,550 - src.models.train - INFO -   Fold 2: Train=0.4786, Test=0.4671
+INFO:src.models.train:  Fold 2: Train=0.4786, Test=0.4671
+2026-10-08 18:50:33,550 - src.models.train - INFO -   Fold 3: Train=0.4779, Test=0.4515
+INFO:src.models.train:  Fold 3: Train=0.4779, Test=0.4515
+2026-10-08 18:50:33,550 - src.models.train - INFO -   Fold 4: Train=0.4745, Test=0.4625
+INFO:src.models.train:  Fold 4: Train=0.4745, Test=0.4625
+2026-10-08 18:50:33,550 - src.models.train - INFO -   Fold 5: Train=0.4785, Test=0.4577
+INFO:src.models.train:  Fold 5: Train=0.4785, Test=0.4577
+2026-10-08 18:50:33,551 - src.models.train - INFO -   평균: Test=0.4592 ± 0.0053
+INFO:src.models.train:  평균: Test=0.4592 ± 0.0053
+2026-10-08 18:50:33,669 - src.models.train - INFO - -------------------------------------------------------------------
+-------------
+INFO:src.models.train:--------------------------------------------------------------------------------
+2026-10-08 18:50:34,432 - src.models.train - INFO - 모델 저장: models/xgboost_smote_v1.0.joblib
+
+INFO:src.models.train:모델 저장: models/xgboost_smote_v1.0.joblib
+
+2026-10-08 18:50:34,878 - src.models.train - INFO - 
+[방식 1] is_unbalance=True
+INFO:src.models.train:
+[방식 1] is_unbalance=True
+2026-10-08 18:50:34,878 - src.models.train - INFO - -------------------------------------------------------------------
+-------------
+INFO:src.models.train:--------------------------------------------------------------------------------
+2026-10-08 18:50:37,264 - src.models.train - INFO - 
+5-Fold CV 결과 (is_unbalance=True):
+INFO:src.models.train:
+5-Fold CV 결과 (is_unbalance=True):
+2026-10-08 18:50:37,264 - src.models.train - INFO - -------------------------------------------------------------------
+-------------
+INFO:src.models.train:--------------------------------------------------------------------------------
+2026-10-08 18:50:37,264 - src.models.train - INFO - 
+ROC_AUC:
+INFO:src.models.train:
+ROC_AUC:
+2026-10-08 18:50:37,264 - src.models.train - INFO -   Fold 1: Train=0.7977, Test=0.7241
+INFO:src.models.train:  Fold 1: Train=0.7977, Test=0.7241
+2026-10-08 18:50:37,264 - src.models.train - INFO -   Fold 2: Train=0.7959, Test=0.7370
+INFO:src.models.train:  Fold 2: Train=0.7959, Test=0.7370
+2026-10-08 18:50:37,264 - src.models.train - INFO -   Fold 3: Train=0.7946, Test=0.7289
+INFO:src.models.train:  Fold 3: Train=0.7946, Test=0.7289
+2026-10-08 18:50:37,264 - src.models.train - INFO -   Fold 4: Train=0.7946, Test=0.7281
+INFO:src.models.train:  Fold 4: Train=0.7946, Test=0.7281
+2026-10-08 18:50:37,264 - src.models.train - INFO -   Fold 5: Train=0.7923, Test=0.7288
+INFO:src.models.train:  Fold 5: Train=0.7923, Test=0.7288
+2026-10-08 18:50:37,265 - src.models.train - INFO -   평균: Test=0.7294 ± 0.0042
+INFO:src.models.train:  평균: Test=0.7294 ± 0.0042
+2026-10-08 18:50:37,396 - src.models.train - INFO - 
+PRECISION:
+INFO:src.models.train:
+PRECISION:
+2026-10-08 18:50:37,396 - src.models.train - INFO -   Fold 1: Train=0.4459, Test=0.4168
+INFO:src.models.train:  Fold 1: Train=0.4459, Test=0.4168
+2026-10-08 18:50:37,396 - src.models.train - INFO -   Fold 2: Train=0.4416, Test=0.4283
+INFO:src.models.train:  Fold 2: Train=0.4416, Test=0.4283
+2026-10-08 18:50:37,396 - src.models.train - INFO -   Fold 3: Train=0.4384, Test=0.4204
+INFO:src.models.train:  Fold 3: Train=0.4384, Test=0.4204
+2026-10-08 18:50:37,396 - src.models.train - INFO -   Fold 4: Train=0.4346, Test=0.4216
+INFO:src.models.train:  Fold 4: Train=0.4346, Test=0.4216
+2026-10-08 18:50:37,397 - src.models.train - INFO -   Fold 5: Train=0.4386, Test=0.4168
+INFO:src.models.train:  Fold 5: Train=0.4386, Test=0.4168
+2026-10-08 18:50:37,397 - src.models.train - INFO -   평균: Test=0.4208 ± 0.0042
+INFO:src.models.train:  평균: Test=0.4208 ± 0.0042
+2026-10-08 18:50:37,891 - src.models.train - INFO - 
+RECALL:
+INFO:src.models.train:
+RECALL:
+2026-10-08 18:50:37,891 - src.models.train - INFO -   Fold 1: Train=0.5247, Test=0.4963
+INFO:src.models.train:  Fold 1: Train=0.5247, Test=0.4963
+2026-10-08 18:50:37,891 - src.models.train - INFO -   Fold 2: Train=0.5220, Test=0.5161
+INFO:src.models.train:  Fold 2: Train=0.5220, Test=0.5161
+2026-10-08 18:50:37,891 - src.models.train - INFO -   Fold 3: Train=0.5300, Test=0.4923
+INFO:src.models.train:  Fold 3: Train=0.5300, Test=0.4923
+2026-10-08 18:50:37,891 - src.models.train - INFO -   Fold 4: Train=0.5255, Test=0.5073
+INFO:src.models.train:  Fold 4: Train=0.5255, Test=0.5073
+2026-10-08 18:50:37,891 - src.models.train - INFO -   Fold 5: Train=0.5293, Test=0.5002
+INFO:src.models.train:  Fold 5: Train=0.5293, Test=0.5002
+2026-10-08 18:50:37,891 - src.models.train - INFO -   평균: Test=0.5025 ± 0.0084
+INFO:src.models.train:  평균: Test=0.5025 ± 0.0084
+2026-10-08 18:50:38,055 - src.models.train - INFO - 
+F1:
+INFO:src.models.train:
+F1:
+2026-10-08 18:50:38,055 - src.models.train - INFO -   Fold 1: Train=0.4821, Test=0.4531
+INFO:src.models.train:  Fold 1: Train=0.4821, Test=0.4531
+2026-10-08 18:50:38,055 - src.models.train - INFO -   Fold 2: Train=0.4784, Test=0.4681
+INFO:src.models.train:  Fold 2: Train=0.4784, Test=0.4681
+2026-10-08 18:50:38,055 - src.models.train - INFO -   Fold 3: Train=0.4799, Test=0.4535
+INFO:src.models.train:  Fold 3: Train=0.4799, Test=0.4535
+2026-10-08 18:50:38,055 - src.models.train - INFO -   Fold 4: Train=0.4757, Test=0.4605
+INFO:src.models.train:  Fold 4: Train=0.4757, Test=0.4605
+2026-10-08 18:50:38,055 - src.models.train - INFO -   Fold 5: Train=0.4797, Test=0.4547
+INFO:src.models.train:  Fold 5: Train=0.4797, Test=0.4547
+2026-10-08 18:50:38,055 - src.models.train - INFO -   평균: Test=0.4580 ± 0.0057
+INFO:src.models.train:  평균: Test=0.4580 ± 0.0057
+2026-10-08 18:50:38,174 - src.models.train - INFO - -------------------------------------------------------------------
+-------------
+INFO:src.models.train:--------------------------------------------------------------------------------
+2026-10-08 18:50:38,541 - src.models.train - INFO - 모델 저장: models/lightgbm_is_unbalance_v1.0.joblib
+
+INFO:src.models.train:모델 저장: models/lightgbm_is_unbalance_v1.0.joblib
+
+2026-10-08 18:50:38,706 - src.models.train - INFO - [방식 2] SMOTE
+INFO:src.models.train:[방식 2] SMOTE
+2026-10-08 18:50:38,706 - src.models.train - INFO - -------------------------------------------------------------------
+-------------
+INFO:src.models.train:--------------------------------------------------------------------------------
+2026-10-08 18:50:42,733 - src.models.train - INFO - 
+5-Fold CV 결과 (SMOTE):
+INFO:src.models.train:
+5-Fold CV 결과 (SMOTE):
+2026-10-08 18:50:42,733 - src.models.train - INFO - -------------------------------------------------------------------
+-------------
+INFO:src.models.train:--------------------------------------------------------------------------------
+2026-10-08 18:50:42,733 - src.models.train - INFO - 
+ROC_AUC:
+INFO:src.models.train:
+ROC_AUC:
+2026-10-08 18:50:42,734 - src.models.train - INFO -   Fold 1: Train=0.7740, Test=0.7228
+INFO:src.models.train:  Fold 1: Train=0.7740, Test=0.7228
+2026-10-08 18:50:42,734 - src.models.train - INFO -   Fold 2: Train=0.7689, Test=0.7356
+INFO:src.models.train:  Fold 2: Train=0.7689, Test=0.7356
+2026-10-08 18:50:42,734 - src.models.train - INFO -   Fold 3: Train=0.7752, Test=0.7299
+INFO:src.models.train:  Fold 3: Train=0.7752, Test=0.7299
+2026-10-08 18:50:42,734 - src.models.train - INFO -   Fold 4: Train=0.7723, Test=0.7278
+INFO:src.models.train:  Fold 4: Train=0.7723, Test=0.7278
+2026-10-08 18:50:42,734 - src.models.train - INFO -   Fold 5: Train=0.7703, Test=0.7327
+INFO:src.models.train:  Fold 5: Train=0.7703, Test=0.7327
+2026-10-08 18:50:42,734 - src.models.train - INFO -   평균: Test=0.7297 ± 0.0044
+INFO:src.models.train:  평균: Test=0.7297 ± 0.0044
+2026-10-08 18:50:42,968 - src.models.train - INFO - 
+PRECISION:
+INFO:src.models.train:
+PRECISION:
+2026-10-08 18:50:42,968 - src.models.train - INFO -   Fold 1: Train=0.4492, Test=0.4293
+INFO:src.models.train:  Fold 1: Train=0.4492, Test=0.4293
+2026-10-08 18:50:42,969 - src.models.train - INFO -   Fold 2: Train=0.4433, Test=0.4321
+INFO:src.models.train:  Fold 2: Train=0.4433, Test=0.4321
+2026-10-08 18:50:42,969 - src.models.train - INFO -   Fold 3: Train=0.4331, Test=0.4198
+INFO:src.models.train:  Fold 3: Train=0.4331, Test=0.4198
+2026-10-08 18:50:42,969 - src.models.train - INFO -   Fold 4: Train=0.4331, Test=0.4205
+INFO:src.models.train:  Fold 4: Train=0.4331, Test=0.4205
+2026-10-08 18:50:42,969 - src.models.train - INFO -   Fold 5: Train=0.4406, Test=0.4252
+INFO:src.models.train:  Fold 5: Train=0.4406, Test=0.4252
+2026-10-08 18:50:42,969 - src.models.train - INFO -   평균: Test=0.4254 ± 0.0048
+INFO:src.models.train:  평균: Test=0.4254 ± 0.0048
+2026-10-08 18:50:43,194 - src.models.train - INFO - 
+RECALL:
+INFO:src.models.train:
+RECALL:
+2026-10-08 18:50:43,195 - src.models.train - INFO -   Fold 1: Train=0.5133, Test=0.4963
+INFO:src.models.train:  Fold 1: Train=0.5133, Test=0.4963
+2026-10-08 18:50:43,195 - src.models.train - INFO -   Fold 2: Train=0.5121, Test=0.5103
+INFO:src.models.train:  Fold 2: Train=0.5121, Test=0.5103
+2026-10-08 18:50:43,195 - src.models.train - INFO -   Fold 3: Train=0.5234, Test=0.4912
+INFO:src.models.train:  Fold 3: Train=0.5234, Test=0.4912
+2026-10-08 18:50:43,195 - src.models.train - INFO -   Fold 4: Train=0.5186, Test=0.5059
+INFO:src.models.train:  Fold 4: Train=0.5186, Test=0.5059
+2026-10-08 18:50:43,195 - src.models.train - INFO -   Fold 5: Train=0.5151, Test=0.5005
+INFO:src.models.train:  Fold 5: Train=0.5151, Test=0.5005
+2026-10-08 18:50:43,195 - src.models.train - INFO -   평균: Test=0.5008 ± 0.0067
+INFO:src.models.train:  평균: Test=0.5008 ± 0.0067
+2026-10-08 18:50:43,454 - src.models.train - INFO - 
+F1:
+INFO:src.models.train:
+F1:
+2026-10-08 18:50:43,455 - src.models.train - INFO -   Fold 1: Train=0.4791, Test=0.4604
+INFO:src.models.train:  Fold 1: Train=0.4791, Test=0.4604
+2026-10-08 18:50:43,455 - src.models.train - INFO -   Fold 2: Train=0.4752, Test=0.4679
+INFO:src.models.train:  Fold 2: Train=0.4752, Test=0.4679
+2026-10-08 18:50:43,455 - src.models.train - INFO -   Fold 3: Train=0.4740, Test=0.4527
+INFO:src.models.train:  Fold 3: Train=0.4740, Test=0.4527
+2026-10-08 18:50:43,455 - src.models.train - INFO -   Fold 4: Train=0.4720, Test=0.4593
+INFO:src.models.train:  Fold 4: Train=0.4720, Test=0.4593
+2026-10-08 18:50:43,455 - src.models.train - INFO -   Fold 5: Train=0.4749, Test=0.4598
+INFO:src.models.train:  Fold 5: Train=0.4749, Test=0.4598
+2026-10-08 18:50:43,455 - src.models.train - INFO -   평균: Test=0.4600 ± 0.0048
+INFO:src.models.train:  평균: Test=0.4600 ± 0.0048
+2026-10-08 18:50:43,709 - src.models.train - INFO - -------------------------------------------------------------------
+-------------
+INFO:src.models.train:--------------------------------------------------------------------------------
+2026-10-08 18:50:44,467 - src.models.train - INFO - 모델 저장: models/lightgbm_smote_v1.0.joblib
+
+INFO:src.models.train:모델 저장: models/lightgbm_smote_v1.0.joblib
+
+2026-10-08 18:50:45,127 - src.models.train - INFO - 
+================================================================================
+INFO:src.models.train:
+================================================================================
+2026-10-08 18:50:45,127 - src.models.train - INFO - 데이터 타입: integrated
+INFO:src.models.train:데이터 타입: integrated
+2026-10-08 18:50:45,127 - src.models.train - INFO - ===================================================================
+=============
+INFO:src.models.train:================================================================================
+2026-10-08 18:50:45,127 - src.models.train - INFO - 선택된 특성: 15개
+
+INFO:src.models.train:선택된 특성: 15개
+
+2026-10-08 18:50:45,127 - src.models.train - INFO - 
+[방식 1] class_weight='balanced'
+INFO:src.models.train:
+[방식 1] class_weight='balanced'
+2026-10-08 18:50:45,127 - src.models.train - INFO - -------------------------------------------------------------------
+-------------
+INFO:src.models.train:--------------------------------------------------------------------------------
+2026-10-08 18:50:46,247 - src.models.train - INFO - 
+5-Fold CV 결과 (class_weight='balanced'):
+INFO:src.models.train:
+5-Fold CV 결과 (class_weight='balanced'):
+2026-10-08 18:50:46,247 - src.models.train - INFO - -------------------------------------------------------------------
+-------------
+INFO:src.models.train:--------------------------------------------------------------------------------
+2026-10-08 18:50:46,248 - src.models.train - INFO - 
+ROC_AUC:
+INFO:src.models.train:
+ROC_AUC:
+2026-10-08 18:50:46,248 - src.models.train - INFO -   Fold 1: Train=0.7406, Test=0.7368
+INFO:src.models.train:  Fold 1: Train=0.7406, Test=0.7368
+2026-10-08 18:50:46,248 - src.models.train - INFO -   Fold 2: Train=0.7376, Test=0.7477
+INFO:src.models.train:  Fold 2: Train=0.7376, Test=0.7477
+2026-10-08 18:50:46,248 - src.models.train - INFO -   Fold 3: Train=0.7406, Test=0.7376
+INFO:src.models.train:  Fold 3: Train=0.7406, Test=0.7376
+2026-10-08 18:50:46,248 - src.models.train - INFO -   Fold 4: Train=0.7408, Test=0.7375
+INFO:src.models.train:  Fold 4: Train=0.7408, Test=0.7375
+2026-10-08 18:50:46,248 - src.models.train - INFO -   Fold 5: Train=0.7406, Test=0.7383
+INFO:src.models.train:  Fold 5: Train=0.7406, Test=0.7383
+2026-10-08 18:50:46,248 - src.models.train - INFO -   평균: Test=0.7396 ± 0.0041
+INFO:src.models.train:  평균: Test=0.7396 ± 0.0041
+2026-10-08 18:50:46,381 - src.models.train - INFO - 
+PRECISION:
+INFO:src.models.train:
+PRECISION:
+2026-10-08 18:50:46,381 - src.models.train - INFO -   Fold 1: Train=0.2595, Test=0.2561
+INFO:src.models.train:  Fold 1: Train=0.2595, Test=0.2561
+2026-10-08 18:50:46,381 - src.models.train - INFO -   Fold 2: Train=0.2567, Test=0.2607
+INFO:src.models.train:  Fold 2: Train=0.2567, Test=0.2607
+2026-10-08 18:50:46,381 - src.models.train - INFO -   Fold 3: Train=0.2599, Test=0.2592
+INFO:src.models.train:  Fold 3: Train=0.2599, Test=0.2592
+2026-10-08 18:50:46,381 - src.models.train - INFO -   Fold 4: Train=0.2586, Test=0.2573
+INFO:src.models.train:  Fold 4: Train=0.2586, Test=0.2573
+2026-10-08 18:50:46,381 - src.models.train - INFO -   Fold 5: Train=0.2587, Test=0.2580
+INFO:src.models.train:  Fold 5: Train=0.2587, Test=0.2580
+2026-10-08 18:50:46,382 - src.models.train - INFO -   평균: Test=0.2583 ± 0.0016
+INFO:src.models.train:  평균: Test=0.2583 ± 0.0016
+2026-10-08 18:50:46,512 - src.models.train - INFO - 
+RECALL:
+INFO:src.models.train:
+RECALL:
+2026-10-08 18:50:46,512 - src.models.train - INFO -   Fold 1: Train=0.6338, Test=0.6282
+INFO:src.models.train:  Fold 1: Train=0.6338, Test=0.6282
+2026-10-08 18:50:46,512 - src.models.train - INFO -   Fold 2: Train=0.6292, Test=0.6447
+INFO:src.models.train:  Fold 2: Train=0.6292, Test=0.6447
+2026-10-08 18:50:46,513 - src.models.train - INFO -   Fold 3: Train=0.6326, Test=0.6286
+INFO:src.models.train:  Fold 3: Train=0.6326, Test=0.6286
+2026-10-08 18:50:46,513 - src.models.train - INFO -   Fold 4: Train=0.6343, Test=0.6319
+INFO:src.models.train:  Fold 4: Train=0.6343, Test=0.6319
+2026-10-08 18:50:46,513 - src.models.train - INFO -   Fold 5: Train=0.6353, Test=0.6294
+INFO:src.models.train:  Fold 5: Train=0.6353, Test=0.6294
+2026-10-08 18:50:46,513 - src.models.train - INFO -   평균: Test=0.6326 ± 0.0062
+INFO:src.models.train:  평균: Test=0.6326 ± 0.0062
+2026-10-08 18:50:46,639 - src.models.train - INFO - 
+F1:
+INFO:src.models.train:
+F1:
+2026-10-08 18:50:46,639 - src.models.train - INFO -   Fold 1: Train=0.3683, Test=0.3638
+INFO:src.models.train:  Fold 1: Train=0.3683, Test=0.3638
+2026-10-08 18:50:46,639 - src.models.train - INFO -   Fold 2: Train=0.3647, Test=0.3713
+INFO:src.models.train:  Fold 2: Train=0.3647, Test=0.3713
+2026-10-08 18:50:46,639 - src.models.train - INFO -   Fold 3: Train=0.3684, Test=0.3670
+INFO:src.models.train:  Fold 3: Train=0.3684, Test=0.3670
+2026-10-08 18:50:46,639 - src.models.train - INFO -   Fold 4: Train=0.3674, Test=0.3657
+INFO:src.models.train:  Fold 4: Train=0.3674, Test=0.3657
+2026-10-08 18:50:46,639 - src.models.train - INFO -   Fold 5: Train=0.3677, Test=0.3660
+INFO:src.models.train:  Fold 5: Train=0.3677, Test=0.3660
+2026-10-08 18:50:46,639 - src.models.train - INFO -   평균: Test=0.3668 ± 0.0025
+INFO:src.models.train:  평균: Test=0.3668 ± 0.0025
+2026-10-08 18:50:46,766 - src.models.train - INFO - -------------------------------------------------------------------
+-------------
+INFO:src.models.train:--------------------------------------------------------------------------------
+2026-10-08 18:50:46,957 - src.models.train - INFO - 모델 저장: models/logistic_regression_class_weight_v1.0.joblib
+
+INFO:src.models.train:모델 저장: models/logistic_regression_class_weight_v1.0.joblib
+
+2026-10-08 18:50:47,039 - src.models.train - INFO - [방식 2] SMOTE
+INFO:src.models.train:[방식 2] SMOTE
+2026-10-08 18:50:47,039 - src.models.train - INFO - -------------------------------------------------------------------
+-------------
+INFO:src.models.train:--------------------------------------------------------------------------------
+2026-10-08 18:50:52,311 - src.models.train - INFO - 
+5-Fold CV 결과 (SMOTE):
+INFO:src.models.train:
+5-Fold CV 결과 (SMOTE):
+2026-10-08 18:50:52,311 - src.models.train - INFO - -------------------------------------------------------------------
+-------------
+INFO:src.models.train:--------------------------------------------------------------------------------
+2026-10-08 18:50:52,311 - src.models.train - INFO - 
+ROC_AUC:
+INFO:src.models.train:
+ROC_AUC:
+2026-10-08 18:50:52,312 - src.models.train - INFO -   Fold 1: Train=0.7404, Test=0.7369
+INFO:src.models.train:  Fold 1: Train=0.7404, Test=0.7369
+2026-10-08 18:50:52,312 - src.models.train - INFO -   Fold 2: Train=0.7373, Test=0.7475
+INFO:src.models.train:  Fold 2: Train=0.7373, Test=0.7475
+2026-10-08 18:50:52,312 - src.models.train - INFO -   Fold 3: Train=0.7403, Test=0.7370
+INFO:src.models.train:  Fold 3: Train=0.7403, Test=0.7370
+2026-10-08 18:50:52,312 - src.models.train - INFO -   Fold 4: Train=0.7407, Test=0.7367
+INFO:src.models.train:  Fold 4: Train=0.7407, Test=0.7367
+2026-10-08 18:50:52,312 - src.models.train - INFO -   Fold 5: Train=0.7405, Test=0.7384
+INFO:src.models.train:  Fold 5: Train=0.7405, Test=0.7384
+2026-10-08 18:50:52,312 - src.models.train - INFO -   평균: Test=0.7393 ± 0.0041
+INFO:src.models.train:  평균: Test=0.7393 ± 0.0041
+2026-10-08 18:50:52,430 - src.models.train - INFO - 
+PRECISION:
+INFO:src.models.train:
+PRECISION:
+2026-10-08 18:50:52,430 - src.models.train - INFO -   Fold 1: Train=0.2565, Test=0.2545
+INFO:src.models.train:  Fold 1: Train=0.2565, Test=0.2545
+2026-10-08 18:50:52,430 - src.models.train - INFO -   Fold 2: Train=0.2562, Test=0.2581
+INFO:src.models.train:  Fold 2: Train=0.2562, Test=0.2581
+2026-10-08 18:50:52,430 - src.models.train - INFO -   Fold 3: Train=0.2583, Test=0.2589
+INFO:src.models.train:  Fold 3: Train=0.2583, Test=0.2589
+2026-10-08 18:50:52,431 - src.models.train - INFO -   Fold 4: Train=0.2572, Test=0.2559
+INFO:src.models.train:  Fold 4: Train=0.2572, Test=0.2559
+2026-10-08 18:50:52,431 - src.models.train - INFO -   Fold 5: Train=0.2572, Test=0.2576
+INFO:src.models.train:  Fold 5: Train=0.2572, Test=0.2576
+2026-10-08 18:50:52,431 - src.models.train - INFO -   평균: Test=0.2570 ± 0.0016
+INFO:src.models.train:  평균: Test=0.2570 ± 0.0016
+2026-10-08 18:50:52,548 - src.models.train - INFO - 
+RECALL:
+INFO:src.models.train:
+RECALL:
+2026-10-08 18:50:52,548 - src.models.train - INFO -   Fold 1: Train=0.6333, Test=0.6304
+INFO:src.models.train:  Fold 1: Train=0.6333, Test=0.6304
+2026-10-08 18:50:52,548 - src.models.train - INFO -   Fold 2: Train=0.6303, Test=0.6403
+INFO:src.models.train:  Fold 2: Train=0.6303, Test=0.6403
+2026-10-08 18:50:52,548 - src.models.train - INFO -   Fold 3: Train=0.6314, Test=0.6282
+INFO:src.models.train:  Fold 3: Train=0.6314, Test=0.6282
+2026-10-08 18:50:52,548 - src.models.train - INFO -   Fold 4: Train=0.6347, Test=0.6315
+INFO:src.models.train:  Fold 4: Train=0.6347, Test=0.6315
+2026-10-08 18:50:52,549 - src.models.train - INFO -   Fold 5: Train=0.6339, Test=0.6305
+INFO:src.models.train:  Fold 5: Train=0.6339, Test=0.6305
+2026-10-08 18:50:52,549 - src.models.train - INFO -   평균: Test=0.6322 ± 0.0042
+INFO:src.models.train:  평균: Test=0.6322 ± 0.0042
+2026-10-08 18:50:52,673 - src.models.train - INFO - 
+F1:
+INFO:src.models.train:
+F1:
+2026-10-08 18:50:52,673 - src.models.train - INFO -   Fold 1: Train=0.3651, Test=0.3626
+INFO:src.models.train:  Fold 1: Train=0.3651, Test=0.3626
+2026-10-08 18:50:52,673 - src.models.train - INFO -   Fold 2: Train=0.3643, Test=0.3679
+INFO:src.models.train:  Fold 2: Train=0.3643, Test=0.3679
+2026-10-08 18:50:52,673 - src.models.train - INFO -   Fold 3: Train=0.3666, Test=0.3666
+INFO:src.models.train:  Fold 3: Train=0.3666, Test=0.3666
+2026-10-08 18:50:52,673 - src.models.train - INFO -   Fold 4: Train=0.3661, Test=0.3642
+INFO:src.models.train:  Fold 4: Train=0.3661, Test=0.3642
+2026-10-08 18:50:52,673 - src.models.train - INFO -   Fold 5: Train=0.3660, Test=0.3658
+INFO:src.models.train:  Fold 5: Train=0.3660, Test=0.3658
+2026-10-08 18:50:52,673 - src.models.train - INFO -   평균: Test=0.3654 ± 0.0019
+INFO:src.models.train:  평균: Test=0.3654 ± 0.0019
+2026-10-08 18:50:52,788 - src.models.train - INFO - -------------------------------------------------------------------
+-------------
+INFO:src.models.train:--------------------------------------------------------------------------------
+2026-10-08 18:50:56,885 - src.models.train - INFO - 모델 저장: models/logistic_regression_smote_v1.0.joblib
+
+INFO:src.models.train:모델 저장: models/logistic_regression_smote_v1.0.joblib
+
+2026-10-08 18:50:57,808 - src.models.train - INFO - 
+[방식 1] scale_pos_weight
+INFO:src.models.train:
+[방식 1] scale_pos_weight
+2026-10-08 18:50:57,808 - src.models.train - INFO - -------------------------------------------------------------------
+-------------
+INFO:src.models.train:--------------------------------------------------------------------------------
+2026-10-08 18:51:00,836 - src.models.train - INFO - 
+5-Fold CV 결과 (scale_pos_weight):
+INFO:src.models.train:
+5-Fold CV 결과 (scale_pos_weight):
+2026-10-08 18:51:00,836 - src.models.train - INFO - -------------------------------------------------------------------
+-------------
+INFO:src.models.train:--------------------------------------------------------------------------------
+2026-10-08 18:51:00,836 - src.models.train - INFO - 
+ROC_AUC:
+INFO:src.models.train:
+ROC_AUC:
+2026-10-08 18:51:00,837 - src.models.train - INFO -   Fold 1: Train=0.8393, Test=0.7646
+INFO:src.models.train:  Fold 1: Train=0.8393, Test=0.7646
+2026-10-08 18:51:00,837 - src.models.train - INFO -   Fold 2: Train=0.8363, Test=0.7795
+INFO:src.models.train:  Fold 2: Train=0.8363, Test=0.7795
+2026-10-08 18:51:00,837 - src.models.train - INFO -   Fold 3: Train=0.8360, Test=0.7688
+INFO:src.models.train:  Fold 3: Train=0.8360, Test=0.7688
+2026-10-08 18:51:00,837 - src.models.train - INFO -   Fold 4: Train=0.8397, Test=0.7636
+INFO:src.models.train:  Fold 4: Train=0.8397, Test=0.7636
+2026-10-08 18:51:00,837 - src.models.train - INFO -   Fold 5: Train=0.8404, Test=0.7665
+INFO:src.models.train:  Fold 5: Train=0.8404, Test=0.7665
+2026-10-08 18:51:00,837 - src.models.train - INFO -   평균: Test=0.7686 ± 0.0057
+INFO:src.models.train:  평균: Test=0.7686 ± 0.0057
+2026-10-08 18:51:00,965 - src.models.train - INFO - 
+PRECISION:
+INFO:src.models.train:
+PRECISION:
+2026-10-08 18:51:00,965 - src.models.train - INFO -   Fold 1: Train=0.5566, Test=0.5015
+INFO:src.models.train:  Fold 1: Train=0.5566, Test=0.5015
+2026-10-08 18:51:00,965 - src.models.train - INFO -   Fold 2: Train=0.5535, Test=0.5046
+INFO:src.models.train:  Fold 2: Train=0.5535, Test=0.5046
+2026-10-08 18:51:00,965 - src.models.train - INFO -   Fold 3: Train=0.5524, Test=0.4981
+INFO:src.models.train:  Fold 3: Train=0.5524, Test=0.4981
+2026-10-08 18:51:00,965 - src.models.train - INFO -   Fold 4: Train=0.5535, Test=0.4939
+INFO:src.models.train:  Fold 4: Train=0.5535, Test=0.4939
+2026-10-08 18:51:00,965 - src.models.train - INFO -   Fold 5: Train=0.5590, Test=0.4982
+INFO:src.models.train:  Fold 5: Train=0.5590, Test=0.4982
+2026-10-08 18:51:00,965 - src.models.train - INFO -   평균: Test=0.4993 ± 0.0036
+INFO:src.models.train:  평균: Test=0.4993 ± 0.0036
+2026-10-08 18:51:01,069 - src.models.train - INFO - 
+RECALL:
+INFO:src.models.train:
+RECALL:
+2026-10-08 18:51:01,069 - src.models.train - INFO -   Fold 1: Train=0.5687, Test=0.5011
+INFO:src.models.train:  Fold 1: Train=0.5687, Test=0.5011
+2026-10-08 18:51:01,069 - src.models.train - INFO -   Fold 2: Train=0.5626, Test=0.5187
+INFO:src.models.train:  Fold 2: Train=0.5626, Test=0.5187
+2026-10-08 18:51:01,069 - src.models.train - INFO -   Fold 3: Train=0.5662, Test=0.4897
+INFO:src.models.train:  Fold 3: Train=0.5662, Test=0.4897
+2026-10-08 18:51:01,069 - src.models.train - INFO -   Fold 4: Train=0.5649, Test=0.5077
+INFO:src.models.train:  Fold 4: Train=0.5649, Test=0.5077
+2026-10-08 18:51:01,069 - src.models.train - INFO -   Fold 5: Train=0.5646, Test=0.5086
+INFO:src.models.train:  Fold 5: Train=0.5646, Test=0.5086
+2026-10-08 18:51:01,070 - src.models.train - INFO -   평균: Test=0.5052 ± 0.0095
+INFO:src.models.train:  평균: Test=0.5052 ± 0.0095
+2026-10-08 18:51:01,172 - src.models.train - INFO - 
+F1:
+INFO:src.models.train:
+F1:
+2026-10-08 18:51:01,172 - src.models.train - INFO -   Fold 1: Train=0.5626, Test=0.5013
+INFO:src.models.train:  Fold 1: Train=0.5626, Test=0.5013
+2026-10-08 18:51:01,172 - src.models.train - INFO -   Fold 2: Train=0.5580, Test=0.5116
+INFO:src.models.train:  Fold 2: Train=0.5580, Test=0.5116
+2026-10-08 18:51:01,173 - src.models.train - INFO -   Fold 3: Train=0.5593, Test=0.4939
+INFO:src.models.train:  Fold 3: Train=0.5593, Test=0.4939
+2026-10-08 18:51:01,173 - src.models.train - INFO -   Fold 4: Train=0.5591, Test=0.5007
+INFO:src.models.train:  Fold 4: Train=0.5591, Test=0.5007
+2026-10-08 18:51:01,173 - src.models.train - INFO -   Fold 5: Train=0.5618, Test=0.5034
+INFO:src.models.train:  Fold 5: Train=0.5618, Test=0.5034
+2026-10-08 18:51:01,173 - src.models.train - INFO -   평균: Test=0.5022 ± 0.0057
+INFO:src.models.train:  평균: Test=0.5022 ± 0.0057
+2026-10-08 18:51:01,283 - src.models.train - INFO - -------------------------------------------------------------------
+-------------
+INFO:src.models.train:--------------------------------------------------------------------------------
+2026-10-08 18:51:01,836 - src.models.train - INFO - 모델 저장: models/xgboost_scale_pos_weight_v1.0.joblib
+
+INFO:src.models.train:모델 저장: models/xgboost_scale_pos_weight_v1.0.joblib
+
+2026-10-08 18:51:02,032 - src.models.train - INFO - [방식 2] SMOTE
+INFO:src.models.train:[방식 2] SMOTE
+2026-10-08 18:51:02,033 - src.models.train - INFO - -------------------------------------------------------------------
+-------------
+INFO:src.models.train:--------------------------------------------------------------------------------
+2026-10-08 18:51:10,070 - src.models.train - INFO - 
+5-Fold CV 결과 (SMOTE):
+INFO:src.models.train:
+5-Fold CV 결과 (SMOTE):
+2026-10-08 18:51:10,070 - src.models.train - INFO - -------------------------------------------------------------------
+-------------
+INFO:src.models.train:--------------------------------------------------------------------------------
+2026-10-08 18:51:10,070 - src.models.train - INFO - 
+ROC_AUC:
+INFO:src.models.train:
+ROC_AUC:
+2026-10-08 18:51:10,070 - src.models.train - INFO -   Fold 1: Train=0.7900, Test=0.7513
+INFO:src.models.train:  Fold 1: Train=0.7900, Test=0.7513
+2026-10-08 18:51:10,070 - src.models.train - INFO -   Fold 2: Train=0.7872, Test=0.7585
+INFO:src.models.train:  Fold 2: Train=0.7872, Test=0.7585
+2026-10-08 18:51:10,070 - src.models.train - INFO -   Fold 3: Train=0.7882, Test=0.7510
+INFO:src.models.train:  Fold 3: Train=0.7882, Test=0.7510
+2026-10-08 18:51:10,070 - src.models.train - INFO -   Fold 4: Train=0.7903, Test=0.7500
+INFO:src.models.train:  Fold 4: Train=0.7903, Test=0.7500
+2026-10-08 18:51:10,071 - src.models.train - INFO -   Fold 5: Train=0.7899, Test=0.7518
+INFO:src.models.train:  Fold 5: Train=0.7899, Test=0.7518
+2026-10-08 18:51:10,071 - src.models.train - INFO -   평균: Test=0.7525 ± 0.0030
+INFO:src.models.train:  평균: Test=0.7525 ± 0.0030
+2026-10-08 18:51:10,208 - src.models.train - INFO - 
+PRECISION:
+INFO:src.models.train:
+PRECISION:
+2026-10-08 18:51:10,208 - src.models.train - INFO -   Fold 1: Train=0.8153, Test=0.7493
+INFO:src.models.train:  Fold 1: Train=0.8153, Test=0.7493
+2026-10-08 18:51:10,208 - src.models.train - INFO -   Fold 2: Train=0.8066, Test=0.7967
+INFO:src.models.train:  Fold 2: Train=0.8066, Test=0.7967
+2026-10-08 18:51:10,208 - src.models.train - INFO -   Fold 3: Train=0.8127, Test=0.7892
+INFO:src.models.train:  Fold 3: Train=0.8127, Test=0.7892
+2026-10-08 18:51:10,208 - src.models.train - INFO -   Fold 4: Train=0.8087, Test=0.7672
+INFO:src.models.train:  Fold 4: Train=0.8087, Test=0.7672
+2026-10-08 18:51:10,208 - src.models.train - INFO -   Fold 5: Train=0.8029, Test=0.7812
+INFO:src.models.train:  Fold 5: Train=0.8029, Test=0.7812
+2026-10-08 18:51:10,208 - src.models.train - INFO -   평균: Test=0.7767 ± 0.0168
+INFO:src.models.train:  평균: Test=0.7767 ± 0.0168
+2026-10-08 18:51:10,328 - src.models.train - INFO - 
+RECALL:
+INFO:src.models.train:
+RECALL:
+2026-10-08 18:51:10,328 - src.models.train - INFO -   Fold 1: Train=0.4131, Test=0.3897
+INFO:src.models.train:  Fold 1: Train=0.4131, Test=0.3897
+2026-10-08 18:51:10,328 - src.models.train - INFO -   Fold 2: Train=0.4067, Test=0.4106
+INFO:src.models.train:  Fold 2: Train=0.4067, Test=0.4106
+2026-10-08 18:51:10,328 - src.models.train - INFO -   Fold 3: Train=0.4105, Test=0.3853
+INFO:src.models.train:  Fold 3: Train=0.4105, Test=0.3853
+2026-10-08 18:51:10,328 - src.models.train - INFO -   Fold 4: Train=0.4099, Test=0.3960
+INFO:src.models.train:  Fold 4: Train=0.4099, Test=0.3960
+2026-10-08 18:51:10,328 - src.models.train - INFO -   Fold 5: Train=0.4129, Test=0.3988
+INFO:src.models.train:  Fold 5: Train=0.4129, Test=0.3988
+2026-10-08 18:51:10,329 - src.models.train - INFO -   평균: Test=0.3961 ± 0.0086
+INFO:src.models.train:  평균: Test=0.3961 ± 0.0086
+2026-10-08 18:51:10,777 - src.models.train - INFO - 
+F1:
+INFO:src.models.train:
+F1:
+2026-10-08 18:51:10,777 - src.models.train - INFO -   Fold 1: Train=0.5483, Test=0.5128
+INFO:src.models.train:  Fold 1: Train=0.5483, Test=0.5128
+2026-10-08 18:51:10,777 - src.models.train - INFO -   Fold 2: Train=0.5408, Test=0.5419
+INFO:src.models.train:  Fold 2: Train=0.5408, Test=0.5419
+2026-10-08 18:51:10,777 - src.models.train - INFO -   Fold 3: Train=0.5455, Test=0.5178
+INFO:src.models.train:  Fold 3: Train=0.5455, Test=0.5178
+2026-10-08 18:51:10,777 - src.models.train - INFO -   Fold 4: Train=0.5440, Test=0.5223
+INFO:src.models.train:  Fold 4: Train=0.5440, Test=0.5223
+2026-10-08 18:51:10,777 - src.models.train - INFO -   Fold 5: Train=0.5454, Test=0.5280
+INFO:src.models.train:  Fold 5: Train=0.5454, Test=0.5280
+2026-10-08 18:51:10,777 - src.models.train - INFO -   평균: Test=0.5246 ± 0.0100
+INFO:src.models.train:  평균: Test=0.5246 ± 0.0100
+2026-10-08 18:51:10,893 - src.models.train - INFO - -------------------------------------------------------------------
+-------------
+INFO:src.models.train:--------------------------------------------------------------------------------
+2026-10-08 18:51:15,614 - src.models.train - INFO - 모델 저장: models/xgboost_smote_v1.0.joblib
+
+INFO:src.models.train:모델 저장: models/xgboost_smote_v1.0.joblib
+
+2026-10-08 18:51:16,496 - src.models.train - INFO - 
+[방식 1] is_unbalance=True
+INFO:src.models.train:
+[방식 1] is_unbalance=True
+2026-10-08 18:51:16,496 - src.models.train - INFO - -------------------------------------------------------------------
+-------------
+INFO:src.models.train:--------------------------------------------------------------------------------
+2026-10-08 18:51:19,986 - src.models.train - INFO - 
+5-Fold CV 결과 (is_unbalance=True):
+INFO:src.models.train:
+5-Fold CV 결과 (is_unbalance=True):
+2026-10-08 18:51:19,986 - src.models.train - INFO - -------------------------------------------------------------------
+-------------
+INFO:src.models.train:--------------------------------------------------------------------------------
+2026-10-08 18:51:19,986 - src.models.train - INFO - 
+ROC_AUC:
+INFO:src.models.train:
+ROC_AUC:
+2026-10-08 18:51:19,986 - src.models.train - INFO -   Fold 1: Train=0.8283, Test=0.7675
+INFO:src.models.train:  Fold 1: Train=0.8283, Test=0.7675
+2026-10-08 18:51:19,986 - src.models.train - INFO -   Fold 2: Train=0.8254, Test=0.7803
+INFO:src.models.train:  Fold 2: Train=0.8254, Test=0.7803
+2026-10-08 18:51:19,986 - src.models.train - INFO -   Fold 3: Train=0.8250, Test=0.7676
+INFO:src.models.train:  Fold 3: Train=0.8250, Test=0.7676
+2026-10-08 18:51:19,986 - src.models.train - INFO -   Fold 4: Train=0.8289, Test=0.7637
+INFO:src.models.train:  Fold 4: Train=0.8289, Test=0.7637
+2026-10-08 18:51:19,986 - src.models.train - INFO -   Fold 5: Train=0.8257, Test=0.7689
+INFO:src.models.train:  Fold 5: Train=0.8257, Test=0.7689
+2026-10-08 18:51:19,986 - src.models.train - INFO -   평균: Test=0.7696 ± 0.0056
+INFO:src.models.train:  평균: Test=0.7696 ± 0.0056
+2026-10-08 18:51:20,118 - src.models.train - INFO - 
+PRECISION:
+INFO:src.models.train:
+PRECISION:
+2026-10-08 18:51:20,118 - src.models.train - INFO -   Fold 1: Train=0.5300, Test=0.4855
+INFO:src.models.train:  Fold 1: Train=0.5300, Test=0.4855
+2026-10-08 18:51:20,118 - src.models.train - INFO -   Fold 2: Train=0.5270, Test=0.4979
+INFO:src.models.train:  Fold 2: Train=0.5270, Test=0.4979
+2026-10-08 18:51:20,118 - src.models.train - INFO -   Fold 3: Train=0.5282, Test=0.4871
+INFO:src.models.train:  Fold 3: Train=0.5282, Test=0.4871
+2026-10-08 18:51:20,118 - src.models.train - INFO -   Fold 4: Train=0.5270, Test=0.4828
+INFO:src.models.train:  Fold 4: Train=0.5270, Test=0.4828
+2026-10-08 18:51:20,118 - src.models.train - INFO -   Fold 5: Train=0.5311, Test=0.4883
+INFO:src.models.train:  Fold 5: Train=0.5311, Test=0.4883
+2026-10-08 18:51:20,118 - src.models.train - INFO -   평균: Test=0.4883 ± 0.0051
+INFO:src.models.train:  평균: Test=0.4883 ± 0.0051
+2026-10-08 18:51:20,246 - src.models.train - INFO - 
+RECALL:
+INFO:src.models.train:
+RECALL:
+2026-10-08 18:51:20,246 - src.models.train - INFO -   Fold 1: Train=0.5555, Test=0.5037
+INFO:src.models.train:  Fold 1: Train=0.5555, Test=0.5037
+2026-10-08 18:51:20,246 - src.models.train - INFO -   Fold 2: Train=0.5536, Test=0.5253
+INFO:src.models.train:  Fold 2: Train=0.5536, Test=0.5253
+2026-10-08 18:51:20,246 - src.models.train - INFO -   Fold 3: Train=0.5569, Test=0.4897
+INFO:src.models.train:  Fold 3: Train=0.5569, Test=0.4897
+2026-10-08 18:51:20,246 - src.models.train - INFO -   Fold 4: Train=0.5526, Test=0.5187
+INFO:src.models.train:  Fold 4: Train=0.5526, Test=0.5187
+2026-10-08 18:51:20,246 - src.models.train - INFO -   Fold 5: Train=0.5510, Test=0.5115
+INFO:src.models.train:  Fold 5: Train=0.5510, Test=0.5115
+2026-10-08 18:51:20,246 - src.models.train - INFO -   평균: Test=0.5098 ± 0.0123
+INFO:src.models.train:  평균: Test=0.5098 ± 0.0123
+2026-10-08 18:51:20,368 - src.models.train - INFO - 
+F1:
+INFO:src.models.train:
+F1:
+2026-10-08 18:51:20,368 - src.models.train - INFO -   Fold 1: Train=0.5424, Test=0.4944
+INFO:src.models.train:  Fold 1: Train=0.5424, Test=0.4944
+2026-10-08 18:51:20,368 - src.models.train - INFO -   Fold 2: Train=0.5400, Test=0.5112
+INFO:src.models.train:  Fold 2: Train=0.5400, Test=0.5112
+2026-10-08 18:51:20,368 - src.models.train - INFO -   Fold 3: Train=0.5422, Test=0.4884
+INFO:src.models.train:  Fold 3: Train=0.5422, Test=0.4884
+2026-10-08 18:51:20,368 - src.models.train - INFO -   Fold 4: Train=0.5395, Test=0.5001
+INFO:src.models.train:  Fold 4: Train=0.5395, Test=0.5001
+2026-10-08 18:51:20,368 - src.models.train - INFO -   Fold 5: Train=0.5409, Test=0.4996
+INFO:src.models.train:  Fold 5: Train=0.5409, Test=0.4996
+2026-10-08 18:51:20,368 - src.models.train - INFO -   평균: Test=0.4988 ± 0.0075
+INFO:src.models.train:  평균: Test=0.4988 ± 0.0075
+2026-10-08 18:51:20,497 - src.models.train - INFO - -------------------------------------------------------------------
+-------------
+INFO:src.models.train:--------------------------------------------------------------------------------
+2026-10-08 18:51:21,032 - src.models.train - INFO - 모델 저장: models/lightgbm_is_unbalance_v1.0.joblib
+
+INFO:src.models.train:모델 저장: models/lightgbm_is_unbalance_v1.0.joblib
+
+2026-10-08 18:51:21,193 - src.models.train - INFO - [방식 2] SMOTE
+INFO:src.models.train:[방식 2] SMOTE
+2026-10-08 18:51:21,193 - src.models.train - INFO - -------------------------------------------------------------------
+-------------
+INFO:src.models.train:--------------------------------------------------------------------------------
+2026-10-08 18:51:32,133 - src.models.train - INFO - 
+5-Fold CV 결과 (SMOTE):
+INFO:src.models.train:
+5-Fold CV 결과 (SMOTE):
+2026-10-08 18:51:32,133 - src.models.train - INFO - -------------------------------------------------------------------
+-------------
+INFO:src.models.train:--------------------------------------------------------------------------------
+2026-10-08 18:51:32,133 - src.models.train - INFO - 
+ROC_AUC:
+INFO:src.models.train:
+ROC_AUC:
+2026-10-08 18:51:32,133 - src.models.train - INFO -   Fold 1: Train=0.7818, Test=0.7506
+INFO:src.models.train:  Fold 1: Train=0.7818, Test=0.7506
+2026-10-08 18:51:32,133 - src.models.train - INFO -   Fold 2: Train=0.7809, Test=0.7603
+INFO:src.models.train:  Fold 2: Train=0.7809, Test=0.7603
+2026-10-08 18:51:32,133 - src.models.train - INFO -   Fold 3: Train=0.7834, Test=0.7505
+INFO:src.models.train:  Fold 3: Train=0.7834, Test=0.7505
+2026-10-08 18:51:32,133 - src.models.train - INFO -   Fold 4: Train=0.7850, Test=0.7492
+INFO:src.models.train:  Fold 4: Train=0.7850, Test=0.7492
+2026-10-08 18:51:32,133 - src.models.train - INFO -   Fold 5: Train=0.7826, Test=0.7533
+INFO:src.models.train:  Fold 5: Train=0.7826, Test=0.7533
+2026-10-08 18:51:32,134 - src.models.train - INFO -   평균: Test=0.7528 ± 0.0040
+INFO:src.models.train:  평균: Test=0.7528 ± 0.0040
+2026-10-08 18:51:32,271 - src.models.train - INFO - 
+PRECISION:
+INFO:src.models.train:
+PRECISION:
+2026-10-08 18:51:32,272 - src.models.train - INFO -   Fold 1: Train=0.8089, Test=0.7509
+INFO:src.models.train:  Fold 1: Train=0.8089, Test=0.7509
+2026-10-08 18:51:32,272 - src.models.train - INFO -   Fold 2: Train=0.7990, Test=0.7934
+INFO:src.models.train:  Fold 2: Train=0.7990, Test=0.7934
+2026-10-08 18:51:32,272 - src.models.train - INFO -   Fold 3: Train=0.7989, Test=0.7759
+INFO:src.models.train:  Fold 3: Train=0.7989, Test=0.7759
+2026-10-08 18:51:32,272 - src.models.train - INFO -   Fold 4: Train=0.7998, Test=0.7746
+INFO:src.models.train:  Fold 4: Train=0.7998, Test=0.7746
+2026-10-08 18:51:32,272 - src.models.train - INFO -   Fold 5: Train=0.7991, Test=0.7863
+INFO:src.models.train:  Fold 5: Train=0.7991, Test=0.7863
+2026-10-08 18:51:32,272 - src.models.train - INFO -   평균: Test=0.7762 ± 0.0144
+INFO:src.models.train:  평균: Test=0.7762 ± 0.0144
+2026-10-08 18:51:32,400 - src.models.train - INFO - 
+RECALL:
+INFO:src.models.train:
+RECALL:
+2026-10-08 18:51:32,400 - src.models.train - INFO -   Fold 1: Train=0.4039, Test=0.3897
+INFO:src.models.train:  Fold 1: Train=0.4039, Test=0.3897
+2026-10-08 18:51:32,400 - src.models.train - INFO -   Fold 2: Train=0.4029, Test=0.4037
+INFO:src.models.train:  Fold 2: Train=0.4029, Test=0.4037
+2026-10-08 18:51:32,400 - src.models.train - INFO -   Fold 3: Train=0.4100, Test=0.3894
+INFO:src.models.train:  Fold 3: Train=0.4100, Test=0.3894
+2026-10-08 18:51:32,400 - src.models.train - INFO -   Fold 4: Train=0.4071, Test=0.3978
+INFO:src.models.train:  Fold 4: Train=0.4071, Test=0.3978
+2026-10-08 18:51:32,400 - src.models.train - INFO -   Fold 5: Train=0.4076, Test=0.3988
+INFO:src.models.train:  Fold 5: Train=0.4076, Test=0.3988
+2026-10-08 18:51:32,400 - src.models.train - INFO -   평균: Test=0.3959 ± 0.0055
+INFO:src.models.train:  평균: Test=0.3959 ± 0.0055
+2026-10-08 18:51:32,529 - src.models.train - INFO - 
+F1:
+INFO:src.models.train:
+F1:
+2026-10-08 18:51:32,529 - src.models.train - INFO -   Fold 1: Train=0.5388, Test=0.5131
+INFO:src.models.train:  Fold 1: Train=0.5388, Test=0.5131
+2026-10-08 18:51:32,529 - src.models.train - INFO -   Fold 2: Train=0.5357, Test=0.5351
+INFO:src.models.train:  Fold 2: Train=0.5357, Test=0.5351
+2026-10-08 18:51:32,529 - src.models.train - INFO -   Fold 3: Train=0.5419, Test=0.5185
+INFO:src.models.train:  Fold 3: Train=0.5419, Test=0.5185
+2026-10-08 18:51:32,530 - src.models.train - INFO -   Fold 4: Train=0.5396, Test=0.5257
+INFO:src.models.train:  Fold 4: Train=0.5396, Test=0.5257
+2026-10-08 18:51:32,530 - src.models.train - INFO -   Fold 5: Train=0.5398, Test=0.5292
+INFO:src.models.train:  Fold 5: Train=0.5398, Test=0.5292
+2026-10-08 18:51:32,530 - src.models.train - INFO -   평균: Test=0.5243 ± 0.0077
+INFO:src.models.train:  평균: Test=0.5243 ± 0.0077
+2026-10-08 18:51:32,660 - src.models.train - INFO - -------------------------------------------------------------------
+-------------
+INFO:src.models.train:--------------------------------------------------------------------------------
+2026-10-08 18:51:38,558 - src.models.train - INFO - 모델 저장: models/lightgbm_smote_v1.0.joblib
+
+INFO:src.models.train:모델 저장: models/lightgbm_smote_v1.0.joblib
+
+2026-10-08 18:51:39,311 - src.models.train - INFO - 
+================================================================================
+INFO:src.models.train:
+================================================================================
+2026-10-08 18:51:39,311 - src.models.train - INFO - ✅ 9개 모델 학습 완료 (금융/대안/통합 × 3 알고리즘)
+INFO:src.models.train:✅ 9개 모델 학습 완료 (금융/대안/통합 × 3 알고리즘)
+2026-10-08 18:51:39,311 - src.models.train - INFO - ===================================================================
+=============
+
+INFO:src.models.train:================================================================================
+
+INFO:__main__:
+================================================================================
+INFO:__main__:✅ 9개 모델 학습 완료!
+INFO:__main__:================================================================================
+INFO:__main__:
+📊 학습 결과 요약:
+INFO:__main__:
+  📁 FINANCIAL_ONLY
+INFO:__main__:    ✓ LogisticRegression
+INFO:__main__:    ✓ XGBoost
+INFO:__main__:    ✓ LightGBM
+INFO:__main__:
+  📁 ALTERNATIVE_ONLY
+INFO:__main__:    ✓ LogisticRegression
+INFO:__main__:    ✓ XGBoost
+INFO:__main__:    ✓ LightGBM
+INFO:__main__:
+  📁 INTEGRATED
+INFO:__main__:    ✓ LogisticRegression
+INFO:__main__:    ✓ XGBoost
+INFO:__main__:    ✓ LightGBM
+INFO:__main__:
+✨ 테스트 완료!
+🏃 View run LR_class_weight_financial_only at: https://mlflow.gosky.kr/#/experiments/1/runs/b65246632b1c451495a6ab14ac034df6
+🧪 View experiment at: https://mlflow.gosky.kr/#/experiments/1
+🏃 View run LR_SMOTE_financial_only at: https://mlflow.gosky.kr/#/experiments/1/runs/7196c6e6db00458784071112357eebec
+🧪 View experiment at: https://mlflow.gosky.kr/#/experiments/1
+🏃 View run XGB_scale_pos_weight_financial_only at: https://mlflow.gosky.kr/#/experiments/1/runs/493e20dcfef94b2894cf7982c2af6338
+🧪 View experiment at: https://mlflow.gosky.kr/#/experiments/1
+🏃 View run XGB_SMOTE_financial_only at: https://mlflow.gosky.kr/#/experiments/1/runs/782b7948f7b74cc88b6e6d96abbd9b79
+🧪 View experiment at: https://mlflow.gosky.kr/#/experiments/1
+🏃 View run LGBM_is_unbalance_financial_only at: https://mlflow.gosky.kr/#/experiments/1/runs/5e85e572b03d4c9f8aaec8b3257d674a
+🧪 View experiment at: https://mlflow.gosky.kr/#/experiments/1
+🏃 View run LGBM_SMOTE_financial_only at: https://mlflow.gosky.kr/#/experiments/1/runs/ffee8edb0b114abc9c54f9e2e5e16270
+🧪 View experiment at: https://mlflow.gosky.kr/#/experiments/1
+🏃 View run LR_class_weight_alternative_only at: https://mlflow.gosky.kr/#/experiments/1/runs/1697df37a44b4f04b4315eb5b1a3fe6b
+🧪 View experiment at: https://mlflow.gosky.kr/#/experiments/1
+🏃 View run LR_SMOTE_alternative_only at: https://mlflow.gosky.kr/#/experiments/1/runs/04c532c2c14245bdb3edf65db5420358
+🧪 View experiment at: https://mlflow.gosky.kr/#/experiments/1
+🏃 View run XGB_scale_pos_weight_alternative_only at: https://mlflow.gosky.kr/#/experiments/1/runs/e1ceb92ab4264ac2beea6b4ffe0f3481
+🧪 View experiment at: https://mlflow.gosky.kr/#/experiments/1
+🏃 View run XGB_SMOTE_alternative_only at: https://mlflow.gosky.kr/#/experiments/1/runs/0781f1346c054e34b9dd1286ed35acd6
+🧪 View experiment at: https://mlflow.gosky.kr/#/experiments/1
+🏃 View run LGBM_is_unbalance_alternative_only at: https://mlflow.gosky.kr/#/experiments/1/runs/11ab18eff1ef4c0a8b336249cafbc6ca
+🧪 View experiment at: https://mlflow.gosky.kr/#/experiments/1
+🏃 View run LGBM_SMOTE_alternative_only at: https://mlflow.gosky.kr/#/experiments/1/runs/cf4c540e37f943a3844ccbb598a9b333
+🧪 View experiment at: https://mlflow.gosky.kr/#/experiments/1
+🏃 View run LR_class_weight_integrated at: https://mlflow.gosky.kr/#/experiments/1/runs/c972d3a7334d4db9bbd20f3b64720992
+🧪 View experiment at: https://mlflow.gosky.kr/#/experiments/1
+🏃 View run LR_SMOTE_integrated at: https://mlflow.gosky.kr/#/experiments/1/runs/6e251c465ebc4491b56e74536a00a03f
+🧪 View experiment at: https://mlflow.gosky.kr/#/experiments/1
+🏃 View run XGB_scale_pos_weight_integrated at: https://mlflow.gosky.kr/#/experiments/1/runs/a38171801f1f4b8ab698cd0c19cb755f
+🧪 View experiment at: https://mlflow.gosky.kr/#/experiments/1
+🏃 View run XGB_SMOTE_integrated at: https://mlflow.gosky.kr/#/experiments/1/runs/67211d23869f44769742d186107511bd
+🧪 View experiment at: https://mlflow.gosky.kr/#/experiments/1
+🏃 View run LGBM_is_unbalance_integrated at: https://mlflow.gosky.kr/#/experiments/1/runs/d7612ff5cde74df18becf0fc719506de
+🧪 View experiment at: https://mlflow.gosky.kr/#/experiments/1
+🏃 View run LGBM_SMOTE_integrated at: https://mlflow.gosky.kr/#/experiments/1/runs/5a675269b8a74b9d821432ca654d7967
+🧪 View experiment at: https://mlflow.gosky.kr/#/experiments/1

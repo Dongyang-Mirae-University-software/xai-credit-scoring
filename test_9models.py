@@ -18,7 +18,10 @@ from src.data.preprocessor import preprocess, split_data
 from src.models.train import train_all_models_by_data_type
 
 # MLflow 설정 (선택사항)
-os.environ['MLFLOW_TRACKING_URI'] = 'http://mlflow.gosky.kr'
+os.environ['MLFLOW_TRACKING_URI'] = 'https://mlflow.gosky.kr'
+os.environ['MLFLOW_TRACKING_USERNAME'] = 'gosky'
+os.environ['MLFLOW_TRACKING_PASSWORD'] = 'gqDAkGZlbr63JUpixDO6yPld'
+os.environ['MLFLOW_EXPERIMENT_NAME'] = 'xai-credit-scoring'
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -42,7 +45,7 @@ def main():
     # 2. 대안 데이터 생성
     logger.info("\n🔮 Step 2: 대안 데이터 생성")
     try:
-        df = generate_alternative_data(df)
+        df = generate_alternative_data(df, thin_filer_ratio=None, bias_ratio=0)
         logger.info(f"✅ 대안 데이터 추가 완료: {df.shape[1]} 컬럼")
     except Exception as e:
         logger.error(f"❌ 대안 데이터 시뮬레이션 실패: {e}")
@@ -66,7 +69,10 @@ def main():
     # 4. 9개 모델 학습
     logger.info("\n🤖 Step 4: 9개 모델 학습 (금융/대안/통합 × 3 알고리즘)")
     try:
-        results = train_all_models_by_data_type(X_train, y_train, models_dir='models', version='1.0')
+        results = train_all_models_by_data_type(
+            X_train, y_train, models_dir='models', version='1.0',
+            data_params={'thin_filer_ratio': None, 'bias_ratio': 0}
+        )
 
         logger.info("\n" + "="*80)
         logger.info("✅ 9개 모델 학습 완료!")

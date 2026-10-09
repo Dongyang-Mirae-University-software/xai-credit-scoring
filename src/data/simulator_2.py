@@ -193,41 +193,58 @@ def _validate_correlations(df, target_col):
 
 def label_thin_filer(df):
     """
-    씬파일러 판정 로직
+    씬파일러 판정 로직 (이슈 #15)
 
     판정 기준:
-    1. 금융 연체 관련 컬럼 2개 이상 결측
-    2. 또는 신용카드 거래 이력 12개월 미만 (NumberOfOpenCreditLinesAndLoans < 2)
+    1. 금융 연체 관련 컬럼 2개 이상 결측 (GMSC 해당자 0명, 형식상 유지)
+    2. 아래 3개 조건을 모두(AND) 만족:
+       - NumberOfOpenCreditLinesAndLoans <= 1 (보유 대출·신용 한도 1개 이하)
+       - NumberRealEstateLoansOrLines == 0 (부동산 담보대출 없음)
+       - 연체 기록 3개 컬럼 모두 0 (연체 이력 없음)
     """
-    df['is_thin_filer'] = 0
-
-    # 기준 1: 금융 연체 관련 컬럼 2개 이상 결측
-    financial_cols = [
+    delinquency_cols = [
         'NumberOfTime30-59DaysPastDueNotWorse',
         'NumberOfTimes90DaysLate',
         'NumberOfTime60-89DaysPastDueNotWorse'
     ]
-    existing_cols = [col for col in financial_cols if col in df.columns]
 
+    # 기준 1: 금융 연체 관련 컬럼 2개 이상 결측
+    existing_cols = [col for col in delinquency_cols if col in df.columns]
     if existing_cols:
         missing_count = df[existing_cols].isna().sum(axis=1)
         criteria_1 = missing_count >= 2
     else:
         criteria_1 = pd.Series(False, index=df.index)
 
-    # 기준 2: 신용카드 거래 이력 12개월 미만
+    # 기준 2: 금융 기록이 거의 없는 사람 (모든 조건 AND)
+    criteria_2 = pd.Series(True, index=df.index)
+
+    # 조건 1: 보유 대출·신용 한도 <= 1
     if 'NumberOfOpenCreditLinesAndLoans' in df.columns:
-        criteria_2 = df['NumberOfOpenCreditLinesAndLoans'] < 2
-    else:
-        criteria_2 = pd.Series(False, index=df.index)
+        criteria_2 &= df['NumberOfOpenCreditLinesAndLoans'] <= 1
+
+    # 조건 2: 부동산 담보대출 == 0
+    if 'NumberRealEstateLoansOrLines' in df.columns:
+        criteria_2 &= df['NumberRealEstateLoansOrLines'] == 0
+
+    # 조건 3: 연체 기록 3개 컬럼 모두 0
+    if len(existing_cols) == len(delinquency_cols):
+        criteria_2 &= (df[delinquency_cols] == 0).all(axis=1)
 
     # 두 기준 중 하나라도 만족하면 씬파일러
     df['is_thin_filer'] = (criteria_1 | criteria_2).astype(int)
 
-    thin_filer_count = df['is_thin_filer'].sum()
-    logger.info(f"씬파일러 판정 완료:")
-    logger.info(f"   총 샘플: {len(df):,}")
-    logger.info(f"   씬파일러: {thin_filer_count:,} ({thin_filer_count/len(df)*100:.2f}%)")
-    logger.info(f"   일반: {len(df) - thin_filer_count:,} ({(1-thin_filer_count/len(df))*100:.2f}%)\n")
+    # 로깅
+    n = len(df)
+    n_c1 = int(criteria_1.sum())
+    n_c2 = int(criteria_2.sum())
+    n_thin = int(df['is_thin_filer'].sum())
+
+    logger.info(f"씬파일러 판정 완료 (이슈 #15):")
+    logger.info(f"   총 샘플: {n:,}")
+    logger.info(f"   기준 1 (연체 컬럼 2개 이상 결측): {n_c1:,} ({n_c1/n*100:.2f}%)")
+    logger.info(f"   기준 2 (금융 기록 거의 없음): {n_c2:,} ({n_c2/n*100:.2f}%)")
+    logger.info(f"   최종 씬파일러: {n_thin:,} ({n_thin/n*100:.2f}%)")
+    logger.info(f"   일반 고객: {n - n_thin:,} ({(n - n_thin)/n*100:.2f}%)\n")
 
     return df
