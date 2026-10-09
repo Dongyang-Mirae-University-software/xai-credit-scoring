@@ -51,9 +51,8 @@ def main():
     df = generate_alternative_data(
         df,
         target_col='SeriousDlqin2yrs',
-        thin_filer_ratio=0.3,
-        bias_ratio=0.1,
-        random_seed=42
+        thin_filer_ratio=None,
+        bias_ratio=0
     )
 
     # 3단계: 전처리 (결측치, 이상치, 정규화)

@@ -65,7 +65,7 @@ def _setup_logger():
 
 def generate_alternative_data(df, target_col="SeriousDlqin2yrs",
                                thin_filer_ratio: float = None,
-                               bias_ratio: float = 0.1):
+                               bias_ratio: float = 0):
     """
     5개 대안 변수 생성 (Target과의 상관계수: 0.30~0.50 범위)
 
