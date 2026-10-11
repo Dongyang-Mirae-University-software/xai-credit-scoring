@@ -108,6 +108,15 @@ def preprocess(df, target_col='SeriousDlqin2yrs', drop_cols=None):
     return df_processed, scaler
 
 
+AGE_GROUP_LABELS = {0: '20-34', 1: '35-54', 2: '55+'}
+
+
+def _to_split_csv_frame(frame):
+    out = frame.rename(columns={'Gender': 'gender', 'AgeGroup': 'age_group'})
+    out['age_group'] = out['age_group'].map(AGE_GROUP_LABELS)
+    return out
+
+
 def split_data(df, target_col='SeriousDlqin2yrs',
                train_ratio: float = 0.7,
                val_ratio: float = 0.15,
@@ -177,19 +186,19 @@ def split_data(df, target_col='SeriousDlqin2yrs',
     os.makedirs(output_dir, exist_ok=True)
 
     # Train 데이터
-    train_df = df.loc[X_train.index].copy()
+    train_df = _to_split_csv_frame(df.loc[X_train.index].copy())
     train_path = os.path.join(output_dir, 'train_processed.csv')
     train_df.to_csv(train_path, index=False, encoding='utf-8')
     logger.info(f"Train 데이터 저장: {train_path} ({len(train_df):,} rows)")
 
     # Validation 데이터
-    val_df = df.loc[X_val.index].copy()
+    val_df = _to_split_csv_frame(df.loc[X_val.index].copy())
     val_path = os.path.join(output_dir, 'val_processed.csv')
     val_df.to_csv(val_path, index=False, encoding='utf-8')
     logger.info(f"Val 데이터 저장: {val_path} ({len(val_df):,} rows)")
 
     # Test 데이터
-    test_df = df.loc[X_test.index].copy()
+    test_df = _to_split_csv_frame(df.loc[X_test.index].copy())
     test_path = os.path.join(output_dir, 'test_processed.csv')
     test_df.to_csv(test_path, index=False, encoding='utf-8')
     logger.info(f"Test 데이터 저장: {test_path} ({len(test_df):,} rows)\n")
