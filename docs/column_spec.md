@@ -44,7 +44,7 @@
 
 ---
 
-## 2️⃣ 원본 금융 데이터 (11개)
+## 2️⃣ 원본 금융 데이터 (10개)
 
 ### 2.1 RevolvingUtilizationOfUnsecuredLines
 - **설명**: 무보증 신용 한도에 대한 이용률
