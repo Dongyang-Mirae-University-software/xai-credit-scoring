@@ -579,3 +579,73 @@ def train_all_models_by_data_type(X_train, y_train, models_dir='models', version
     logger.info(f"{'='*80}\n")
 
     return all_results
+
+
+def _ks_statistic(y_true, y_score):
+    fpr, tpr, _ = roc_curve(y_true, y_score)
+    return float(np.max(tpr - fpr))
+
+
+def select_and_test_once(results, X_val, y_val, X_test, y_test, models_dir='models', version='1.0'):
+    """
+    Val AUC로 최종 모델을 고르고, 선택된 모델 1개만 Test에서 1회 평가한다.
+
+    1) 데이터 종류 × 알고리즘마다 방식(class_weight/SMOTE 등) 중 Val AUC가 높은 것을 고른다 (9개 후보)
+    2) 9개 후보 중 Val AUC가 가장 높은 모델을 최종 모델로 정한다
+    3) 최종 모델만 Test로 평가한다. 이 함수는 파이프라인에서 한 번만 호출한다.
+    """
+    import json
+
+    val_rows = []
+    for data_type, algos in results.items():
+        X_v = get_features_by_type(X_val, data_type)
+        for algo, methods in algos.items():
+            for method, model in methods.items():
+                p = model.predict_proba(X_v)[:, 1]
+                val_rows.append({
+                    'data_type': data_type, 'algorithm': algo, 'method': method,
+                    'val_auc': roc_auc_score(y_val, p), 'val_ks': _ks_statistic(y_val, p),
+                })
+    val_table = pd.DataFrame(val_rows)
+
+    candidates = val_table.loc[val_table.groupby(['data_type', 'algorithm'])['val_auc'].idxmax()]
+    final = candidates.loc[candidates['val_auc'].idxmax()]
+    final_name = f"{final['data_type']}/{final['algorithm']}/{final['method']}"
+    final_model = results[final['data_type']][final['algorithm']][final['method']]
+
+    X_t = get_features_by_type(X_test, final['data_type'])
+    p_test = final_model.predict_proba(X_t)[:, 1]
+    test_auc = roc_auc_score(y_test, p_test)
+    test_ks = _ks_statistic(y_test, p_test)
+
+    models_path = Path(models_dir)
+    models_path.mkdir(parents=True, exist_ok=True)
+    table_path = models_path / 'val_selection_table.csv'
+    val_table.to_csv(table_path, index=False, encoding='utf-8')
+
+    with mlflow.start_run(run_name='model_selection_val'):
+        mlflow.set_tag('selected_model', final_name)
+        mlflow.log_param('selection_metric', 'val_auc')
+        mlflow.log_metric('selected_val_auc', float(final['val_auc']))
+        mlflow.log_artifact(str(table_path))
+
+    with mlflow.start_run(run_name='final_test'):
+        mlflow.set_tag('selected_model', final_name)
+        mlflow.log_metric('test_auc', float(test_auc))
+        mlflow.log_metric('test_ks', float(test_ks))
+
+    meta_path = models_path / 'model_metadata.json'
+    metadata = json.loads(meta_path.read_text(encoding='utf-8')) if meta_path.exists() else {}
+    metadata['selection'] = {
+        'selected_model': final_name,
+        'selection_metric': 'val_auc',
+        'val_auc': float(final['val_auc']),
+        'test_auc': float(test_auc),
+        'test_ks': float(test_ks),
+        'val_table': val_table.to_dict(orient='records'),
+    }
+    meta_path.write_text(json.dumps(metadata, ensure_ascii=False, indent=2), encoding='utf-8')
+
+    logger.info(f"최종 모델: {final_name} (Val AUC {final['val_auc']:.4f}) → Test AUC {test_auc:.4f}, KS {test_ks:.4f}")
+    return {'selected_model': final_name, 'val_auc': float(final['val_auc']),
+            'test_auc': float(test_auc), 'test_ks': float(test_ks)}
