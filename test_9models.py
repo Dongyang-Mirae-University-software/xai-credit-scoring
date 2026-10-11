@@ -7,6 +7,7 @@
 import os
 import sys
 import logging
+import joblib
 from pathlib import Path
 
 # 프로젝트 경로 추가
@@ -55,6 +56,7 @@ def main():
     logger.info("\n🧹 Step 3: 데이터 전처리")
     try:
         df, scaler = preprocess(df)
+        joblib.dump(scaler, Path('models') / 'preprocess_scaler_v1.0.joblib')
         result = split_data(df)
         X_train, X_val, X_test, y_train, y_val, y_test = result
         logger.info(f"✅ 데이터 전처리 완료")

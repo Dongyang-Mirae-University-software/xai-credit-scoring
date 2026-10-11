@@ -35,7 +35,6 @@ from sklearn.metrics import (
     roc_auc_score, precision_score, recall_score, f1_score,
     roc_curve, auc
 )
-from sklearn.preprocessing import StandardScaler
 import xgboost as xgb
 import lightgbm as lgb
 from imblearn.pipeline import Pipeline as ImbPipeline
@@ -152,7 +151,6 @@ def train_logistic_regression(X_train, y_train, skf, models_dir, version, data_t
         mlflow.log_param("max_iter", 1000)
 
         lr_balanced = Pipeline([
-            ('scaler', StandardScaler()),
             ('lr', LogisticRegression(
                 max_iter=1000,
                 class_weight='balanced',
@@ -192,7 +190,6 @@ def train_logistic_regression(X_train, y_train, skf, models_dir, version, data_t
         mlflow.log_param("max_iter", 1000)
 
         pipeline_smote = ImbPipeline([
-            ('scaler', StandardScaler()),
             ('smote', SMOTE(random_state=42)),
             ('clf', LogisticRegression(max_iter=1000, random_state=42))
         ])
@@ -244,7 +241,6 @@ def train_xgboost(X_train, y_train, skf, models_dir, version, data_type=None, da
         mlflow.log_param("scale_pos_weight", round(scale_pos_weight, 2))
 
         xgb_balanced = Pipeline([
-            ('scaler', StandardScaler()),
             ('xgb', xgb.XGBClassifier(
                 n_estimators=100,
                 max_depth=6,
@@ -290,7 +286,6 @@ def train_xgboost(X_train, y_train, skf, models_dir, version, data_type=None, da
         mlflow.log_param("learning_rate", 0.1)
 
         pipeline_smote = ImbPipeline([
-            ('scaler', StandardScaler()),
             ('smote', SMOTE(random_state=42)),
             ('clf', xgb.XGBClassifier(
                 n_estimators=100,
@@ -345,7 +340,6 @@ def train_lightgbm(X_train, y_train, skf, models_dir, version, data_type=None, d
         mlflow.log_param("learning_rate", 0.1)
 
         lgb_balanced = Pipeline([
-            ('scaler', StandardScaler()),
             ('lgb', lgb.LGBMClassifier(
                 n_estimators=100,
                 max_depth=6,
@@ -391,7 +385,6 @@ def train_lightgbm(X_train, y_train, skf, models_dir, version, data_type=None, d
         mlflow.log_param("learning_rate", 0.1)
 
         pipeline_smote = ImbPipeline([
-            ('scaler', StandardScaler()),
             ('smote', SMOTE(random_state=42)),
             ('clf', lgb.LGBMClassifier(
                 n_estimators=100,
