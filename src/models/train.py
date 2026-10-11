@@ -173,7 +173,7 @@ def train_logistic_regression(X_train, y_train, skf, models_dir, version, data_t
         models['class_weight'] = lr_balanced
 
         # 모델 저장
-        model_path = f"{models_dir}/logistic_regression_class_weight_v{version}.joblib"
+        model_path = f"{models_dir}/logistic_regression_class_weight{run_name_suffix}_v{version}.joblib"
         joblib.dump(lr_balanced, model_path)
         logger.info(f"모델 저장: {model_path}\n")
 
@@ -210,7 +210,7 @@ def train_logistic_regression(X_train, y_train, skf, models_dir, version, data_t
         models['smote'] = pipeline_smote
 
         # 모델 저장
-        model_path = f"{models_dir}/logistic_regression_smote_v{version}.joblib"
+        model_path = f"{models_dir}/logistic_regression_smote{run_name_suffix}_v{version}.joblib"
         joblib.dump(pipeline_smote, model_path)
         logger.info(f"모델 저장: {model_path}\n")
 
@@ -269,7 +269,7 @@ def train_xgboost(X_train, y_train, skf, models_dir, version, data_type=None, da
         models['scale_pos_weight'] = xgb_balanced
 
         # 모델 저장
-        model_path = f"{models_dir}/xgboost_scale_pos_weight_v{version}.joblib"
+        model_path = f"{models_dir}/xgboost_scale_pos_weight{run_name_suffix}_v{version}.joblib"
         joblib.dump(xgb_balanced, model_path)
         logger.info(f"모델 저장: {model_path}\n")
 
@@ -315,7 +315,7 @@ def train_xgboost(X_train, y_train, skf, models_dir, version, data_type=None, da
         models['smote'] = pipeline_smote
 
         # 모델 저장
-        model_path = f"{models_dir}/xgboost_smote_v{version}.joblib"
+        model_path = f"{models_dir}/xgboost_smote{run_name_suffix}_v{version}.joblib"
         joblib.dump(pipeline_smote, model_path)
         logger.info(f"모델 저장: {model_path}\n")
 
@@ -370,7 +370,7 @@ def train_lightgbm(X_train, y_train, skf, models_dir, version, data_type=None, d
         models['is_unbalance'] = lgb_balanced
 
         # 모델 저장
-        model_path = f"{models_dir}/lightgbm_is_unbalance_v{version}.joblib"
+        model_path = f"{models_dir}/lightgbm_is_unbalance{run_name_suffix}_v{version}.joblib"
         joblib.dump(lgb_balanced, model_path)
         logger.info(f"모델 저장: {model_path}\n")
 
@@ -416,7 +416,7 @@ def train_lightgbm(X_train, y_train, skf, models_dir, version, data_type=None, d
         models['smote'] = pipeline_smote
 
         # 모델 저장
-        model_path = f"{models_dir}/lightgbm_smote_v{version}.joblib"
+        model_path = f"{models_dir}/lightgbm_smote{run_name_suffix}_v{version}.joblib"
         joblib.dump(pipeline_smote, model_path)
         logger.info(f"모델 저장: {model_path}\n")
 
