@@ -43,7 +43,9 @@ def group_columns(df):
     gcol = next((c for c in ('gender', 'Gender') if c in df.columns), None)
     if gcol is None:
         raise SystemExit("Test 파일에 성별 칸(gender/Gender)이 없습니다. #33(분할 파일에 보호 속성 유지) 머지 후 실행하세요.")
-    if 'age_group' in df.columns and df['age_group'].dtype == object:
+    import pandas as pd
+    # pandas 버전에 따라 글자 칸이 object 또는 문자열 형식으로 읽히므로, '숫자가 아닌지'로 확인한다
+    if 'age_group' in df.columns and not pd.api.types.is_numeric_dtype(df['age_group']):
         age = normalize_age_group(values=df['age_group'])
     elif 'age_raw' in df.columns:
         age = normalize_age_group(ages=df['age_raw'])
