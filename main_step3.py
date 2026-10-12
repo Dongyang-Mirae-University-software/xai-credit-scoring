@@ -25,7 +25,8 @@ PROJECT_ROOT = Path(__file__).parent
 DEFAULT_SPLITS = PROJECT_ROOT / 'data' / 'splits'
 DEFAULT_RAW = PROJECT_ROOT / 'data' / 'intermediate' / '02_simulated.csv'
 TARGET = 'SeriousDlqin2yrs'
-ID_COL = 'Unnamed: 0'
+SPLIT_ID = 'customer_id'   # 분할 파일의 고객 번호 (#58)
+RAW_ID = 'Unnamed: 0'      # 02_simulated.csv의 같은 번호
 
 
 def parse_args():
@@ -97,14 +98,19 @@ def main():
     # 3) 거절 사유 예시: 원래 값(크기 맞추기 전)이 있으면 그것으로 문장을 만든다
     raw_row, refs = None, None
     raw_path = Path(args.raw)
-    if raw_path.exists() and ID_COL in sample.columns:
+    if raw_path.exists() and SPLIT_ID in sample.columns:
         raw = pd.read_csv(raw_path)
-        if ID_COL in raw.columns:
-            raw = raw.set_index(ID_COL)
+        # 전처리(#54)와 같게: 월소득이 비어 있는 행의 DebtRatio는 금액이므로 월소득 중앙값으로 나눠 비율로 맞춘다
+        if 'MonthlyIncome' in raw.columns and 'DebtRatio' in raw.columns:
+            income_missing = raw['MonthlyIncome'].isna()
+            raw.loc[income_missing, 'DebtRatio'] = raw.loc[income_missing, 'DebtRatio'] / raw['MonthlyIncome'].median()
+        raw_id = RAW_ID if RAW_ID in raw.columns else (SPLIT_ID if SPLIT_ID in raw.columns else None)
+        if raw_id is not None:
+            raw = raw.set_index(raw_id)
             cols = [c for c in FINANCIAL_COLS + ALTERNATIVE_COLS if c in raw.columns]
-            train_ids = train[ID_COL] if ID_COL in train.columns else []
+            train_ids = train[SPLIT_ID] if SPLIT_ID in train.columns else []
             refs = reference_values(raw.loc[raw.index.isin(train_ids), cols + ['age']].to_dict('records'), cols)
-            raw_row = raw.loc[sample.iloc[idx][ID_COL]].to_dict()
+            raw_row = raw.loc[sample.iloc[idx][SPLIT_ID]].to_dict()
     if raw_row is None:
         logger.warning("원래 값 파일과 연결할 번호 칸이 없어, 크기 맞춘 값으로 문장을 만듭니다 (예시용).")
         raw_row = X.iloc[idx].to_dict()
