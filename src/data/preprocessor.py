@@ -98,7 +98,7 @@ def preprocess(df, target_col='SeriousDlqin2yrs', drop_cols=None):
     logger.info(f"\n수치형 변수 스케일링 (StandardScaler):")
 
     # 타겟, 이진 변수, 인구통계 변수 제외한 특성 변수
-    exclude_scaling = [target_col, 'is_thin_filer', 'Gender', 'AgeGroup', 'customer_id']
+    exclude_scaling = [target_col, 'is_thin_filer', 'gender', 'age_group', 'customer_id']
     feature_cols = [col for col in df_processed.columns
                     if col not in exclude_scaling]
 
@@ -119,7 +119,7 @@ AGE_GROUP_LABELS = {0: '20-34', 1: '35-54', 2: '55+'}
 
 
 def _to_split_csv_frame(frame):
-    out = frame.rename(columns={'Gender': 'gender', 'AgeGroup': 'age_group'})
+    out = frame.copy()
     out['age_group'] = out['age_group'].map(AGE_GROUP_LABELS)
     return out
 
@@ -148,8 +148,8 @@ def split_data(df, target_col='SeriousDlqin2yrs',
     logger.info(f"\n데이터 분할 (Stratified Split):")
     logger.info(f"  Train : Val : Test = {train_ratio} : {val_ratio} : {test_ratio}")
 
-    # 특성과 타겟 분리 (Gender, AgeGroup, is_thin_filer 제외)
-    cols_to_drop = [target_col, 'Gender', 'AgeGroup', 'is_thin_filer', 'customer_id']
+    # 특성과 타겟 분리 (gender, age_group, is_thin_filer 제외)
+    cols_to_drop = [target_col, 'gender', 'age_group', 'is_thin_filer', 'customer_id']
     cols_to_drop = [col for col in cols_to_drop if col in df.columns]
     X = df.drop(columns=cols_to_drop)
     y = df[target_col]
