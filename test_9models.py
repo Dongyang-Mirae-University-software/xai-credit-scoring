@@ -12,16 +12,14 @@ from pathlib import Path
 # 프로젝트 경로 추가
 sys.path.insert(0, str(Path(__file__).parent))
 
+# .env에 있는 MLflow 인증 정보를 환경 변수로 불러옴
+from dotenv import load_dotenv
+load_dotenv(Path(__file__).parent / '.env')
+
 from src.data.loader import load_gmsc
 from src.data.simulator import generate_alternative_data
 from src.data.preprocessor import preprocess, split_data
 from src.models.train import train_all_models_by_data_type
-
-# MLflow 설정 (선택사항)
-os.environ['MLFLOW_TRACKING_URI'] = 'https://mlflow.gosky.kr'
-os.environ['MLFLOW_TRACKING_USERNAME'] = 'gosky'
-os.environ['MLFLOW_TRACKING_PASSWORD'] = 'gqDAkGZlbr63JUpixDO6yPld'
-os.environ['MLFLOW_EXPERIMENT_NAME'] = 'xai-credit-scoring'
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
