@@ -48,8 +48,8 @@ def _print_data_info(df: pd.DataFrame, dataset_name: str):
     logger.info(f"{'='*80}\n")
 
 
-def load_gmsc(train_path: str = "data/raw/kaggle_datasets/cs-training.csv",
-              test_path: str = "data/raw/kaggle_datasets/cs-test.csv") -> tuple:
+def load_gmsc(train_path: str = "data/raw/cs-training.csv",
+              test_path: str = "data/raw/cs-test.csv") -> tuple:
     """
     Give Me Some Credit 데이터셋 로드
 

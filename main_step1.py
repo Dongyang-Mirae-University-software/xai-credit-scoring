@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 
 # 경로 설정
 PROJECT_ROOT = Path(__file__).parent
-DATA_RAW = PROJECT_ROOT / 'data' / 'raw' / 'kaggle_datasets'
+DATA_RAW = PROJECT_ROOT / 'data' / 'raw'
 DATA_SPLITS = PROJECT_ROOT / 'data' / 'splits'
 DATA_SPLITS.mkdir(exist_ok=True, parents=True)
 
