@@ -36,6 +36,8 @@ def parse_args():
     p.add_argument('--raw', default=os.getenv('RAW_DATA', str(DEFAULT_RAW)), help='거절 사유 문장에 쓸 원래 값 CSV (선택)')
     p.add_argument('--out', default=os.getenv('EVAL_OUTPUT_DIR', str(PROJECT_ROOT / 'outputs' / 'evaluation')))
     p.add_argument('--shap-sample', type=int, default=int(os.getenv('SHAP_SAMPLE', '2000')), help='SHAP 계산에 쓸 Test 표본 수')
+    p.add_argument('--allow-scaled', action='store_true',
+                   help='원래 값과 연결되지 않을 때도 표준화된 값으로 거절 사유 예시를 만든다 (예시 확인용, 문장의 숫자가 실제 값이 아님)')
     return p.parse_args()
 
 
@@ -110,11 +112,21 @@ def main():
             cols = [c for c in FINANCIAL_COLS + ALTERNATIVE_COLS if c in raw.columns]
             train_ids = train[SPLIT_ID] if SPLIT_ID in train.columns else []
             refs = reference_values(raw.loc[raw.index.isin(train_ids), cols + ['age']].to_dict('records'), cols)
-            raw_row = raw.loc[sample.iloc[idx][SPLIT_ID]].to_dict()
+            customer = sample.iloc[idx][SPLIT_ID]
+            if customer in raw.index:
+                raw_row = raw.loc[customer].to_dict()
+    scaled = False
     if raw_row is None:
-        logger.warning("원래 값 파일과 연결할 번호 칸이 없어, 크기 맞춘 값으로 문장을 만듭니다 (예시용).")
+        msg = (f"거절 사유에 쓸 원래 값을 찾지 못했습니다 (분할 파일의 {SPLIT_ID} 칸 또는 {raw_path} 확인). "
+               "지금 코드로 main_step1.py를 다시 실행해 분할 파일을 만들거나(#32), "
+               "예시만 볼 때는 --allow-scaled 를 붙이세요.")
+        if not args.allow_scaled:
+            raise SystemExit(msg)
+        logger.warning(msg + " --allow-scaled: 표준화된 값으로 예시를 만듭니다 (문장의 숫자는 실제 값이 아님).")
         raw_row = X.iloc[idx].to_dict()
+        scaled = True
     explain = sx.explain_customer(explainer, X.iloc[[idx]], raw_row, references=refs)
+    explain['values_are_scaled'] = scaled
     explain['disclaimer'] = perf.DISCLAIMER
     perf.save_json(explain, out / 'explain_example.json')
     logger.info("거절 사유 예시:")
