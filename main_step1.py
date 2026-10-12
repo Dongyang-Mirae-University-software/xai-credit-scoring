@@ -77,23 +77,7 @@ def main():
     logger.info("💾 결과 저장")
     logger.info("=" * 60)
 
-    # Train 데이터
-    train_df = X_train.copy()
-    train_df['SeriousDlqin2yrs'] = y_train.values
-    train_df.to_csv(DATA_SPLITS / 'train_processed.csv', index=False)
-    logger.info(f"  ✓ train_processed.csv ({len(train_df):,}건)")
-
-    # Validation 데이터
-    val_df = X_val.copy()
-    val_df['SeriousDlqin2yrs'] = y_val.values
-    val_df.to_csv(DATA_SPLITS / 'val_processed.csv', index=False)
-    logger.info(f"  ✓ val_processed.csv ({len(val_df):,}건)")
-
-    # Test 데이터
-    test_df = X_test.copy()
-    test_df['SeriousDlqin2yrs'] = y_test.values
-    test_df.to_csv(DATA_SPLITS / 'test_processed.csv', index=False)
-    logger.info(f"  ✓ test_processed.csv ({len(test_df):,}건)")
+    # 분할 파일(train/val/test)은 split_data()가 집단 열을 포함해 이미 저장했다
 
     # 메타데이터 저장
     metadata = {
@@ -103,6 +87,7 @@ def main():
         'features': list(X_train.columns),
         'target': 'SeriousDlqin2yrs',
         'total_features': X_train.shape[1],
+        'data_params': {'thin_filer_ratio': None, 'bias_ratio': 0},
         'note': 'Stratified Split applied, StandardScaler normalized'
     }
 
