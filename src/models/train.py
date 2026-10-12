@@ -12,24 +12,6 @@ from pathlib import Path
 import mlflow
 from mlflow import log_metric, log_param, log_artifact
 
-# MLflow HTTP 요청에 Basic Auth 자동 추가
-def _patch_mlflow_auth():
-    """MLflow의 requests 세션에 Basic Auth를 자동 추가"""
-    from requests.auth import HTTPBasicAuth
-    import mlflow.utils.rest_utils as rest_utils
-
-    original_call_endpoint = rest_utils.call_endpoint
-
-    def patched_call_endpoint(host_creds, *args, **kwargs):
-        if host_creds and host_creds.password:
-            auth = HTTPBasicAuth(host_creds.username, host_creds.password)
-            kwargs['auth'] = auth
-        return original_call_endpoint(host_creds, *args, **kwargs)
-
-    rest_utils.call_endpoint = patched_call_endpoint
-
-_patch_mlflow_auth()
-
 from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import StratifiedKFold, cross_validate
 from sklearn.metrics import (
@@ -526,16 +508,15 @@ def train_all_models_by_data_type(X_train, y_train, models_dir='models', version
     mlflow_user = os.getenv('MLFLOW_TRACKING_USERNAME')
     mlflow_pass = os.getenv('MLFLOW_TRACKING_PASSWORD')
 
+    if not mlflow_uri:
+        logger.warning("MLFLOW_TRACKING_URI가 없어 로컬 mlruns에 기록합니다. "
+                       "팀 서버에 기록하려면 .env에 MLFLOW_TRACKING_URI, MLFLOW_TRACKING_USERNAME, MLFLOW_TRACKING_PASSWORD를 설정하세요.")
+    elif not (mlflow_user and mlflow_pass):
+        logger.warning("MLFLOW_TRACKING_USERNAME 또는 MLFLOW_TRACKING_PASSWORD가 없습니다. "
+                       "인증 없이 서버에 연결하면 실패할 수 있습니다. .env를 확인하세요.")
+
     if mlflow_uri:
         mlflow.set_tracking_uri(mlflow_uri)
-
-        # MLflow HTTP Basic Auth 설정
-        if mlflow_user and mlflow_pass:
-            import base64
-            # requests 세션에 Basic Auth 추가
-            import requests
-            from requests.auth import HTTPBasicAuth
-            requests.Session().auth = HTTPBasicAuth(mlflow_user, mlflow_pass)
 
         try:
             mlflow.set_experiment("xai-credit-scoring")

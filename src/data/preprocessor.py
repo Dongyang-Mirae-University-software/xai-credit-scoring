@@ -54,6 +54,13 @@ def preprocess(df, target_col='SeriousDlqin2yrs', drop_cols=None):
     # ===== 단계 2: 결측치 처리 =====
     logger.info(f"\n결측치 처리:")
 
+    # 월소득 결측 행의 DebtRatio는 비율이 아니라 금액이므로, 소득 중앙값으로 나눠 비율로 환산한다
+    if 'MonthlyIncome' in df_processed.columns and 'DebtRatio' in df_processed.columns:
+        income_missing = df_processed['MonthlyIncome'].isnull()
+        income_median = df_processed['MonthlyIncome'].median()
+        df_processed.loc[income_missing, 'DebtRatio'] = df_processed.loc[income_missing, 'DebtRatio'] / income_median
+        logger.info(f"  DebtRatio 보정: 월소득 결측 {income_missing.sum():,}행 금액 → 비율 환산 (월소득 중앙값 {income_median:,.0f})")
+
     # 결측치 현황
     missing_before = df_processed.isnull().sum()
     missing_cols = missing_before[missing_before > 0].index.tolist()
