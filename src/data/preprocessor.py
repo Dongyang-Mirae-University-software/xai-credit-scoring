@@ -39,9 +39,11 @@ def preprocess(df, target_col='SeriousDlqin2yrs', drop_cols=None):
 
     df_processed = df.copy()
 
-    # 제거할 컬럼 설정 (인덱스 컬럼 등)
+    # 고객 번호(원본 Unnamed: 0)는 분할 파일에 남기고, 모델 입력에서는 제외한다
+    if 'Unnamed: 0' in df_processed.columns:
+        df_processed = df_processed.rename(columns={'Unnamed: 0': 'customer_id'})
     if drop_cols is None:
-        drop_cols = ['Unnamed: 0']
+        drop_cols = []
 
     logger.info(f"전처리 시작 (샘플: {len(df_processed):,})")
 
@@ -53,6 +55,13 @@ def preprocess(df, target_col='SeriousDlqin2yrs', drop_cols=None):
 
     # ===== 단계 2: 결측치 처리 =====
     logger.info(f"\n결측치 처리:")
+
+    # 월소득 결측 행의 DebtRatio는 비율이 아니라 금액이므로, 소득 중앙값으로 나눠 비율로 환산한다
+    if 'MonthlyIncome' in df_processed.columns and 'DebtRatio' in df_processed.columns:
+        income_missing = df_processed['MonthlyIncome'].isnull()
+        income_median = df_processed['MonthlyIncome'].median()
+        df_processed.loc[income_missing, 'DebtRatio'] = df_processed.loc[income_missing, 'DebtRatio'] / income_median
+        logger.info(f"  DebtRatio 보정: 월소득 결측 {income_missing.sum():,}행 금액 → 비율 환산 (월소득 중앙값 {income_median:,.0f})")
 
     # 결측치 현황
     missing_before = df_processed.isnull().sum()
@@ -89,7 +98,7 @@ def preprocess(df, target_col='SeriousDlqin2yrs', drop_cols=None):
     logger.info(f"\n수치형 변수 스케일링 (StandardScaler):")
 
     # 타겟, 이진 변수, 인구통계 변수 제외한 특성 변수
-    exclude_scaling = [target_col, 'is_thin_filer', 'Gender', 'AgeGroup']
+    exclude_scaling = [target_col, 'is_thin_filer', 'Gender', 'AgeGroup', 'customer_id']
     feature_cols = [col for col in df_processed.columns
                     if col not in exclude_scaling]
 
@@ -104,6 +113,15 @@ def preprocess(df, target_col='SeriousDlqin2yrs', drop_cols=None):
     logger.info(f"  최종 컬럼: {df_processed.shape[1]}")
 
     return df_processed, scaler
+
+
+AGE_GROUP_LABELS = {0: '20-34', 1: '35-54', 2: '55+'}
+
+
+def _to_split_csv_frame(frame):
+    out = frame.rename(columns={'Gender': 'gender', 'AgeGroup': 'age_group'})
+    out['age_group'] = out['age_group'].map(AGE_GROUP_LABELS)
+    return out
 
 
 def split_data(df, target_col='SeriousDlqin2yrs',
@@ -131,7 +149,7 @@ def split_data(df, target_col='SeriousDlqin2yrs',
     logger.info(f"  Train : Val : Test = {train_ratio} : {val_ratio} : {test_ratio}")
 
     # 특성과 타겟 분리 (Gender, AgeGroup, is_thin_filer 제외)
-    cols_to_drop = [target_col, 'Gender', 'AgeGroup', 'is_thin_filer']
+    cols_to_drop = [target_col, 'Gender', 'AgeGroup', 'is_thin_filer', 'customer_id']
     cols_to_drop = [col for col in cols_to_drop if col in df.columns]
     X = df.drop(columns=cols_to_drop)
     y = df[target_col]
@@ -175,22 +193,19 @@ def split_data(df, target_col='SeriousDlqin2yrs',
     os.makedirs(output_dir, exist_ok=True)
 
     # Train 데이터
-    train_df = X_train.copy()
-    train_df[target_col] = y_train
+    train_df = _to_split_csv_frame(df.loc[X_train.index].copy())
     train_path = os.path.join(output_dir, 'train_processed.csv')
     train_df.to_csv(train_path, index=False, encoding='utf-8')
     logger.info(f"Train 데이터 저장: {train_path} ({len(train_df):,} rows)")
 
     # Validation 데이터
-    val_df = X_val.copy()
-    val_df[target_col] = y_val
+    val_df = _to_split_csv_frame(df.loc[X_val.index].copy())
     val_path = os.path.join(output_dir, 'val_processed.csv')
     val_df.to_csv(val_path, index=False, encoding='utf-8')
     logger.info(f"Val 데이터 저장: {val_path} ({len(val_df):,} rows)")
 
     # Test 데이터
-    test_df = X_test.copy()
-    test_df[target_col] = y_test
+    test_df = _to_split_csv_frame(df.loc[X_test.index].copy())
     test_path = os.path.join(output_dir, 'test_processed.csv')
     test_df.to_csv(test_path, index=False, encoding='utf-8')
     logger.info(f"Test 데이터 저장: {test_path} ({len(test_df):,} rows)\n")

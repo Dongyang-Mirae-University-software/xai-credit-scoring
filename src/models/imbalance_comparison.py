@@ -49,12 +49,12 @@ def load_data():
     X_train = pd.read_csv(DATA_SPLITS / 'train_processed.csv')
     X_train = clean_data(X_train)
     y_train = X_train['SeriousDlqin2yrs']
-    X_train = X_train.drop('SeriousDlqin2yrs', axis=1)
+    X_train = X_train.drop(columns=['SeriousDlqin2yrs', 'customer_id', 'is_thin_filer', 'gender', 'age_group'], errors='ignore')
 
     X_test = pd.read_csv(DATA_SPLITS / 'test_processed.csv')
     X_test = clean_data(X_test)
     y_test = X_test['SeriousDlqin2yrs']
-    X_test = X_test.drop('SeriousDlqin2yrs', axis=1)
+    X_test = X_test.drop(columns=['SeriousDlqin2yrs', 'customer_id', 'is_thin_filer', 'gender', 'age_group'], errors='ignore')
 
     logger.info(f"✓ 데이터 로드 완료: train={X_train.shape}, test={X_test.shape}")
     logger.info(f"  - 부도율: {y_train.mean():.2%}")

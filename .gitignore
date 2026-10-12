@@ -9,3 +9,6 @@ data/processed/*
 mlflow.db
 mlruns/
 !data/processed/.gitkeep
+*.log
+~$*
+data/raw/*.zip

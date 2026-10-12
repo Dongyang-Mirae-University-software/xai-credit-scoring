@@ -5,9 +5,9 @@ regular_payment_count, app_login_frequency 5개 변수를 생성한다.
 
 방법 1: 공분산 행렬 기반 생성
 - 공분산 행렬로 정의된 상관관계를 유지
-- 공식: Y = r*X + sqrt(1-r^2)*Z
+- 공식: Y = -r*X + sqrt(1-r^2)*Z (연체자일수록 낮게)
   (r: 목표 상관계수, X: 정규화된 Target, Z: 독립적인 노이즈)
-- 결과: 생성된 대안 변수와 실제 Target 간 0.30~0.50 상관계수
+- 결과: 생성된 대안 변수와 실제 Target 간 상관계수 -0.35~-0.45 (절댓값 0.30~0.50)
 
 thin_filer_ratio: 씬파일러 비율 조정 파라미터 (None 권장 - 기준대로만 판정)
 bias_ratio: 성별/연령대별 승인율 편향 조정 파라미터
@@ -70,7 +70,7 @@ def generate_alternative_data(df, target_col="SeriousDlqin2yrs",
     5개 대안 변수 생성 (Target과의 상관계수: 0.30~0.50 범위)
 
     방법: 공분산 행렬 기반 생성
-    - 공식: Y = r*X + sqrt(1-r^2)*Z
+    - 공식: Y = -r*X + sqrt(1-r^2)*Z (연체자일수록 낮게)
     - X: 정규화된 실제 Target
     - Z: 독립적인 표준정규분포
     - r: 공분산 행렬에 정의된 목표 상관계수
@@ -102,11 +102,11 @@ def generate_alternative_data(df, target_col="SeriousDlqin2yrs",
     # ===== 단계 2: 공분산 행렬 정의 =====
     # Target과의 상관계수 설정 (0.30~0.50 범위)
     target_correlations = {
-        'telecom_payment_rate': np.random.uniform(0.30, 0.50),
-        'utility_payment_rate': np.random.uniform(0.30, 0.50),
-        'spending_consistency': np.random.uniform(0.30, 0.50),
-        'regular_payment_count': np.random.uniform(0.30, 0.50),
-        'app_login_frequency': np.random.uniform(0.30, 0.50)
+        'telecom_payment_rate': np.random.uniform(0.35, 0.45),
+        'utility_payment_rate': np.random.uniform(0.35, 0.45),
+        'spending_consistency': np.random.uniform(0.35, 0.45),
+        'regular_payment_count': np.random.uniform(0.35, 0.45),
+        'app_login_frequency': np.random.uniform(0.35, 0.45)
     }
 
     logger.info(f"\n   설정된 목표 상관계수:")
@@ -159,25 +159,19 @@ def generate_alternative_data(df, target_col="SeriousDlqin2yrs",
     # 1. telecom_payment_rate (0~1)
     r = r_values[0]
     Z = (samples_alt[:, 0] - samples_alt[:, 0].mean()) / (samples_alt[:, 0].std() + 1e-8)
-    Y = r * target_standardized + np.sqrt(1 - r**2) * Z
-    df_new['telecom_payment_rate'] = np.clip(
-        (Y - Y.min()) / (Y.max() - Y.min() + 1e-8),
-        0, 1
-    )
+    Y = -r * target_standardized + np.sqrt(1 - r**2) * Z
+    df_new['telecom_payment_rate'] = np.clip(0.90 + 0.06 * Y, 0, 1)
 
     # 2. utility_payment_rate (0~1)
     r = r_values[1]
     Z = (samples_alt[:, 1] - samples_alt[:, 1].mean()) / (samples_alt[:, 1].std() + 1e-8)
-    Y = r * target_standardized + np.sqrt(1 - r**2) * Z
-    df_new['utility_payment_rate'] = np.clip(
-        (Y - Y.min()) / (Y.max() - Y.min() + 1e-8),
-        0, 1
-    )
+    Y = -r * target_standardized + np.sqrt(1 - r**2) * Z
+    df_new['utility_payment_rate'] = np.clip(0.85 + 0.08 * Y, 0, 1)
 
     # 3. spending_consistency (0~100)
     r = r_values[2]
     Z = (samples_alt[:, 2] - samples_alt[:, 2].mean()) / (samples_alt[:, 2].std() + 1e-8)
-    Y = r * target_standardized + np.sqrt(1 - r**2) * Z
+    Y = -r * target_standardized + np.sqrt(1 - r**2) * Z
     df_new['spending_consistency'] = np.clip(
         75 + 25 * ((Y - Y.min()) / (Y.max() - Y.min() + 1e-8)),
         0, 100
@@ -186,7 +180,7 @@ def generate_alternative_data(df, target_col="SeriousDlqin2yrs",
     # 4. regular_payment_count (0~20)
     r = r_values[3]
     Z = (samples_alt[:, 3] - samples_alt[:, 3].mean()) / (samples_alt[:, 3].std() + 1e-8)
-    Y = r * target_standardized + np.sqrt(1 - r**2) * Z
+    Y = -r * target_standardized + np.sqrt(1 - r**2) * Z
     df_new['regular_payment_count'] = np.maximum(
         0, np.round(8 + 6 * ((Y - Y.min()) / (Y.max() - Y.min() + 1e-8))).astype(int)
     )
@@ -194,7 +188,7 @@ def generate_alternative_data(df, target_col="SeriousDlqin2yrs",
     # 5. app_login_frequency (0~30)
     r = r_values[4]
     Z = (samples_alt[:, 4] - samples_alt[:, 4].mean()) / (samples_alt[:, 4].std() + 1e-8)
-    Y = r * target_standardized + np.sqrt(1 - r**2) * Z
+    Y = -r * target_standardized + np.sqrt(1 - r**2) * Z
     df_new['app_login_frequency'] = np.maximum(
         0, np.round(15 + 10 * ((Y - Y.min()) / (Y.max() - Y.min() + 1e-8))).astype(int)
     )
@@ -291,16 +285,16 @@ def add_demographic_features(df, bias_ratio: float = 0.0):
     # 연령대 생성 (age 컬럼 기반)
     df['AgeGroup'] = pd.cut(
         df['age'],
-        bins=[0, 29, 39, 49, 59, 101],
-        labels=[0, 1, 2, 3, 4],
+        bins=[0, 35, 55, np.inf],
+        labels=[0, 1, 2],
         right=False,
         include_lowest=True
     ).fillna(0).astype(int)
 
     # bias_ratio 적용: 특정 성별·연령대에 부도율 편향
     if bias_ratio > 0 and 'SeriousDlqin2yrs' in df.columns:
-        # 남성(1) 또는 60세 이상(4)에 편향 적용
-        bias_mask = (df['Gender'] == 1) | (df['AgeGroup'] == 4)
+        # 남성(1) 또는 55세 이상(2)에 편향 적용
+        bias_mask = (df['Gender'] == 1) | (df['AgeGroup'] == 2)
         bias_indices = df[bias_mask].index
 
         if len(bias_indices) > 0:
@@ -321,11 +315,9 @@ def add_demographic_features(df, bias_ratio: float = 0.0):
     logger.info(f"인구통계 변수 생성 완료:")
     logger.info(f"   Gender: {gender_counts.get(0, 0):,} (여성), {gender_counts.get(1, 0):,} (남성)")
     logger.info(f"   AgeGroup:")
-    logger.info(f"      0 (20~29): {age_group_counts.get(0, 0):,}")
-    logger.info(f"      1 (30~39): {age_group_counts.get(1, 0):,}")
-    logger.info(f"      2 (40~49): {age_group_counts.get(2, 0):,}")
-    logger.info(f"      3 (50~59): {age_group_counts.get(3, 0):,}")
-    logger.info(f"      4 (60+):   {age_group_counts.get(4, 0):,}")
+    logger.info(f"      0 (20~34): {age_group_counts.get(0, 0):,}")
+    logger.info(f"      1 (35~54): {age_group_counts.get(1, 0):,}")
+    logger.info(f"      2 (55+):   {age_group_counts.get(2, 0):,}")
     if bias_ratio > 0:
         logger.info(f"   (편향 강도: {bias_ratio*100:.1f}%)\n")
     else:
