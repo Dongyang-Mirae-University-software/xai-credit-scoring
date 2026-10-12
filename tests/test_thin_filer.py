@@ -1,4 +1,4 @@
-ㅣ"""씬파일러 판정 기준 테스트 (이슈 #15)"""
+"""씬파일러 판정 기준 테스트 (이슈 #15)"""
 import pandas as pd
 import pytest
 
@@ -46,15 +46,15 @@ def test_real_estate_loan_excluded():
     assert _judge([_thin_filer_row(**{'NumberRealEstateLoansOrLines': 1})]).iloc[0] == 0
 
 
-def test_high_revolving_utilization_excluded():
-    """신용한도 이용률이 1.0을 넘으면(한도 초과 사용) 제외"""
+def test_revolving_utilization_not_used_for_judgement():
+    """신용한도 이용률은 판정 기준이 아니다 (#15에서 제외)"""
     assert _judge([_thin_filer_row(
-        **{'RevolvingUtilizationOfUnsecuredLines': 1.5})]).iloc[0] == 0
+        **{'RevolvingUtilizationOfUnsecuredLines': 1.5})]).iloc[0] == 1
 
 
-def test_high_debt_ratio_excluded():
-    """부채비율이 1.0을 넘으면(소득보다 부채가 큼) 제외"""
-    assert _judge([_thin_filer_row(**{'DebtRatio': 2.0})]).iloc[0] == 0
+def test_debt_ratio_not_used_for_judgement():
+    """부채비율은 판정 기준이 아니다 (#15에서 제외)"""
+    assert _judge([_thin_filer_row(**{'DebtRatio': 2.0})]).iloc[0] == 1
 
 
 def test_delinquency_history_excluded():

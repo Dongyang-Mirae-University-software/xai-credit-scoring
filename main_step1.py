@@ -43,7 +43,7 @@ def main():
         logger.info(f"  다운로드 경로: https://github.com/Dongyang-Mirae-University-software/xai-credit-scoring-datasets")
         return
 
-    df = load_gmsc(str(gmsc_path))
+    df, _ = load_gmsc(str(gmsc_path))
 
     # 2단계: 대안 데이터 생성
     logger.info("\n[2/4] 대안 데이터 생성")
@@ -58,7 +58,7 @@ def main():
     # 3단계: 전처리 (결측치, 이상치, 정규화)
     logger.info("\n[3/4] 전처리 (결측치, 이상치, 정규화)")
     logger.info("-" * 60)
-    df = preprocess(df, target_col='SeriousDlqin2yrs')
+    df, _ = preprocess(df, target_col='SeriousDlqin2yrs')
 
     # 4단계: 데이터 분할 (Train/Val/Test)
     logger.info("\n[4/4] 데이터 분할 (Train:Val:Test = 70:15:15)")
