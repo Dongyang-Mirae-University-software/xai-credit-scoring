@@ -3,6 +3,7 @@
 5-Fold Stratified Cross-Validation + 불균형 처리 (class_weight, SMOTE)
 """
 
+import json
 import logging
 import joblib
 import numpy as np
@@ -10,24 +11,6 @@ import pandas as pd
 from pathlib import Path
 import mlflow
 from mlflow import log_metric, log_param, log_artifact
-
-# MLflow HTTP 요청에 Basic Auth 자동 추가
-def _patch_mlflow_auth():
-    """MLflow의 requests 세션에 Basic Auth를 자동 추가"""
-    from requests.auth import HTTPBasicAuth
-    import mlflow.utils.rest_utils as rest_utils
-
-    original_call_endpoint = rest_utils.call_endpoint
-
-    def patched_call_endpoint(host_creds, *args, **kwargs):
-        if host_creds and host_creds.password:
-            auth = HTTPBasicAuth(host_creds.username, host_creds.password)
-            kwargs['auth'] = auth
-        return original_call_endpoint(host_creds, *args, **kwargs)
-
-    rest_utils.call_endpoint = patched_call_endpoint
-
-_patch_mlflow_auth()
 
 from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import StratifiedKFold, cross_validate
@@ -130,7 +113,13 @@ def _log_data_params(data_params):
         mlflow.log_params({k: str(v) for k, v in data_params.items()})
 
 
-def train_logistic_regression(X_train, y_train, skf, models_dir, version, data_type=None, data_params=None):
+def _record_cv(cv_summary, name, algorithm, data_type, scores, method):
+    means = _log_cv_results(scores, method=method)
+    if cv_summary is not None:
+        cv_summary[name] = {'data_type': data_type, 'algorithm': algorithm, 'method': method, 'cv_test_mean': means}
+
+
+def train_logistic_regression(X_train, y_train, skf, models_dir, version, data_type=None, data_params=None, cv_summary=None):
     """Logistic Regression 학습 (class_weight, SMOTE 비교)"""
 
     models = {}
@@ -166,12 +155,12 @@ def train_logistic_regression(X_train, y_train, skf, models_dir, version, data_t
             n_jobs=-1
         )
 
-        _log_cv_results(scores_balanced, method="class_weight='balanced'")
+        _record_cv(cv_summary, f"logistic_regression_class_weight{run_name_suffix}", "LogisticRegression", data_type, scores_balanced, method="class_weight='balanced'")
         lr_balanced.fit(X_train, y_train)
         models['class_weight'] = lr_balanced
 
         # 모델 저장
-        model_path = f"{models_dir}/logistic_regression_class_weight_v{version}.joblib"
+        model_path = f"{models_dir}/logistic_regression_class_weight{run_name_suffix}_v{version}.joblib"
         joblib.dump(lr_balanced, model_path)
         logger.info(f"모델 저장: {model_path}\n")
 
@@ -202,12 +191,12 @@ def train_logistic_regression(X_train, y_train, skf, models_dir, version, data_t
             n_jobs=-1
         )
 
-        _log_cv_results(scores_smote, method="SMOTE")
+        _record_cv(cv_summary, f"logistic_regression_smote{run_name_suffix}", "LogisticRegression", data_type, scores_smote, method="SMOTE")
         pipeline_smote.fit(X_train, y_train)
         models['smote'] = pipeline_smote
 
         # 모델 저장
-        model_path = f"{models_dir}/logistic_regression_smote_v{version}.joblib"
+        model_path = f"{models_dir}/logistic_regression_smote{run_name_suffix}_v{version}.joblib"
         joblib.dump(pipeline_smote, model_path)
         logger.info(f"모델 저장: {model_path}\n")
 
@@ -216,7 +205,7 @@ def train_logistic_regression(X_train, y_train, skf, models_dir, version, data_t
     return models
 
 
-def train_xgboost(X_train, y_train, skf, models_dir, version, data_type=None, data_params=None):
+def train_xgboost(X_train, y_train, skf, models_dir, version, data_type=None, data_params=None, cv_summary=None):
     """XGBoost 학습 (scale_pos_weight, SMOTE 비교)"""
 
     models = {}
@@ -260,12 +249,12 @@ def train_xgboost(X_train, y_train, skf, models_dir, version, data_type=None, da
             n_jobs=-1
         )
 
-        _log_cv_results(scores_balanced, method="scale_pos_weight")
+        _record_cv(cv_summary, f"xgboost_scale_pos_weight{run_name_suffix}", "XGBoost", data_type, scores_balanced, method="scale_pos_weight")
         xgb_balanced.fit(X_train, y_train)
         models['scale_pos_weight'] = xgb_balanced
 
         # 모델 저장
-        model_path = f"{models_dir}/xgboost_scale_pos_weight_v{version}.joblib"
+        model_path = f"{models_dir}/xgboost_scale_pos_weight{run_name_suffix}_v{version}.joblib"
         joblib.dump(xgb_balanced, model_path)
         logger.info(f"모델 저장: {model_path}\n")
 
@@ -305,12 +294,12 @@ def train_xgboost(X_train, y_train, skf, models_dir, version, data_type=None, da
             n_jobs=-1
         )
 
-        _log_cv_results(scores_smote, method="SMOTE")
+        _record_cv(cv_summary, f"xgboost_smote{run_name_suffix}", "XGBoost", data_type, scores_smote, method="SMOTE")
         pipeline_smote.fit(X_train, y_train)
         models['smote'] = pipeline_smote
 
         # 모델 저장
-        model_path = f"{models_dir}/xgboost_smote_v{version}.joblib"
+        model_path = f"{models_dir}/xgboost_smote{run_name_suffix}_v{version}.joblib"
         joblib.dump(pipeline_smote, model_path)
         logger.info(f"모델 저장: {model_path}\n")
 
@@ -319,7 +308,7 @@ def train_xgboost(X_train, y_train, skf, models_dir, version, data_type=None, da
     return models
 
 
-def train_lightgbm(X_train, y_train, skf, models_dir, version, data_type=None, data_params=None):
+def train_lightgbm(X_train, y_train, skf, models_dir, version, data_type=None, data_params=None, cv_summary=None):
     """LightGBM 학습 (is_unbalance, SMOTE 비교)"""
 
     models = {}
@@ -359,12 +348,12 @@ def train_lightgbm(X_train, y_train, skf, models_dir, version, data_type=None, d
             n_jobs=-1
         )
 
-        _log_cv_results(scores_balanced, method="is_unbalance=True")
+        _record_cv(cv_summary, f"lightgbm_is_unbalance{run_name_suffix}", "LightGBM", data_type, scores_balanced, method="is_unbalance=True")
         lgb_balanced.fit(X_train, y_train)
         models['is_unbalance'] = lgb_balanced
 
         # 모델 저장
-        model_path = f"{models_dir}/lightgbm_is_unbalance_v{version}.joblib"
+        model_path = f"{models_dir}/lightgbm_is_unbalance{run_name_suffix}_v{version}.joblib"
         joblib.dump(lgb_balanced, model_path)
         logger.info(f"모델 저장: {model_path}\n")
 
@@ -404,12 +393,12 @@ def train_lightgbm(X_train, y_train, skf, models_dir, version, data_type=None, d
             n_jobs=-1
         )
 
-        _log_cv_results(scores_smote, method="SMOTE")
+        _record_cv(cv_summary, f"lightgbm_smote{run_name_suffix}", "LightGBM", data_type, scores_smote, method="SMOTE")
         pipeline_smote.fit(X_train, y_train)
         models['smote'] = pipeline_smote
 
         # 모델 저장
-        model_path = f"{models_dir}/lightgbm_smote_v{version}.joblib"
+        model_path = f"{models_dir}/lightgbm_smote{run_name_suffix}_v{version}.joblib"
         joblib.dump(pipeline_smote, model_path)
         logger.info(f"모델 저장: {model_path}\n")
 
@@ -422,6 +411,7 @@ def _log_cv_results(scores, method, run_name=None):
     """Cross-Validation 결과 로깅 및 MLflow 기록"""
 
     metrics = ['roc_auc', 'precision', 'recall', 'f1']
+    means = {}
 
     logger.info(f"\n5-Fold CV 결과 ({method}):")
     logger.info("-" * 80)
@@ -436,6 +426,7 @@ def _log_cv_results(scores, method, run_name=None):
 
         mean_score = test_scores.mean()
         std_score = test_scores.std()
+        means[f'cv_test_{metric}_mean'] = float(mean_score)
         logger.info(f"  평균: Test={mean_score:.4f} ± {std_score:.4f}")
 
         # MLflow 메트릭 기록
@@ -449,6 +440,7 @@ def _log_cv_results(scores, method, run_name=None):
             mlflow.log_metric(f"{metric}_std", std_score)
 
     logger.info("-" * 80)
+    return means
 
 
 def get_features_by_type(X_train, data_type):
@@ -509,16 +501,15 @@ def train_all_models_by_data_type(X_train, y_train, models_dir='models', version
     mlflow_user = os.getenv('MLFLOW_TRACKING_USERNAME')
     mlflow_pass = os.getenv('MLFLOW_TRACKING_PASSWORD')
 
+    if not mlflow_uri:
+        logger.warning("MLFLOW_TRACKING_URI가 없어 로컬 mlruns에 기록합니다. "
+                       "팀 서버에 기록하려면 .env에 MLFLOW_TRACKING_URI, MLFLOW_TRACKING_USERNAME, MLFLOW_TRACKING_PASSWORD를 설정하세요.")
+    elif not (mlflow_user and mlflow_pass):
+        logger.warning("MLFLOW_TRACKING_USERNAME 또는 MLFLOW_TRACKING_PASSWORD가 없습니다. "
+                       "인증 없이 서버에 연결하면 실패할 수 있습니다. .env를 확인하세요.")
+
     if mlflow_uri:
         mlflow.set_tracking_uri(mlflow_uri)
-
-        # MLflow HTTP Basic Auth 설정
-        if mlflow_user and mlflow_pass:
-            import base64
-            # requests 세션에 Basic Auth 추가
-            import requests
-            from requests.auth import HTTPBasicAuth
-            requests.Session().auth = HTTPBasicAuth(mlflow_user, mlflow_pass)
 
         try:
             mlflow.set_experiment("xai-credit-scoring")
@@ -544,6 +535,7 @@ def train_all_models_by_data_type(X_train, y_train, models_dir='models', version
     all_results = {}
     data_types = ['financial_only', 'alternative_only', 'integrated']
 
+    cv_summary = {}
     for data_type in data_types:
         logger.info(f"\n{'='*80}")
         logger.info(f"데이터 타입: {data_type}")
@@ -556,13 +548,13 @@ def train_all_models_by_data_type(X_train, y_train, models_dir='models', version
         # 각 데이터 타입별 3개 알고리즘 학습
         results = {}
         results['LogisticRegression'] = train_logistic_regression(
-            X_train_subset, y_train, skf, models_dir, version, data_type, data_params
+            X_train_subset, y_train, skf, models_dir, version, data_type, data_params, cv_summary
         )
         results['XGBoost'] = train_xgboost(
-            X_train_subset, y_train, skf, models_dir, version, data_type, data_params
+            X_train_subset, y_train, skf, models_dir, version, data_type, data_params, cv_summary
         )
         results['LightGBM'] = train_lightgbm(
-            X_train_subset, y_train, skf, models_dir, version, data_type, data_params
+            X_train_subset, y_train, skf, models_dir, version, data_type, data_params, cv_summary
         )
 
         all_results[data_type] = results
@@ -570,5 +562,11 @@ def train_all_models_by_data_type(X_train, y_train, models_dir='models', version
     logger.info(f"\n{'='*80}")
     logger.info(f"✅ 9개 모델 학습 완료 (금융/대안/통합 × 3 알고리즘)")
     logger.info(f"{'='*80}\n")
+
+    meta_path = Path(models_dir) / 'model_metadata.json'
+    metadata = json.loads(meta_path.read_text(encoding='utf-8')) if meta_path.exists() else {}
+    metadata['training_runs'] = {'version': version, 'data_params': data_params or {}, 'runs': cv_summary}
+    meta_path.write_text(json.dumps(metadata, ensure_ascii=False, indent=2), encoding='utf-8')
+    logger.info(f"메타데이터 저장: {meta_path}")
 
     return all_results
