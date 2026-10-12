@@ -291,7 +291,7 @@ def add_demographic_features(df, bias_ratio: float = 0.0):
     # 연령대 생성 (age 컬럼 기반)
     df['AgeGroup'] = pd.cut(
         df['age'],
-        bins=[0, 35, 55, 101],
+        bins=[0, 35, 55, np.inf],
         labels=[0, 1, 2],
         right=False,
         include_lowest=True
