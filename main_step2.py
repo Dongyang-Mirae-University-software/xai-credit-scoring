@@ -46,7 +46,8 @@ def main():
         X_train, y_train, models_dir=str(MODELS_DIR), version='1.0', data_params=data_params
     )
     select_and_test_once(
-        results, X_val, y_val, X_test, y_test, models_dir=str(MODELS_DIR), version='1.0'
+        results, X_val, y_val, X_test, y_test, models_dir=str(MODELS_DIR), version='1.0',
+        data_params=data_params,
     )
     logger.info("✅ Step 2 완료!")
 

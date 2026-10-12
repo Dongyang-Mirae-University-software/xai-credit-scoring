@@ -7,6 +7,8 @@ import logging
 import os
 from pathlib import Path
 
+import joblib
+
 # 로깅 설정
 logging.basicConfig(
     level=logging.INFO,
@@ -58,7 +60,13 @@ def main():
     # 3단계: 전처리 (결측치, 이상치, 정규화)
     logger.info("\n[3/4] 전처리 (결측치, 이상치, 정규화)")
     logger.info("-" * 60)
-    df, _ = preprocess(df, target_col='SeriousDlqin2yrs')
+    df, scaler = preprocess(df, target_col='SeriousDlqin2yrs')
+
+    # 전처리 스케일러 저장 (대시보드에서 새 고객 값을 같은 기준으로 바꾸려면 필요)
+    models_dir = PROJECT_ROOT / 'models'
+    models_dir.mkdir(exist_ok=True, parents=True)
+    joblib.dump(scaler, models_dir / 'preprocess_scaler_v1.0.joblib')
+    logger.info(f"  ✓ preprocess_scaler_v1.0.joblib")
 
     # 4단계: 데이터 분할 (Train/Val/Test)
     logger.info("\n[4/4] 데이터 분할 (Train:Val:Test = 70:15:15)")

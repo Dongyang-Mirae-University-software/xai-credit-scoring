@@ -577,7 +577,7 @@ def _ks_statistic(y_true, y_score):
     return float(np.max(tpr - fpr))
 
 
-def select_and_test_once(results, X_val, y_val, X_test, y_test, models_dir='models', version='1.0'):
+def select_and_test_once(results, X_val, y_val, X_test, y_test, models_dir='models', version='1.0', data_params=None):
     """
     Val AUC로 최종 모델을 고르고, 선택된 모델 1개만 Test에서 1회 평가한다.
 
@@ -615,12 +615,14 @@ def select_and_test_once(results, X_val, y_val, X_test, y_test, models_dir='mode
     val_table.to_csv(table_path, index=False, encoding='utf-8')
 
     with mlflow.start_run(run_name='model_selection_val'):
+        _log_data_params(data_params)
         mlflow.set_tag('selected_model', final_name)
         mlflow.log_param('selection_metric', 'val_auc')
         mlflow.log_metric('selected_val_auc', float(final['val_auc']))
         mlflow.log_artifact(str(table_path))
 
     with mlflow.start_run(run_name='final_test'):
+        _log_data_params(data_params)
         mlflow.set_tag('selected_model', final_name)
         mlflow.log_metric('test_auc', float(test_auc))
         mlflow.log_metric('test_ks', float(test_ks))
