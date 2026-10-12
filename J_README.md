@@ -51,7 +51,7 @@
 
 #### `src/data/loader.py`
 **목적**: GMSC 데이터 로드 및 통계 분석
-**입력**: `data/raw/kaggle_datasets/cs-training.csv` (150,000건)
+**입력**: `data/raw/cs-training.csv` (150,000건)
 **출력**: `data/intermediate/01_loaded.csv`
 **주요 함수**:
 ```python
@@ -378,7 +378,7 @@ pytest tests/ -v
 
 ### 📥 원본 데이터
 
-#### `data/raw/kaggle_datasets/cs-training.csv`
+#### `data/raw/cs-training.csv`
 **의미**: Give Me Some Credit (GMSC) 경진대회 원본 데이터
 **크기**: ~400MB
 **레코드**: 150,000건
@@ -393,11 +393,11 @@ pytest tests/ -v
 
 **사용처**: 모든 데이터 파이프라인의 시작점
 
-#### `data/raw/kaggle_datasets/Data Dictionary.xls`
+#### `data/raw/Data Dictionary.xls`
 **의미**: GMSC 데이터 설명서
 **내용**: 각 컬럼의 정의, 데이터 타입, 예제
 
-#### `data/raw/kaggle_datasets/cs-test.csv`
+#### `data/raw/cs-test.csv`
 **의미**: GMSC 경진대회 테스트 셋 (참고용)
 **크기**: ~100MB
 **레코드**: 50,000건
@@ -585,8 +585,7 @@ predictions = model.predict_proba(X_test)  # 확률 예측
 
 ```
 data/raw/
-  ├─ kaggle_datasets/
-  │   └─ cs-training.csv (150,000건)
+  └─ cs-training.csv (150,000건)
          ↓
          loader.py (데이터 로드)
          ↓
@@ -653,7 +652,7 @@ pytest tests/ -v
 ## 📞 주의사항
 
 ### ⚠️ 데이터 파일 관리
-- 원본 데이터: `data/raw/kaggle_datasets/cs-training.csv` 필수
+- 원본 데이터: `data/raw/cs-training.csv` 필수
 - 중간/최종 결과는 자동 생성됨
 - git에는 업로드되지 않음 (.gitignore)
 
