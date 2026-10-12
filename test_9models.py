@@ -20,7 +20,7 @@ load_dotenv(Path(__file__).parent / '.env')
 from src.data.loader import load_gmsc
 from src.data.simulator import generate_alternative_data
 from src.data.preprocessor import preprocess, split_data
-from src.models.train import train_all_models_by_data_type
+from src.models.train import train_all_models_by_data_type, select_and_test_once
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -73,6 +73,8 @@ def main():
             X_train, y_train, models_dir='models', version='1.0',
             data_params={'thin_filer_ratio': None, 'bias_ratio': 0}
         )
+        final = select_and_test_once(results, X_val, y_val, X_test, y_test, models_dir='models', version='1.0')
+        logger.info(f"최종 선택: {final['selected_model']}")
 
         logger.info("\n" + "="*80)
         logger.info("✅ 9개 모델 학습 완료!")
