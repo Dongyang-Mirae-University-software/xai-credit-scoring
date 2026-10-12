@@ -273,17 +273,17 @@ def add_demographic_features(df, bias_ratio: float = 0.0):
                    1: 최대 편향 (특정 성별/연령대에 높은 부도율)
 
     Returns:
-        Gender, AgeGroup 컬럼이 추가된 데이터프레임
+        gender, age_group 컬럼이 추가된 데이터프레임
     """
     _setup_logger()
 
     n = len(df)
 
     # 성별 생성 (0: Female, 1: Male)
-    df['Gender'] = np.random.binomial(1, 0.5, n)
+    df['gender'] = np.random.binomial(1, 0.5, n)
 
     # 연령대 생성 (age 컬럼 기반)
-    df['AgeGroup'] = pd.cut(
+    df['age_group'] = pd.cut(
         df['age'],
         bins=[0, 35, 55, np.inf],
         labels=[0, 1, 2],
@@ -294,7 +294,7 @@ def add_demographic_features(df, bias_ratio: float = 0.0):
     # bias_ratio 적용: 특정 성별·연령대에 부도율 편향
     if bias_ratio > 0 and 'SeriousDlqin2yrs' in df.columns:
         # 남성(1) 또는 55세 이상(2)에 편향 적용
-        bias_mask = (df['Gender'] == 1) | (df['AgeGroup'] == 2)
+        bias_mask = (df['gender'] == 1) | (df['age_group'] == 2)
         bias_indices = df[bias_mask].index
 
         if len(bias_indices) > 0:
@@ -309,12 +309,12 @@ def add_demographic_features(df, bias_ratio: float = 0.0):
                 df.loc[bias_sample_indices, 'SeriousDlqin2yrs'] = 1
 
     # 통계 로깅
-    gender_counts = df['Gender'].value_counts().sort_index()
-    age_group_counts = df['AgeGroup'].value_counts().sort_index()
+    gender_counts = df['gender'].value_counts().sort_index()
+    age_group_counts = df['age_group'].value_counts().sort_index()
 
     logger.info(f"인구통계 변수 생성 완료:")
-    logger.info(f"   Gender: {gender_counts.get(0, 0):,} (여성), {gender_counts.get(1, 0):,} (남성)")
-    logger.info(f"   AgeGroup:")
+    logger.info(f"   gender: {gender_counts.get(0, 0):,} (여성), {gender_counts.get(1, 0):,} (남성)")
+    logger.info(f"   age_group:")
     logger.info(f"      0 (20~34): {age_group_counts.get(0, 0):,}")
     logger.info(f"      1 (35~54): {age_group_counts.get(1, 0):,}")
     logger.info(f"      2 (55+):   {age_group_counts.get(2, 0):,}")
