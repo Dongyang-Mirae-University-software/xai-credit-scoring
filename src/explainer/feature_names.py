@@ -34,7 +34,7 @@ NON_FEATURE_COLS = [
     'gender', 'Gender',
     'age_group', 'AgeGroup',
     'is_thin_filer',
-    'Unnamed: 0',
+    'customer_id', 'Unnamed: 0',
 ]
 
 FEATURE_NAMES_KR = {

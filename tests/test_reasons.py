@@ -55,3 +55,11 @@ def test_top5_sorted_and_only_unfavorable():
     assert [r['feature'] for r in reasons] == ['f0', 'f3', 'f5', 'f2', 'f4']
     assert all(r['shap_contribution'] < 0 for r in reasons)
     assert [r['rank'] for r in reasons] == [1, 2, 3, 4, 5]
+
+
+def test_reference_values_trims_extreme_values():
+    # 정상 값 99개 + 극단값 1개(50,708): 단순 평균은 500을 넘지만 절사평균은 0.3 근처
+    rows = [{'age': 40, 'RevolvingUtilizationOfUnsecuredLines': 0.3} for _ in range(99)]
+    rows.append({'age': 40, 'RevolvingUtilizationOfUnsecuredLines': 50708.0})
+    refs = reference_values(rows, ['RevolvingUtilizationOfUnsecuredLines'])
+    assert abs(refs['35-54']['RevolvingUtilizationOfUnsecuredLines'] - 0.3) < 1e-9

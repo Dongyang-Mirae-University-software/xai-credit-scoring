@@ -14,6 +14,7 @@
 이 파일은 numpy·shap 없이 동작한다 (SHAP 값 계산은 shap_explainer.py 가 맡는다).
 """
 
+import os
 from src.explainer.feature_names import korean_name, format_value
 
 DEFAULT_TOP_K = 5
@@ -30,27 +31,37 @@ def age_group_of(age):
     return '55+'
 
 
-def reference_values(rows, features, group_key='age_group'):
+def reference_values(rows, features, group_key='age_group', trim=None):
     """
     '동일 연령대 평균'을 만든다. rows: dict 목록(학습 데이터, 크기 맞추기 전 원래 값).
     반환: {연령대: {feature: 평균}} 와 전체 평균 '_all'.
+
+    원본 데이터에 극단값(예: 한도 사용 비율 50,708)이 있어 단순 평균이 크게 튄다.
+    그래서 위아래 trim 비율(기본 1%, 환경 변수 REFERENCE_TRIM)을 뺀 절사평균을 쓴다.
+    값이 20개 미만이면 자르지 않는다.
     """
-    sums, counts = {}, {}
+    if trim is None:
+        trim = float(os.getenv('REFERENCE_TRIM', '0.01'))
+    values = {}
     for r in rows:
         group = r.get(group_key) or age_group_of(r.get('age'))
         for key in (group, '_all'):
             if key is None:
                 continue
-            s = sums.setdefault(key, {})
-            c = counts.setdefault(key, {})
+            vals = values.setdefault(key, {})
             for f in features:
                 v = r.get(f)
                 if v is None or v != v:  # 빈칸(None, NaN)은 건너뛴다
                     continue
-                s[f] = s.get(f, 0.0) + float(v)
-                c[f] = c.get(f, 0) + 1
-    return {g: {f: sums[g][f] / counts[g][f] for f in sums[g]} for g in sums}
+                vals.setdefault(f, []).append(float(v))
 
+    def trimmed_mean(xs):
+        xs = sorted(xs)
+        k = int(len(xs) * trim) if len(xs) >= 20 else 0
+        kept = xs[k:len(xs) - k] if k else xs
+        return sum(kept) / len(kept)
+
+    return {g: {f: trimmed_mean(xs) for f, xs in vals.items()} for g, vals in values.items()}
 
 def _has_final(text, rieul_ok=False):
     """마지막 글자에 받침이 있는지. 숫자는 읽는 소리로 판단한다 (예: 3=삼 → 받침 있음)."""
