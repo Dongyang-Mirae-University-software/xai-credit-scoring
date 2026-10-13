@@ -14,6 +14,8 @@ Bias Mitigation: Reweighting(학습 전)과 Threshold Adjustment(학습 후), �
   모델을 다시 학습하지 않는다.
 """
 
+import logging
+
 from src.fairness.metrics import _list, approvals, default_threshold, fairness_report
 
 
@@ -72,8 +74,10 @@ def group_thresholds(p_default, groups, threshold=None):
     return {gi: _quantile(sorted(vals), target) for gi, vals in by_group.items()}, target
 
 
-def approvals_with_thresholds(p_default, groups, thresholds):
-    return [1 if pi < thresholds[gi] else 0 for pi, gi in zip(_list(p_default), _list(groups))]
+def approvals_with_thresholds(p_default, groups, thresholds, default=None):
+    """집단별 기준값으로 승인 여부. 기준값을 정할 때 없던 집단은 공통 기준값(default)을 쓴다."""
+    t = default_threshold() if default is None else default
+    return [1 if pi < thresholds.get(gi, t) else 0 for pi, gi in zip(_list(p_default), _list(groups))]
 
 
 def _summary(report):
@@ -90,18 +94,30 @@ def _report_from_approved(y_true, approved, gender, age_group):
 
 
 def mitigation_report(y_true, p_before, gender=None, age_group=None,
-                      method='threshold_adjustment', p_after=None, threshold=None):
+                      method='threshold_adjustment', p_after=None, threshold=None,
+                      fit_p_default=None, fit_gender=None, fit_age_group=None):
     """/fairness/mitigation 응답 형식. 대시보드 mock(fairness_mitigation.json)과 같은 before/after 키.
 
-    method='threshold_adjustment': p_before 하나로 집단별 기준값을 정해 after 를 만든다.
+    y_true, p_before, gender, age_group: 평가할 데이터(Test).
+    method='threshold_adjustment': 집단별 기준값을 fit_* 데이터(Validation)로 정하고, 평가 데이터에는 적용만 한다.
+        원본 「테스트 데이터의 라벨을 학습에 사용하는 것을 금지한다」와 'Test는 한 번만 평가' 원칙 때문.
+        fit_* 를 주지 않으면 평가 데이터로 기준값을 정하고 경고를 남긴다(예시·테스트용).
     method='reweighting': 가중치로 다시 학습한 모델의 확률 p_after 를 함께 넘긴다."""
     t = default_threshold() if threshold is None else threshold
     before = fairness_report(y_true, p_before, gender=gender, age_group=age_group, threshold=t)
     result = {'method': method, 'threshold': t, 'before': _summary(before)}
     if method == 'threshold_adjustment':
         groups = combine_groups(gender, age_group)
-        thresholds, target = group_thresholds(p_before, groups, t)
-        approved = approvals_with_thresholds(p_before, groups, thresholds)
+        if fit_p_default is not None:
+            fit_groups = combine_groups(fit_gender, fit_age_group)
+            thresholds, target = group_thresholds(fit_p_default, fit_groups, t)
+            result['threshold_fit_on'] = 'validation'
+        else:
+            logging.getLogger(__name__).warning(
+                "Threshold Adjustment 기준값을 평가 데이터로 정합니다. 실제 평가에는 fit_p_default(Validation)를 넘기세요.")
+            thresholds, target = group_thresholds(p_before, groups, t)
+            result['threshold_fit_on'] = 'evaluation_data'
+        approved = approvals_with_thresholds(p_before, groups, thresholds, default=t)
         result['after'] = _summary(_report_from_approved(y_true, approved, gender, age_group))
         result['group_thresholds'] = thresholds
         result['target_approval_rate'] = target

@@ -105,3 +105,25 @@ def test_reweighting_report_needs_retrained_scores():
         mt.mitigation_report(y, p, gender=g, method='reweighting')
     report = mt.mitigation_report(y, p, gender=g, method='reweighting', p_after=[0.2] * len(p))
     assert report['after']['di_ratio'] == pytest.approx(1.0)
+
+
+def test_threshold_adjustment_fits_on_validation_and_applies_to_test():
+    # Validation과 Test의 점수 분포가 다르면, 기준값은 Validation 기준이어야 한다
+    y_v, p_v, g_v, a_v = _biased_sample()
+    y_t, p_t, g_t, a_t = _biased_sample()
+    p_t = [min(0.99, x + 0.05) for x in p_t]          # Test 점수를 일부러 조금 높임
+    fitted, _ = mt.group_thresholds(p_v, mt.combine_groups(g_v, a_v))
+    report = mt.mitigation_report(y_t, p_t, gender=g_t, age_group=a_t, method='threshold_adjustment',
+                                  fit_p_default=p_v, fit_gender=g_v, fit_age_group=a_v)
+    assert report['threshold_fit_on'] == 'validation'
+    assert report['group_thresholds'] == fitted
+    test_fitted, _ = mt.group_thresholds(p_t, mt.combine_groups(g_t, a_t))
+    assert report['group_thresholds'] != test_fitted
+
+
+def test_threshold_adjustment_without_fit_data_warns(caplog):
+    y, p, g, a = _biased_sample()
+    with caplog.at_level(logging.WARNING, logger='src.fairness.mitigation'):
+        report = mt.mitigation_report(y, p, gender=g, age_group=a, method='threshold_adjustment')
+    assert report['threshold_fit_on'] == 'evaluation_data'
+    assert any('Validation' in r.message for r in caplog.records)

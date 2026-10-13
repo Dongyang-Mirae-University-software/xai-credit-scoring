@@ -3,7 +3,8 @@ Step 4: 공정성 검증 · Bias Mitigation (남궁명진 담당)
 
 학습된 모델과 Test 데이터로
   1) 공정성 지표: 성별·연령대별 승인율, DI Ratio, Equalized Odds → outputs/fairness/fairness.json
-  2) Mitigation 전/후 비교: Threshold Adjustment (+ 선택: Reweighting 재학습) → outputs/fairness/fairness_mitigation*.json
+  2) Mitigation 전/후 비교: Threshold Adjustment(집단별 기준값은 Validation으로 정하고 Test에 적용)
+     (+ 선택: Reweighting 재학습) → outputs/fairness/fairness_mitigation*.json
   3) 리포트용 전/후 비교 표 → outputs/fairness/comparison_*.md
 를 만든다. JSON 형식은 대시보드 mock(src/dashboard/mock/fairness/)과 같다.
 
@@ -70,6 +71,7 @@ def main():
     model = joblib.load(model_path)
     train = pd.read_csv(Path(args.splits) / 'train_processed.csv')
     test = pd.read_csv(Path(args.splits) / 'test_processed.csv')
+    val = pd.read_csv(Path(args.splits) / 'val_processed.csv')
     names = getattr(final_estimator(model), 'feature_names_in_', None)
     features = list(names) if names is not None else [c for c in test.columns if c not in NON_FEATURE_COLS + ['age_raw']]
 
@@ -82,7 +84,11 @@ def main():
     logger.info(f"DI Ratio {report['di_ratio']:.3f} / EO TPR 차이 {report['equalized_odds_tpr_diff']:.3f} "
                 f"/ FPR 차이 {report['equalized_odds_fpr_diff']:.3f} → {save_json(report, out / 'fairness.json')}")
 
-    ta = mt.mitigation_report(test[TARGET], p, gender=gender, age_group=age, method='threshold_adjustment')
+    # Threshold Adjustment: 집단별 기준값은 Validation으로 정하고, Test에는 적용만 한다 (Test는 한 번만 평가)
+    v_gender, v_age = group_columns(val)
+    p_val = model.predict_proba(val[features])[:, 1]
+    ta = mt.mitigation_report(test[TARGET], p, gender=gender, age_group=age, method='threshold_adjustment',
+                              fit_p_default=p_val, fit_gender=v_gender, fit_age_group=v_age)
     ta['disclaimer'] = DISCLAIMER
     save_json(ta, out / 'fairness_mitigation.json')
     (out / 'comparison_threshold_adjustment.md').write_text(mt.comparison_table(ta) + f"\n\n> {DISCLAIMER}\n", encoding='utf-8')
