@@ -127,11 +127,17 @@ def build_rejection_reasons(feature_values, shap_values, references=None, age=No
     items.sort()  # 가장 불리한(가장 작은) 것부터
 
     reasons = []
-    for rank, (contribution, feature) in enumerate(items[:top_k], start=1):
+    for contribution, feature in items:
+        if len(reasons) >= top_k:
+            break
         current = feature_values.get(feature)
+        if current is None or current != current:  # 값이 없으면(None, NaN) 문장을 만들 수 없어 건너뛴다
+            continue
         reference = ref_table.get(feature)
+        if reference is not None and reference != reference:
+            reference = None
         reasons.append({
-            'rank': rank,
+            'rank': len(reasons) + 1,
             'feature': feature,
             'feature_name_kr': korean_name(feature),
             'current_value': current,

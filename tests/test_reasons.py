@@ -63,3 +63,15 @@ def test_reference_values_trims_extreme_values():
     rows.append({'age': 40, 'RevolvingUtilizationOfUnsecuredLines': 50708.0})
     refs = reference_values(rows, ['RevolvingUtilizationOfUnsecuredLines'])
     assert abs(refs['35-54']['RevolvingUtilizationOfUnsecuredLines'] - 0.3) < 1e-9
+
+
+def test_missing_current_value_is_skipped():
+    # 값이 없는 항목은 TypeError 없이 건너뛰고, 다음 항목이 1순위가 된다
+    reasons = build_rejection_reasons(
+        {'MonthlyIncome': 2000},
+        {'telecom_payment_rate': 0.5, 'MonthlyIncome': 0.2},
+        references={'_all': {'telecom_payment_rate': 0.9, 'MonthlyIncome': 6400}})
+    assert [r['feature'] for r in reasons] == ['MonthlyIncome']
+    assert reasons[0]['rank'] == 1
+    assert build_rejection_reasons({}, {'telecom_payment_rate': 0.2},
+                                   references={'_all': {'telecom_payment_rate': 0.9}}) == []
