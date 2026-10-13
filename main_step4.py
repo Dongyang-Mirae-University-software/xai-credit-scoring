@@ -7,7 +7,7 @@ Step 4: 공정성 검증 · Bias Mitigation (남궁명진 담당)
   3) 리포트용 전/후 비교 표 → outputs/fairness/comparison_*.md
 를 만든다. JSON 형식은 대시보드 mock(src/dashboard/mock/fairness/)과 같다.
 
-필요한 칸: Test 파일에 성별(gender 또는 Gender)과 연령대(age_group, 또는 원래 나이 age_raw).
+필요한 칸: Test 파일에 성별(gender)과 연령대(age_group, 또는 원래 나이 age_raw).
 분할 파일에 이 칸이 없으면 #33 머지 후 실행한다.
 
 실행 예:
@@ -40,9 +40,9 @@ def parse_args():
 def group_columns(df):
     """성별·연령대 칸을 원본 기준 값(female/male, 20-34/35-54/55+)으로 만든다."""
     from src.fairness.metrics import normalize_age_group, normalize_gender
-    gcol = next((c for c in ('gender', 'Gender') if c in df.columns), None)
-    if gcol is None:
-        raise SystemExit("Test 파일에 성별 칸(gender/Gender)이 없습니다. #33(분할 파일에 보호 속성 유지) 머지 후 실행하세요.")
+    if 'gender' not in df.columns:
+        raise SystemExit("Test 파일에 성별 칸(gender)이 없습니다. 지금 코드로 main_step1.py를 다시 실행해 분할 파일을 만드세요(#32).")
+    gcol = 'gender'
     import pandas as pd
     # pandas 버전에 따라 글자 칸이 object 또는 문자열 형식으로 읽히므로, '숫자가 아닌지'로 확인한다
     if 'age_group' in df.columns and not pd.api.types.is_numeric_dtype(df['age_group']):
@@ -50,7 +50,7 @@ def group_columns(df):
     elif 'age_raw' in df.columns:
         age = normalize_age_group(ages=df['age_raw'])
     else:
-        raise SystemExit("Test 파일에 원본 3구간 연령대(age_group) 또는 원래 나이(age_raw)가 없습니다. #33 머지 후 실행하세요.")
+        raise SystemExit("Test 파일에 원본 3구간 연령대(age_group) 또는 원래 나이(age_raw)가 없습니다. 지금 코드로 main_step1.py를 다시 실행하세요(#32).")
     return normalize_gender(df[gcol]), age
 
 
