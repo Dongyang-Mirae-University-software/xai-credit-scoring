@@ -27,7 +27,9 @@ GMSC(Give Me Some Credit) 데이터셋 기반 모델 학습, SHAP 기반 XAI 설
 xai-credit-scoring/
 ├── data/
 │   ├── raw/            # 원본 데이터
-│   │   └── kaggle_datasets/  # Give Me Some Credit 캐글 데이터셋 (git 포함)
+│   │   ├── cs-training.csv   # Give Me Some Credit 훈련 데이터 (git 포함)
+│   │   ├── cs-test.csv       # 테스트 데이터 (git 포함)
+│   │   └── Data Dictionary.xls
 │   ├── processed/      # 전처리 완료 데이터 (git 미포함)
 │   ├── splits/         # Train/Val/Test 분할 결과 (git 미포함)
 │   └── mock/           # 프론트 개발용 mock 데이터 (git 포함)
@@ -64,7 +66,7 @@ xai-credit-scoring/
 - `src/data/loader.py`, `src/data/simulator.py`, `src/data/preprocessor.py`는 함수 시그니처만 정의된 상태 - 이재희가 실제 로직 구현 예정.
 - `src/models/`는 3가지 모델 학습 (Logistic Regression, XGBoost, LightGBM) - 이재희가 구현 예정.
 - `src/statistics/anova.py`, `src/fairness/`, `src/explainer/`는 함수 시그니처만 정의된 상태 - 남궁명진이 실제 로직 구현 예정.
-- GMSC 데이터셋(`data/raw/kaggle_datasets/`)이 추가됨. 포함 파일: `cs-training.csv`(훈련 데이터), `cs-test.csv`(테스트 데이터), `sampleEntry.csv`(샘플 제출), `Data Dictionary.xls`(데이터 사전).
+- GMSC 데이터셋(`data/raw/`)이 추가됨. 포함 파일: `cs-training.csv`(훈련 데이터), `cs-test.csv`(테스트 데이터), `sampleEntry.csv`(샘플 제출), `Data Dictionary.xls`(데이터 사전).
 - 모델 학습이 끝나면 `src/api/main.py`의 mock 로직만 실제 모델/SHAP/Fairlearn 호출로 교체하면 되고, 엔드포인트·응답 스키마는 그대로 유지하면 됨.
 
 ## 실행 방법
