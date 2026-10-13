@@ -8,7 +8,7 @@ Step 3: 성능 비교 · SHAP 설명 (남궁명진 담당)
 를 만든다.
 
 실행 예:
-  python main_step3.py --model models/xgboost_scale_pos_weight_v1.0.joblib
+  python main_step3.py --model models/lightgbm_is_unbalance_integrated_v1.0.joblib
 설정값(경로, 기준값)은 인자 또는 환경 변수로 바꾼다 (EVAL_OUTPUT_DIR, APPROVAL_THRESHOLD).
 """
 
