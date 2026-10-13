@@ -12,3 +12,12 @@ mlruns/
 *.log
 ~$*
 data/raw/*.zip
+
+# 산출물 정책 (이슈 #32, B안): 최종 모델 1개와 설명 파일만 저장소에 둔다
+data/splits/*.csv
+data/intermediate/
+models/*.joblib
+models/*.pkl
+models/val_selection_table.csv
+!models/lightgbm_is_unbalance_integrated_v1.0.joblib
+!models/preprocess_scaler_v1.0.joblib
