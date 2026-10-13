@@ -31,8 +31,8 @@ ALTERNATIVE_COLS = [
 # 모델 입력에서 빼야 하는 칸 (정답, 보호 속성, 씬파일러 표시)
 NON_FEATURE_COLS = [
     'SeriousDlqin2yrs',
-    'gender', 'Gender',
-    'age_group', 'AgeGroup',
+    'gender',
+    'age_group',
     'is_thin_filer',
     'customer_id', 'Unnamed: 0',
 ]
