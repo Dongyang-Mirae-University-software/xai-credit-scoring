@@ -80,3 +80,37 @@ def test_ratio_forces_target_count():
     rows = [_thin_filer_row()] + [_row() for _ in range(99)]
     result = label_thin_filer(pd.DataFrame(rows), thin_filer_ratio=0.3, random_seed=42)
     assert result['is_thin_filer'].sum() == 30
+
+
+def test_ratio_erases_delinquency_not_just_label():
+    """손잡이(ratio)는 씬파일러 표시만 붙이지 않고 연체 칸을 실제로 지운다 (#61)"""
+    rows = [_thin_filer_row()] + [_row() for _ in range(99)]
+    result = label_thin_filer(pd.DataFrame(rows), thin_filer_ratio=0.3, random_seed=42)
+    assert result['is_thin_filer'].sum() == 30
+    erased = result[result['NumberOfTime30-59DaysPastDueNotWorse'].isna()]
+    assert len(erased) == 29
+    assert (erased['is_thin_filer'] == 1).all()
+
+
+def test_ratio_result_is_reproducible_with_same_seed():
+    """같은 시드면 같은 사람이 같은 방식으로 지워진다"""
+    rows = [_thin_filer_row()] + [_row() for _ in range(99)]
+    a = label_thin_filer(pd.DataFrame(rows), thin_filer_ratio=0.3, random_seed=7)
+    b = label_thin_filer(pd.DataFrame(rows), thin_filer_ratio=0.3, random_seed=7)
+    pd.testing.assert_frame_equal(a, b)
+
+
+def test_ratio_below_current_count_changes_nothing():
+    """목표가 지금보다 낮으면 아무도 지우지 않는다"""
+    rows = [_thin_filer_row() for _ in range(5)] + [_row() for _ in range(95)]
+    result = label_thin_filer(pd.DataFrame(rows), thin_filer_ratio=0.01, random_seed=1)
+    assert result['is_thin_filer'].sum() == 5
+    assert result['NumberOfTime30-59DaysPastDueNotWorse'].notna().all()
+
+
+def test_ratio_none_keeps_criteria_count():
+    """None이면 기준 해당자 수 그대로 (지우기 없음)"""
+    rows = [_thin_filer_row()] + [_row() for _ in range(99)]
+    result = label_thin_filer(pd.DataFrame(rows), thin_filer_ratio=None)
+    assert result['is_thin_filer'].sum() == 1
+    assert result['NumberOfTime30-59DaysPastDueNotWorse'].notna().all()
