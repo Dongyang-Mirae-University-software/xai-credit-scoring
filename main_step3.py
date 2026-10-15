@@ -6,6 +6,7 @@ Step 3: 성능 비교 · SHAP 설명 (남궁명진 담당)
      --baseline-model(금융만 쓴 모델)을 주면 씬파일러 AUC 향상과 신뢰구간도 계산한다 (#27)
   2) SHAP: Summary Plot(상위 15개), Dependence Plot 2개, Waterfall 1개 → outputs/evaluation/shap/
   3) 거절 사유 Top 5 예시 → outputs/evaluation/explain_example.json
+     (+ API 재료: shap_summary.json, reference_values.json)
 를 만든다.
 
 실행 예:
@@ -111,6 +112,15 @@ def main():
     values = sx.shap_values_for_default(explainer, X)
     shap_dir = out / 'shap'
     sx.save_summary_plot(values, X, shap_dir / f"summary_{model_path.stem}.png")
+    # API GET /explain/summary 재료: 변수별 mean |SHAP| (전통/대안 구분)
+    mean_abs = abs(values).mean(axis=0)
+    perf.save_json({
+        'model': model_path.name, 'n_samples': len(X), 'shap_space': 'log-odds',
+        'features': sorted(({'feature': f, 'mean_abs_shap': float(v),
+                             'group': 'alternative' if f in ALTERNATIVE_COLS else 'financial'}
+                            for f, v in zip(features, mean_abs)), key=lambda d: -d['mean_abs_shap']),
+        'disclaimer': perf.DISCLAIMER,
+    }, out / 'shap_summary.json')
     sx.save_dependence_plots(values, X, shap_dir)
     rejected = [i for i, p in enumerate(model.predict_proba(X)[:, 1]) if p >= result['confusion_matrix']['threshold']]
     idx = rejected[0] if rejected else 0
@@ -131,6 +141,7 @@ def main():
             cols = [c for c in FINANCIAL_COLS + ALTERNATIVE_COLS if c in raw.columns]
             train_ids = train[SPLIT_ID] if SPLIT_ID in train.columns else []
             refs = reference_values(raw.loc[raw.index.isin(train_ids), cols + ['age']].to_dict('records'), cols)
+            perf.save_json(refs, out / 'reference_values.json')  # API POST /explain 의 '동일 연령대 평균'
             customer = sample.iloc[idx][SPLIT_ID]
             if customer in raw.index:
                 raw_row = raw.loc[customer].to_dict()
