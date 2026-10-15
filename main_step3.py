@@ -2,13 +2,16 @@
 Step 3: 성능 비교 · SHAP 설명 (남궁명진 담당)
 
 학습된 모델과 Test 데이터로
-  1) 성능 비교: AUC, KS, PSI, 혼동행렬, ROC·PR 곡선 → outputs/evaluation/metrics_<모델>.json
+  1) 성능 비교: AUC, KS, PSI(점수·특성별), 혼동행렬, ROC·PR 곡선 → outputs/evaluation/metrics_<모델>.json
+     --baseline-model(금융만 쓴 모델)을 주면 씬파일러 AUC 향상과 신뢰구간도 계산한다 (#27)
   2) SHAP: Summary Plot(상위 15개), Dependence Plot 2개, Waterfall 1개 → outputs/evaluation/shap/
   3) 거절 사유 Top 5 예시 → outputs/evaluation/explain_example.json
 를 만든다.
 
 실행 예:
-  python main_step3.py --model models/xgboost_scale_pos_weight_v1.0.joblib
+  python main_step3.py --model models/lightgbm_is_unbalance_integrated_v1.0.joblib
+  python main_step3.py --model models/lightgbm_is_unbalance_integrated_v1.0.joblib \
+      --baseline-model models/lightgbm_is_unbalance_financial_only_v1.0.joblib   (main_step2 실행 후)
 설정값(경로, 기준값)은 인자 또는 환경 변수로 바꾼다 (EVAL_OUTPUT_DIR, APPROVAL_THRESHOLD).
 """
 
@@ -36,6 +39,8 @@ def parse_args():
     p.add_argument('--raw', default=os.getenv('RAW_DATA', str(DEFAULT_RAW)), help='거절 사유 문장에 쓸 원래 값 CSV (선택)')
     p.add_argument('--out', default=os.getenv('EVAL_OUTPUT_DIR', str(PROJECT_ROOT / 'outputs' / 'evaluation')))
     p.add_argument('--shap-sample', type=int, default=int(os.getenv('SHAP_SAMPLE', '2000')), help='SHAP 계산에 쓸 Test 표본 수')
+    p.add_argument('--baseline-model', default=os.getenv('BASELINE_MODEL'),
+                   help='씬파일러 AUC 향상 비교용, 대안 데이터를 쓰지 않은 모델 파일 (선택)')
     p.add_argument('--allow-scaled', action='store_true',
                    help='원래 값과 연결되지 않을 때도 표준화된 값으로 거절 사유 예시를 만든다 (예시 확인용, 문장의 숫자가 실제 값이 아님)')
     return p.parse_args()
@@ -80,10 +85,24 @@ def main():
     result = perf.evaluate(test[TARGET], p_test, train_scores=p_train)
     result['model'] = model_path.name
     result['features'] = features
-    path = perf.save_json(result, out / f"metrics_{model_path.stem}.json")
-    logger.info(f"AUC {result['auc']:.4f} / KS {result['ks']:.4f} / PSI {result.get('psi', float('nan')):.4f} → {path}")
-    if 'is_thin_filer' not in test.columns:
+    result['feature_psi'] = perf.feature_psi(train[features], test[features], features)
+    if not args.baseline_model:
+        logger.info("--baseline-model 이 없어 씬파일러 AUC 향상은 계산하지 않았습니다 (main_step2 결과에는 기록됨).")
+    elif 'is_thin_filer' not in test.columns:
         logger.warning("Test 파일에 is_thin_filer 칸이 없어 씬파일러 AUC 향상은 계산하지 않았습니다.")
+    else:
+        baseline = joblib.load(args.baseline_model)
+        p_base = baseline.predict_proba(test[model_features(baseline, list(test.columns))])[:, 1]
+        uplift = perf.thin_filer_uplift_ci(test[TARGET], p_base, p_test, test['is_thin_filer'])
+        uplift['baseline_model'] = Path(args.baseline_model).name
+        result['thin_filer_uplift'] = uplift
+        result['pass']['thin_filer_uplift'] = uplift['pass']
+        logger.info(f"씬파일러 AUC 향상 {uplift['uplift']:+.4f} [{uplift['ci_low']:+.4f} ~ {uplift['ci_high']:+.4f}] "
+                    f"(씬파일러 {uplift['n_thin_filer']}명, 부도 {uplift['n_thin_filer_default']}명)")
+    path = perf.save_json(result, out / f"metrics_{model_path.stem}.json")
+    fp = result['feature_psi']
+    logger.info(f"AUC {result['auc']:.4f} / KS {result['ks']:.4f} / PSI {result.get('psi', float('nan')):.4f} "
+                f"(특성 최대 {fp['max']:.4f} {fp['max_feature']}) → {path}")
 
     # 2) SHAP
     sample = test.sample(n=min(args.shap_sample, len(test)), random_state=42)

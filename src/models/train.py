@@ -24,7 +24,18 @@ from imblearn.pipeline import Pipeline as ImbPipeline
 from sklearn.pipeline import Pipeline
 from imblearn.over_sampling import SMOTE
 
+from src.explainer import performance as perf
+
 logger = logging.getLogger(__name__)
+
+
+def _ks_scorer(estimator, X, y):
+    """cross_validate용 KS 점수 (부도 확률 기준, #28)."""
+    return _ks_statistic(y, estimator.predict_proba(X)[:, 1])
+
+
+# 5-Fold CV에서 모델마다 기록할 지표. KS를 넣어 모델별 KS가 MLflow metrics(fold_N_ks, ks_mean, ks_std)에 남게 한다 (#28)
+CV_SCORING = {'roc_auc': 'roc_auc', 'precision': 'precision', 'recall': 'recall', 'f1': 'f1', 'ks': _ks_scorer}
 
 
 def _setup_logger():
@@ -150,7 +161,7 @@ def train_logistic_regression(X_train, y_train, skf, models_dir, version, data_t
         scores_balanced = cross_validate(
             lr_balanced, X_train, y_train,
             cv=skf,
-            scoring=['roc_auc', 'precision', 'recall', 'f1'],
+            scoring=CV_SCORING,
             return_train_score=True,
             n_jobs=-1
         )
@@ -186,7 +197,7 @@ def train_logistic_regression(X_train, y_train, skf, models_dir, version, data_t
         scores_smote = cross_validate(
             pipeline_smote, X_train, y_train,
             cv=skf,
-            scoring=['roc_auc', 'precision', 'recall', 'f1'],
+            scoring=CV_SCORING,
             return_train_score=True,
             n_jobs=-1
         )
@@ -244,7 +255,7 @@ def train_xgboost(X_train, y_train, skf, models_dir, version, data_type=None, da
         scores_balanced = cross_validate(
             xgb_balanced, X_train, y_train,
             cv=skf,
-            scoring=['roc_auc', 'precision', 'recall', 'f1'],
+            scoring=CV_SCORING,
             return_train_score=True,
             n_jobs=-1
         )
@@ -289,7 +300,7 @@ def train_xgboost(X_train, y_train, skf, models_dir, version, data_type=None, da
         scores_smote = cross_validate(
             pipeline_smote, X_train, y_train,
             cv=skf,
-            scoring=['roc_auc', 'precision', 'recall', 'f1'],
+            scoring=CV_SCORING,
             return_train_score=True,
             n_jobs=-1
         )
@@ -343,7 +354,7 @@ def train_lightgbm(X_train, y_train, skf, models_dir, version, data_type=None, d
         scores_balanced = cross_validate(
             lgb_balanced, X_train, y_train,
             cv=skf,
-            scoring=['roc_auc', 'precision', 'recall', 'f1'],
+            scoring=CV_SCORING,
             return_train_score=True,
             n_jobs=-1
         )
@@ -388,7 +399,7 @@ def train_lightgbm(X_train, y_train, skf, models_dir, version, data_type=None, d
         scores_smote = cross_validate(
             pipeline_smote, X_train, y_train,
             cv=skf,
-            scoring=['roc_auc', 'precision', 'recall', 'f1'],
+            scoring=CV_SCORING,
             return_train_score=True,
             n_jobs=-1
         )
@@ -410,7 +421,7 @@ def train_lightgbm(X_train, y_train, skf, models_dir, version, data_type=None, d
 def _log_cv_results(scores, method, run_name=None):
     """Cross-Validation 결과 로깅 및 MLflow 기록"""
 
-    metrics = ['roc_auc', 'precision', 'recall', 'f1']
+    metrics = [m for m in CV_SCORING if f'test_{m}' in scores]
     means = {}
 
     logger.info(f"\n5-Fold CV 결과 ({method}):")
@@ -577,13 +588,34 @@ def _ks_statistic(y_true, y_score):
     return float(np.max(tpr - fpr))
 
 
-def select_and_test_once(results, X_val, y_val, X_test, y_test, models_dir='models', version='1.0', data_params=None):
+def _thin_filer_uplift(results, candidates, X_test, y_test, thin_mask):
+    """씬파일러 AUC 향상 (#27): 금융만 쓴 모델 vs 통합 모델, 각각 Val AUC가 가장 높은 후보끼리 비교."""
+    picked = {}
+    for data_type in ('financial_only', 'integrated'):
+        rows = candidates[candidates['data_type'] == data_type]
+        if rows.empty:
+            logger.warning(f"{data_type} 모델이 없어 씬파일러 AUC 향상을 계산하지 않았습니다.")
+            return None
+        best = rows.loc[rows['val_auc'].idxmax()]
+        model = results[data_type][best['algorithm']][best['method']]
+        picked[data_type] = (f"{data_type}/{best['algorithm']}/{best['method']}",
+                             model.predict_proba(get_features_by_type(X_test, data_type))[:, 1])
+    uplift = perf.thin_filer_uplift_ci(y_test, picked['financial_only'][1], picked['integrated'][1], thin_mask)
+    uplift['model_without_alt'] = picked['financial_only'][0]
+    uplift['model_with_alt'] = picked['integrated'][0]
+    return uplift
+
+
+def select_and_test_once(results, X_val, y_val, X_test, y_test, models_dir='models', version='1.0', data_params=None,
+                         X_train=None, thin_mask=None):
     """
     Val AUC로 최종 모델을 고르고, 선택된 모델 1개만 Test에서 1회 평가한다.
 
     1) 데이터 종류 × 알고리즘마다 방식(class_weight/SMOTE 등) 중 Val AUC가 높은 것을 고른다 (9개 후보)
     2) 9개 후보 중 Val AUC가 가장 높은 모델을 최종 모델로 정한다
     3) 최종 모델만 Test로 평가한다. 이 함수는 파이프라인에서 한 번만 호출한다.
+    4) X_train을 주면 PSI(최종 모델 점수 Train vs Test, 특성별 Train vs Test)를 기록한다 (#28)
+    5) thin_mask(Test의 is_thin_filer)를 주면 씬파일러 AUC 향상과 신뢰구간을 기록한다 (#27)
     """
     import json
 
@@ -609,6 +641,15 @@ def select_and_test_once(results, X_val, y_val, X_test, y_test, models_dir='mode
     test_auc = roc_auc_score(y_test, p_test)
     test_ks = _ks_statistic(y_test, p_test)
 
+    psi_info = None
+    if X_train is not None:
+        X_tr = get_features_by_type(X_train, final['data_type'])
+        p_train = final_model.predict_proba(X_tr)[:, 1]
+        psi_info = {'score_psi': perf.psi(p_train, p_test),
+                    'feature_psi': perf.feature_psi(X_tr, X_t, list(X_t.columns))}
+        psi_info['pass'] = psi_info['score_psi'] < perf.TARGETS['psi']
+    uplift = _thin_filer_uplift(results, candidates, X_test, y_test, thin_mask) if thin_mask is not None else None
+
     models_path = Path(models_dir)
     models_path.mkdir(parents=True, exist_ok=True)
     table_path = models_path / 'val_selection_table.csv'
@@ -626,6 +667,18 @@ def select_and_test_once(results, X_val, y_val, X_test, y_test, models_dir='mode
         mlflow.set_tag('selected_model', final_name)
         mlflow.log_metric('test_auc', float(test_auc))
         mlflow.log_metric('test_ks', float(test_ks))
+        if psi_info:
+            mlflow.log_metric('test_psi', float(psi_info['score_psi']))
+            mlflow.log_metric('feature_psi_max', float(psi_info['feature_psi']['max']))
+            for col, value in psi_info['feature_psi']['per_feature'].items():
+                mlflow.log_metric(f'psi_{col}', float(value))
+        if uplift:
+            mlflow.log_param('uplift_model_without_alt', uplift['model_without_alt'])
+            mlflow.log_param('uplift_model_with_alt', uplift['model_with_alt'])
+            for key in ('uplift', 'ci_low', 'ci_high', 'auc_without_alt', 'auc_with_alt'):
+                mlflow.log_metric(f'thin_{key}', float(uplift[key]))
+            mlflow.log_metric('thin_n', uplift['n_thin_filer'])
+            mlflow.log_metric('thin_n_default', uplift['n_thin_filer_default'])
 
     meta_path = models_path / 'model_metadata.json'
     metadata = json.loads(meta_path.read_text(encoding='utf-8')) if meta_path.exists() else {}
@@ -637,8 +690,24 @@ def select_and_test_once(results, X_val, y_val, X_test, y_test, models_dir='mode
         'test_ks': float(test_ks),
         'val_table': val_table.to_dict(orient='records'),
     }
+    if psi_info:
+        metadata['selection']['psi'] = psi_info
+    if uplift:
+        metadata['selection']['thin_filer_uplift'] = uplift
     meta_path.write_text(json.dumps(metadata, ensure_ascii=False, indent=2), encoding='utf-8')
 
     logger.info(f"최종 모델: {final_name} (Val AUC {final['val_auc']:.4f}) → Test AUC {test_auc:.4f}, KS {test_ks:.4f}")
-    return {'selected_model': final_name, 'val_auc': float(final['val_auc']),
-            'test_auc': float(test_auc), 'test_ks': float(test_ks)}
+    if psi_info:
+        fp = psi_info['feature_psi']
+        logger.info(f"PSI: 점수 {psi_info['score_psi']:.4f}, 특성 최대 {fp['max']:.4f} ({fp['max_feature']}) (목표 < {perf.TARGETS['psi']})")
+    if uplift:
+        logger.info(f"씬파일러 AUC 향상: {uplift['uplift']:+.4f} "
+                    f"[{uplift['ci_level']:.0%} 구간 {uplift['ci_low']:+.4f} ~ {uplift['ci_high']:+.4f}] "
+                    f"(씬파일러 {uplift['n_thin_filer']}명, 부도 {uplift['n_thin_filer_default']}명, 목표 +{uplift['target']})")
+    out = {'selected_model': final_name, 'val_auc': float(final['val_auc']),
+           'test_auc': float(test_auc), 'test_ks': float(test_ks)}
+    if psi_info:
+        out['psi'] = psi_info
+    if uplift:
+        out['thin_filer_uplift'] = uplift
+    return out
