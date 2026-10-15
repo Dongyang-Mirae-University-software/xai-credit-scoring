@@ -75,3 +75,25 @@ def test_evaluate_has_api_fields_and_disclaimer():
 def test_mismatched_lengths_raise():
     with pytest.raises(ValueError):
         perf.roc_auc([0, 1], [0.5])
+
+
+def test_feature_psi_flags_shifted_column():
+    base = {'a': [i / 100 for i in range(100)], 'b': [i / 100 for i in range(100)]}
+    other = {'a': [i / 100 for i in range(100)], 'b': [0.9 + i / 1000 for i in range(100)]}
+    r = perf.feature_psi(base, other, ['a', 'b'])
+    assert r['per_feature']['a'] == pytest.approx(0.0, abs=1e-9)
+    assert r['max_feature'] == 'b' and r['max'] > 0.1
+    assert r['pass'] is False
+
+
+def test_thin_filer_uplift_ci_contains_point_and_is_repeatable():
+    y = [1, 0] * 40 + [0] * 20
+    with_alt = [0.9 if t else 0.1 for t in y]                 # 대안 데이터 모델: 완벽
+    without = [0.6 if i % 3 else 0.4 for i in range(len(y))]  # 금융만: 거의 무작위
+    thin = [1] * 80 + [0] * 20
+    a = perf.thin_filer_uplift_ci(y, without, with_alt, thin, n_boot=200)
+    b = perf.thin_filer_uplift_ci(y, without, with_alt, thin, n_boot=200)
+    assert a == b                                  # 같은 seed면 같은 결과
+    assert a['ci_low'] <= a['uplift'] <= a['ci_high']
+    assert a['n_thin_filer'] == 80 and a['n_bootstrap'] > 0
+    assert a['pass'] is True and a['ci_level'] == 0.95
