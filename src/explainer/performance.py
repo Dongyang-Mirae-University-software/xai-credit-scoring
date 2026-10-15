@@ -11,9 +11,11 @@ numpy·sklearn 없이도 돌아가도록 파이썬 기본 기능으로 계산한
 (리스트, numpy 배열, pandas Series 모두 입력으로 받을 수 있다.)
 """
 
+import bisect
 import json
 import math
 import os
+import random
 from pathlib import Path
 
 DISCLAIMER = "본 시스템은 교육 목적으로 개발되었으며, 실제 금융 의사결정에 사용할 수 없습니다."
@@ -144,15 +146,27 @@ def psi(expected_scores, actual_scores, bins=10):
     def share(values):
         counts = [0] * (len(edges) + 1)
         for v in values:
-            idx = 0
-            while idx < len(edges) and v >= edges[idx]:
-                idx += 1
-            counts[idx] += 1
+            counts[bisect.bisect_right(edges, v)] += 1
         return [c / len(values) for c in counts]
 
     eps = 1e-6
     e_share, a_share = share(exp), share(act)
     return sum((a - e) * math.log((a + eps) / (e + eps)) for e, a in zip(e_share, a_share))
+
+
+def feature_psi(expected, actual, columns, bins=10):
+    """
+    특성별 PSI. 기준(보통 Train)과 비교 대상(보통 Test)의 입력 칸 분포가 비슷한지 칸마다 잰다.
+    expected, actual: DataFrame 또는 {칸 이름: 값 목록}. 가장 큰 값과 그 칸 이름도 함께 돌려준다.
+    """
+    per_feature = {c: psi(expected[c], actual[c], bins) for c in columns}
+    worst = max(per_feature, key=per_feature.get) if per_feature else None
+    return {
+        'per_feature': per_feature,
+        'max': per_feature[worst] if worst else 0.0,
+        'max_feature': worst,
+        'pass': all(v < TARGETS['psi'] for v in per_feature.values()),
+    }
 
 
 def thin_filer_uplift(y_true, score_without_alt, score_with_alt, thin_mask):
@@ -178,6 +192,42 @@ def thin_filer_uplift(y_true, score_without_alt, score_with_alt, thin_mask):
         'auc_with_alt': auc_with,
         'uplift': auc_with - auc_without,
     }
+
+
+def thin_filer_uplift_ci(y_true, score_without_alt, score_with_alt, thin_mask,
+                         n_boot=None, level=0.95, seed=42):
+    """
+    씬파일러 AUC 향상과 부트스트랩 신뢰구간. 씬파일러 부도 표본이 적어서(수십 명) 값이 흔들리므로
+    씬파일러만 n_boot 번 복원 추출해 향상값을 다시 계산하고, 가운데 level(기본 95%) 구간을 기록한다.
+    n_boot: 없으면 환경 변수 UPLIFT_BOOTSTRAP(기본 1000).
+    """
+    if n_boot is None:
+        n_boot = int(os.getenv('UPLIFT_BOOTSTRAP', '1000'))
+    result = thin_filer_uplift(y_true, score_without_alt, score_with_alt, thin_mask)
+    y_all = [int(v) for v in y_true]
+    s0_all = _to_list(score_without_alt)
+    s1_all = _to_list(score_with_alt)
+    idx = [i for i, m in enumerate(thin_mask) if int(m) == 1]
+    rng = random.Random(seed)
+    diffs = []
+    for _ in range(n_boot):
+        pick = [idx[rng.randrange(len(idx))] for _ in idx]
+        y = [y_all[i] for i in pick]
+        if not any(y) or all(y):
+            continue  # 부도나 정상이 한쪽만 뽑히면 AUC를 계산할 수 없어 건너뜀
+        diffs.append(roc_auc(y, [s1_all[i] for i in pick]) - roc_auc(y, [s0_all[i] for i in pick]))
+    diffs.sort()
+    if diffs:
+        tail = (1 - level) / 2
+        result['ci_low'] = diffs[int(tail * (len(diffs) - 1))]
+        result['ci_high'] = diffs[int(round((1 - tail) * (len(diffs) - 1)))]
+    else:
+        result['ci_low'] = result['ci_high'] = float('nan')
+    result['ci_level'] = level
+    result['n_bootstrap'] = len(diffs)
+    result['target'] = TARGETS['thin_filer_uplift']
+    result['pass'] = result['uplift'] >= TARGETS['thin_filer_uplift']
+    return result
 
 
 def evaluate(y_true, y_score, threshold=None, train_scores=None, curve_points=50):
