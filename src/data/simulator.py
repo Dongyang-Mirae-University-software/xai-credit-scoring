@@ -5,15 +5,16 @@ regular_payment_count, app_login_frequency 5개 변수를 생성한다.
 
 방법 1: 공분산 행렬 기반 생성
 - 공분산 행렬로 정의된 상관관계를 유지
-- 공식: Y = r*X + sqrt(1-r^2)*Z
+- 공식: Y = -r*X + sqrt(1-r^2)*Z (연체자일수록 낮게)
   (r: 목표 상관계수, X: 정규화된 Target, Z: 독립적인 노이즈)
-- 결과: 생성된 대안 변수와 실제 Target 간 0.30~0.50 상관계수
+- 결과: 생성된 대안 변수와 실제 Target 간 상관계수 -0.35~-0.45 (절댓값 0.30~0.50)
 
 thin_filer_ratio: 씬파일러 비율 조정 파라미터 (None 권장 - 기준대로만 판정)
 bias_ratio: 성별/연령대별 승인율 편향 조정 파라미터
 
 씬파일러 판정 기준 (이슈 #15):
-- 기준 1: 금융 연체 관련 컬럼 2개 이상 결측 (GMSC에는 해당자 0명, 형식상 유지)
+- 기준 1: 금융 연체 관련 컬럼 2개 이상 결측 (손잡이를 쓰지 않으면 GMSC 해당자 0명,
+         thin_filer_ratio를 쓰면 손잡이가 연체 칸을 지운 사람이 여기에 해당)
 - 기준 2: 아래 3개 조건을 모두(AND) 만족 - "금융 기록이 거의 없는 사람"
     (1) 보유 대출·신용 한도 1개 이하
     (2) 부동산 담보대출 없음
@@ -65,12 +66,13 @@ def _setup_logger():
 
 def generate_alternative_data(df, target_col="SeriousDlqin2yrs",
                                thin_filer_ratio: float = None,
-                               bias_ratio: float = 0):
+                               bias_ratio: float = 0,
+                               random_seed: int = None):
     """
     5개 대안 변수 생성 (Target과의 상관계수: 0.30~0.50 범위)
 
     방법: 공분산 행렬 기반 생성
-    - 공식: Y = r*X + sqrt(1-r^2)*Z
+    - 공식: Y = -r*X + sqrt(1-r^2)*Z (연체자일수록 낮게)
     - X: 정규화된 실제 Target
     - Z: 독립적인 표준정규분포
     - r: 공분산 행렬에 정의된 목표 상관계수
@@ -78,9 +80,10 @@ def generate_alternative_data(df, target_col="SeriousDlqin2yrs",
     Args:
         df: 기존 데이터프레임
         target_col: 타겟 변수명 (기본값: SeriousDlqin2yrs)
-        thin_filer_ratio: 씬파일러 비율 강제 조정 (0-1).
+        thin_filer_ratio: 씬파일러 목표 비율 (0-1). 값을 주면 일반 고객의 연체 칸을 지워 기준 1로 판정됨 (#61).
                           None(기본값)이면 판정 기준대로만 분류한다 (권장).
         bias_ratio: 편향 강도 (0: 편향 없음, 1: 최대 편향)
+        random_seed: 무작위 생성 시드. 같은 시드면 같은 결과가 나온다 (None이면 매번 다름)
 
     Returns:
         대안 변수가 추가된 데이터프레임
@@ -89,6 +92,7 @@ def generate_alternative_data(df, target_col="SeriousDlqin2yrs",
 
     df_new = df.copy()
     n = len(df_new)
+    rng = np.random.default_rng(random_seed)
 
     logger.info(f"대안 데이터 시뮬레이터 실행 중...")
     logger.info(f"   샘플 크기: {n:,}")
@@ -102,11 +106,11 @@ def generate_alternative_data(df, target_col="SeriousDlqin2yrs",
     # ===== 단계 2: 공분산 행렬 정의 =====
     # Target과의 상관계수 설정 (0.30~0.50 범위)
     target_correlations = {
-        'telecom_payment_rate': np.random.uniform(0.30, 0.50),
-        'utility_payment_rate': np.random.uniform(0.30, 0.50),
-        'spending_consistency': np.random.uniform(0.30, 0.50),
-        'regular_payment_count': np.random.uniform(0.30, 0.50),
-        'app_login_frequency': np.random.uniform(0.30, 0.50)
+        'telecom_payment_rate': rng.uniform(0.35, 0.45),
+        'utility_payment_rate': rng.uniform(0.35, 0.45),
+        'spending_consistency': rng.uniform(0.35, 0.45),
+        'regular_payment_count': rng.uniform(0.35, 0.45),
+        'app_login_frequency': rng.uniform(0.35, 0.45)
     }
 
     logger.info(f"\n   설정된 목표 상관계수:")
@@ -124,7 +128,7 @@ def generate_alternative_data(df, target_col="SeriousDlqin2yrs",
     # 변수 간 상관관계 (0.20~0.40)
     for i in range(1, 6):
         for j in range(i+1, 6):
-            cov_matrix[i, j] = np.random.uniform(0.20, 0.40)
+            cov_matrix[i, j] = rng.uniform(0.20, 0.40)
             cov_matrix[j, i] = cov_matrix[i, j]
 
     # ===== 단계 3: 공분산 행렬에서 5개 변수만 샘플링 =====
@@ -138,11 +142,11 @@ def generate_alternative_data(df, target_col="SeriousDlqin2yrs",
     try:
         # 5개 변수의 기본값
         mean_alt = np.array([0.85, 0.80, 75, 8, 15])
-        samples_alt = np.random.multivariate_normal(mean_alt, scaled_cov_alt, n)
+        samples_alt = rng.multivariate_normal(mean_alt, scaled_cov_alt, n)
         logger.info(f"   공분산 행렬 기반 샘플링 성공")
     except np.linalg.LinAlgError:
         logger.warning("공분산 행렬이 양정부호가 아닙니다. 표준 정규분포 사용")
-        samples_alt = np.random.standard_normal((n, 5)) * std_devs + np.array([0.85, 0.80, 75, 8, 15])
+        samples_alt = rng.standard_normal((n, 5)) * std_devs + np.array([0.85, 0.80, 75, 8, 15])
 
     # ===== 단계 4: 공식으로 실제 Target과 상관관계 유지 =====
     # Y = r*X + sqrt(1-r^2)*Z
@@ -159,25 +163,19 @@ def generate_alternative_data(df, target_col="SeriousDlqin2yrs",
     # 1. telecom_payment_rate (0~1)
     r = r_values[0]
     Z = (samples_alt[:, 0] - samples_alt[:, 0].mean()) / (samples_alt[:, 0].std() + 1e-8)
-    Y = r * target_standardized + np.sqrt(1 - r**2) * Z
-    df_new['telecom_payment_rate'] = np.clip(
-        (Y - Y.min()) / (Y.max() - Y.min() + 1e-8),
-        0, 1
-    )
+    Y = -r * target_standardized + np.sqrt(1 - r**2) * Z
+    df_new['telecom_payment_rate'] = np.clip(0.90 + 0.06 * Y, 0, 1)
 
     # 2. utility_payment_rate (0~1)
     r = r_values[1]
     Z = (samples_alt[:, 1] - samples_alt[:, 1].mean()) / (samples_alt[:, 1].std() + 1e-8)
-    Y = r * target_standardized + np.sqrt(1 - r**2) * Z
-    df_new['utility_payment_rate'] = np.clip(
-        (Y - Y.min()) / (Y.max() - Y.min() + 1e-8),
-        0, 1
-    )
+    Y = -r * target_standardized + np.sqrt(1 - r**2) * Z
+    df_new['utility_payment_rate'] = np.clip(0.85 + 0.08 * Y, 0, 1)
 
     # 3. spending_consistency (0~100)
     r = r_values[2]
     Z = (samples_alt[:, 2] - samples_alt[:, 2].mean()) / (samples_alt[:, 2].std() + 1e-8)
-    Y = r * target_standardized + np.sqrt(1 - r**2) * Z
+    Y = -r * target_standardized + np.sqrt(1 - r**2) * Z
     df_new['spending_consistency'] = np.clip(
         75 + 25 * ((Y - Y.min()) / (Y.max() - Y.min() + 1e-8)),
         0, 100
@@ -186,7 +184,7 @@ def generate_alternative_data(df, target_col="SeriousDlqin2yrs",
     # 4. regular_payment_count (0~20)
     r = r_values[3]
     Z = (samples_alt[:, 3] - samples_alt[:, 3].mean()) / (samples_alt[:, 3].std() + 1e-8)
-    Y = r * target_standardized + np.sqrt(1 - r**2) * Z
+    Y = -r * target_standardized + np.sqrt(1 - r**2) * Z
     df_new['regular_payment_count'] = np.maximum(
         0, np.round(8 + 6 * ((Y - Y.min()) / (Y.max() - Y.min() + 1e-8))).astype(int)
     )
@@ -194,16 +192,16 @@ def generate_alternative_data(df, target_col="SeriousDlqin2yrs",
     # 5. app_login_frequency (0~30)
     r = r_values[4]
     Z = (samples_alt[:, 4] - samples_alt[:, 4].mean()) / (samples_alt[:, 4].std() + 1e-8)
-    Y = r * target_standardized + np.sqrt(1 - r**2) * Z
+    Y = -r * target_standardized + np.sqrt(1 - r**2) * Z
     df_new['app_login_frequency'] = np.maximum(
         0, np.round(15 + 10 * ((Y - Y.min()) / (Y.max() - Y.min() + 1e-8))).astype(int)
     )
 
     # ===== 단계 5: 인구통계 변수 추가 =====
-    df_new = add_demographic_features(df_new, bias_ratio)
+    df_new = add_demographic_features(df_new, bias_ratio, rng=rng)
 
     # ===== 단계 6: 씬파일러 레이블 생성 =====
-    df_new = label_thin_filer(df_new, thin_filer_ratio, target_col=target_col)
+    df_new = label_thin_filer(df_new, thin_filer_ratio, target_col=target_col, random_seed=random_seed)
 
     # ===== 단계 7: 상관계수 검증 =====
     # 생성된 대안 변수와 실제 Target의 상관계수 계산
@@ -268,46 +266,58 @@ def _validate_correlations(df, target_col):
     return correlations
 
 
-def add_demographic_features(df, bias_ratio: float = 0.0):
+def add_demographic_features(df, bias_ratio: float = 0.0, rng=None):
     """
     인구통계 변수 추가 (성별, 연령대)
 
     Args:
         df: 입력 데이터프레임
-        bias_ratio: 성별/연령대별 부도 편향 강도 (0-1)
+        bias_ratio: 성별/연령대별 부도 편향 강도 (0-1). 0보다 크면 남성의 앱 로그인 빈도(성별 대리 변수)도 높인다 (#41)
                    0: 편향 없음 (성별/연령대와 부도가 독립)
                    1: 최대 편향 (특정 성별/연령대에 높은 부도율)
 
     Returns:
-        Gender, AgeGroup 컬럼이 추가된 데이터프레임
+        gender, age_group 컬럼이 추가된 데이터프레임
     """
     _setup_logger()
 
     n = len(df)
+    if rng is None:
+        rng = np.random.default_rng()
 
     # 성별 생성 (0: Female, 1: Male)
-    df['Gender'] = np.random.binomial(1, 0.5, n)
+    df['gender'] = rng.binomial(1, 0.5, n)
 
     # 연령대 생성 (age 컬럼 기반)
-    df['AgeGroup'] = pd.cut(
+    df['age_group'] = pd.cut(
         df['age'],
-        bins=[0, 29, 39, 49, 59, 101],
-        labels=[0, 1, 2, 3, 4],
+        bins=[0, 35, 55, np.inf],
+        labels=[0, 1, 2],
         right=False,
         include_lowest=True
     ).fillna(0).astype(int)
 
+    # 성별 대리 변수 (#41): bias_ratio > 0이면 남성의 앱 로그인 빈도를 높인다.
+    # 정답(연체 여부)과 무관하게 넣으므로, 모델은 이 변수를 통해 성별에 따른 승인율 차이를 배우게 된다.
+    # bias_ratio = 0이면 아무것도 바꾸지 않는다 (기본 데이터와 같음).
+    if bias_ratio > 0 and 'app_login_frequency' in df.columns:
+        shift = int(round(30 * bias_ratio))
+        male = df['gender'] == 1
+        df.loc[male, 'app_login_frequency'] = np.clip(
+            df.loc[male, 'app_login_frequency'] + shift, 0, 30
+        )
+        logger.info(f"   성별 대리 변수: 남성 app_login_frequency +{shift} (0~30 범위 유지)")
     # bias_ratio 적용: 특정 성별·연령대에 부도율 편향
     if bias_ratio > 0 and 'SeriousDlqin2yrs' in df.columns:
-        # 남성(1) 또는 60세 이상(4)에 편향 적용
-        bias_mask = (df['Gender'] == 1) | (df['AgeGroup'] == 4)
+        # 남성(1) 또는 55세 이상(2)에 편향 적용
+        bias_mask = (df['gender'] == 1) | (df['age_group'] == 2)
         bias_indices = df[bias_mask].index
 
         if len(bias_indices) > 0:
             # 편향된 샘플 중 일부에 부도 레이블 추가
             n_bias = int(len(bias_indices) * bias_ratio)
             if n_bias > 0:
-                bias_sample_indices = np.random.choice(
+                bias_sample_indices = rng.choice(
                     bias_indices,
                     size=min(n_bias, len(bias_indices)),
                     replace=False
@@ -315,17 +325,15 @@ def add_demographic_features(df, bias_ratio: float = 0.0):
                 df.loc[bias_sample_indices, 'SeriousDlqin2yrs'] = 1
 
     # 통계 로깅
-    gender_counts = df['Gender'].value_counts().sort_index()
-    age_group_counts = df['AgeGroup'].value_counts().sort_index()
+    gender_counts = df['gender'].value_counts().sort_index()
+    age_group_counts = df['age_group'].value_counts().sort_index()
 
     logger.info(f"인구통계 변수 생성 완료:")
-    logger.info(f"   Gender: {gender_counts.get(0, 0):,} (여성), {gender_counts.get(1, 0):,} (남성)")
-    logger.info(f"   AgeGroup:")
-    logger.info(f"      0 (20~29): {age_group_counts.get(0, 0):,}")
-    logger.info(f"      1 (30~39): {age_group_counts.get(1, 0):,}")
-    logger.info(f"      2 (40~49): {age_group_counts.get(2, 0):,}")
-    logger.info(f"      3 (50~59): {age_group_counts.get(3, 0):,}")
-    logger.info(f"      4 (60+):   {age_group_counts.get(4, 0):,}")
+    logger.info(f"   gender: {gender_counts.get(0, 0):,} (여성), {gender_counts.get(1, 0):,} (남성)")
+    logger.info(f"   age_group:")
+    logger.info(f"      0 (20~34): {age_group_counts.get(0, 0):,}")
+    logger.info(f"      1 (35~54): {age_group_counts.get(1, 0):,}")
+    logger.info(f"      2 (55+):   {age_group_counts.get(2, 0):,}")
     if bias_ratio > 0:
         logger.info(f"   (편향 강도: {bias_ratio*100:.1f}%)\n")
     else:
@@ -351,7 +359,7 @@ def label_thin_filer(df, thin_filer_ratio: float = None,
     어려운 개인")에 맞춰, 데이터 안에서 금융 기록이 가장 적은 사람을 씬파일러로 본다.
 
     판정 기준 (기준 1 OR 기준 2)
-        기준 1 : 연체 컬럼 2개 이상 결측              (GMSC 해당자 0명, 형식상 유지)
+        기준 1 : 연체 컬럼 2개 이상 결측              (thin_filer_ratio=None이면 GMSC 해당자 0명)
         기준 2 : 아래 3개 조건을 모두(AND) 만족        (GMSC 해당자 약 4,110명)
                  - NumberOfOpenCreditLinesAndLoans      <= 1     보유 대출·신용 한도
                  - NumberRealEstateLoansOrLines         == 0     부동산 담보대출
@@ -369,12 +377,13 @@ def label_thin_filer(df, thin_filer_ratio: float = None,
 
     Args:
         df: 입력 데이터프레임
-        thin_filer_ratio: 씬파일러 비율 강제 조정 (0-1).
-                          None(기본값)이면 무작위 조정 없이 기준대로만 판정한다.
-                          값을 주면 무작위로 레이블을 추가/제거하므로
-                          씬파일러 AUC 향상 측정이 왜곡된다 (디버깅 용도로만 사용).
+        thin_filer_ratio: 씬파일러 목표 비율 (0-1). None(기본값)이면 기준대로만 판정한다.
+                          값을 주면 일반 고객 일부의 연체 칸 3개를 결측으로 지운 뒤
+                          기준 1로 다시 판정한다 (이슈 #61). 이미 목표보다 많으면 그대로 둔다.
+                          후보는 연체 기록이 0인 일반 고객으로 한정한다 (기록을 지워도 중앙값과 같아짐).
+                          입력 df의 연체 칸은 바꾸지 않고 복사본을 만들어 수정한다.
         target_col: 타겟 컬럼명 (판정 로그의 연체율 계산에만 사용, 판정 자체에는 미사용)
-        random_seed: thin_filer_ratio 사용 시 무작위 선택 시드
+        random_seed: thin_filer_ratio 사용 시 고객을 고르는 시드 (같은 값이면 같은 결과)
 
     Returns:
         is_thin_filer 컬럼이 추가된 데이터프레임
@@ -438,6 +447,26 @@ def label_thin_filer(df, thin_filer_ratio: float = None,
 
     df['is_thin_filer'] = (criteria_1 | criteria_2).astype(int)
 
+    # ===== thin_filer_ratio 조정 (#61) =====
+    # 목표 비율에 못 미치면 연체 기록이 0인 일반 고객을 골라 연체 칸 3개를 결측으로 지운 뒤,
+    # 기준 1로 다시 판정한다. 재판정(재귀 호출)이 한 번만 로그를 남기도록 여기서 먼저 처리한다.
+    if thin_filer_ratio is not None:
+        n = len(df)
+        target_count = int(n * thin_filer_ratio)
+        diff = target_count - int(df['is_thin_filer'].sum())
+        if diff > 0:
+            if len(delinquency_cols) != len(DELINQUENCY_COLS):
+                raise ValueError("thin_filer_ratio를 쓰려면 연체 칸 3개가 모두 있어야 합니다")
+            clean = (df['is_thin_filer'] == 0) & (df[DELINQUENCY_COLS] == 0).all(axis=1)
+            candidates = df.index[clean]
+            rng = np.random.default_rng(random_seed)
+            picked = rng.choice(candidates, size=min(diff, len(candidates)), replace=False)
+            logger.info(f"   목표 {thin_filer_ratio:.1%}({target_count:,}명): 연체 기록 0인 일반 고객 "
+                        f"{len(picked):,}명의 연체 칸 {len(DELINQUENCY_COLS)}개를 지운 뒤 다시 판정")
+            df = df.copy()
+            df.loc[picked, DELINQUENCY_COLS] = np.nan
+            return label_thin_filer(df, thin_filer_ratio=None, target_col=target_col)
+
     # ===== 판정 결과 로그 =====
     n = len(df)
     n_c1 = int(criteria_1.sum())
@@ -485,35 +514,5 @@ def label_thin_filer(df, thin_filer_ratio: float = None,
                 f"씬파일러 AUC 향상(+0.03) 측정이 불안정할 수 있으니 "
                 f"임계값을 완화하거나 부트스트랩 신뢰구간을 함께 보고하세요."
             )
-
-    # ===== thin_filer_ratio 강제 조정 (기본값 None이면 건너뜀) =====
-    if thin_filer_ratio is None:
-        logger.info("   조정 없음 (판정 기준대로만 분류)")
-        logger.info("=" * 75 + "\n")
-        return df
-
-    logger.warning(
-        f"thin_filer_ratio={thin_filer_ratio}가 지정되어 무작위로 레이블을 조정합니다. "
-        f"기준과 무관한 샘플이 씬파일러로 섞이므로 "
-        f"씬파일러 AUC 향상 측정이 왜곡됩니다. 평가용으로는 None을 사용하세요."
-    )
-
-    rng = np.random.default_rng(random_seed)
-    target_count = int(n * thin_filer_ratio)
-    diff = target_count - n_thin
-
-    if diff > 0:
-        candidates = df.index[df['is_thin_filer'] == 0]
-        picked = rng.choice(candidates, size=min(diff, len(candidates)), replace=False)
-        df.loc[picked, 'is_thin_filer'] = 1
-    elif diff < 0:
-        candidates = df.index[df['is_thin_filer'] == 1]
-        picked = rng.choice(candidates, size=min(-diff, len(candidates)), replace=False)
-        df.loc[picked, 'is_thin_filer'] = 0
-
-    adjusted = int(df['is_thin_filer'].sum())
-    logger.info(f"   조정 후 씬파일러: {adjusted:,}명 ({adjusted/n*100:.2f}%) "
-                f"- 이 중 기준 충족 {n_thin:,}명")
-    logger.info("=" * 75 + "\n")
 
     return df

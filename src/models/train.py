@@ -3,6 +3,7 @@
 5-Fold Stratified Cross-Validation + 불균형 처리 (class_weight, SMOTE)
 """
 
+import json
 import logging
 import joblib
 import numpy as np
@@ -11,38 +12,30 @@ from pathlib import Path
 import mlflow
 from mlflow import log_metric, log_param, log_artifact
 
-# MLflow HTTP 요청에 Basic Auth 자동 추가
-def _patch_mlflow_auth():
-    """MLflow의 requests 세션에 Basic Auth를 자동 추가"""
-    from requests.auth import HTTPBasicAuth
-    import mlflow.utils.rest_utils as rest_utils
-
-    original_call_endpoint = rest_utils.call_endpoint
-
-    def patched_call_endpoint(host_creds, *args, **kwargs):
-        if host_creds and host_creds.password:
-            auth = HTTPBasicAuth(host_creds.username, host_creds.password)
-            kwargs['auth'] = auth
-        return original_call_endpoint(host_creds, *args, **kwargs)
-
-    rest_utils.call_endpoint = patched_call_endpoint
-
-_patch_mlflow_auth()
-
 from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import StratifiedKFold, cross_validate
 from sklearn.metrics import (
     roc_auc_score, precision_score, recall_score, f1_score,
     roc_curve, auc
 )
-from sklearn.preprocessing import StandardScaler
 import xgboost as xgb
 import lightgbm as lgb
 from imblearn.pipeline import Pipeline as ImbPipeline
 from sklearn.pipeline import Pipeline
 from imblearn.over_sampling import SMOTE
 
+from src.explainer import performance as perf
+
 logger = logging.getLogger(__name__)
+
+
+def _ks_scorer(estimator, X, y):
+    """cross_validate용 KS 점수 (부도 확률 기준, #28)."""
+    return _ks_statistic(y, estimator.predict_proba(X)[:, 1])
+
+
+# 5-Fold CV에서 모델마다 기록할 지표. KS를 넣어 모델별 KS가 MLflow metrics(fold_N_ks, ks_mean, ks_std)에 남게 한다 (#28)
+CV_SCORING = {'roc_auc': 'roc_auc', 'precision': 'precision', 'recall': 'recall', 'f1': 'f1', 'ks': _ks_scorer}
 
 
 def _setup_logger():
@@ -131,7 +124,13 @@ def _log_data_params(data_params):
         mlflow.log_params({k: str(v) for k, v in data_params.items()})
 
 
-def train_logistic_regression(X_train, y_train, skf, models_dir, version, data_type=None, data_params=None):
+def _record_cv(cv_summary, name, algorithm, data_type, scores, method):
+    means = _log_cv_results(scores, method=method)
+    if cv_summary is not None:
+        cv_summary[name] = {'data_type': data_type, 'algorithm': algorithm, 'method': method, 'cv_test_mean': means}
+
+
+def train_logistic_regression(X_train, y_train, skf, models_dir, version, data_type=None, data_params=None, cv_summary=None):
     """Logistic Regression 학습 (class_weight, SMOTE 비교)"""
 
     models = {}
@@ -152,7 +151,6 @@ def train_logistic_regression(X_train, y_train, skf, models_dir, version, data_t
         mlflow.log_param("max_iter", 1000)
 
         lr_balanced = Pipeline([
-            ('scaler', StandardScaler()),
             ('lr', LogisticRegression(
                 max_iter=1000,
                 class_weight='balanced',
@@ -163,17 +161,17 @@ def train_logistic_regression(X_train, y_train, skf, models_dir, version, data_t
         scores_balanced = cross_validate(
             lr_balanced, X_train, y_train,
             cv=skf,
-            scoring=['roc_auc', 'precision', 'recall', 'f1'],
+            scoring=CV_SCORING,
             return_train_score=True,
             n_jobs=-1
         )
 
-        _log_cv_results(scores_balanced, method="class_weight='balanced'")
+        _record_cv(cv_summary, f"logistic_regression_class_weight{run_name_suffix}", "LogisticRegression", data_type, scores_balanced, method="class_weight='balanced'")
         lr_balanced.fit(X_train, y_train)
         models['class_weight'] = lr_balanced
 
         # 모델 저장
-        model_path = f"{models_dir}/logistic_regression_class_weight_v{version}.joblib"
+        model_path = f"{models_dir}/logistic_regression_class_weight{run_name_suffix}_v{version}.joblib"
         joblib.dump(lr_balanced, model_path)
         logger.info(f"모델 저장: {model_path}\n")
 
@@ -192,7 +190,6 @@ def train_logistic_regression(X_train, y_train, skf, models_dir, version, data_t
         mlflow.log_param("max_iter", 1000)
 
         pipeline_smote = ImbPipeline([
-            ('scaler', StandardScaler()),
             ('smote', SMOTE(random_state=42)),
             ('clf', LogisticRegression(max_iter=1000, random_state=42))
         ])
@@ -200,17 +197,17 @@ def train_logistic_regression(X_train, y_train, skf, models_dir, version, data_t
         scores_smote = cross_validate(
             pipeline_smote, X_train, y_train,
             cv=skf,
-            scoring=['roc_auc', 'precision', 'recall', 'f1'],
+            scoring=CV_SCORING,
             return_train_score=True,
             n_jobs=-1
         )
 
-        _log_cv_results(scores_smote, method="SMOTE")
+        _record_cv(cv_summary, f"logistic_regression_smote{run_name_suffix}", "LogisticRegression", data_type, scores_smote, method="SMOTE")
         pipeline_smote.fit(X_train, y_train)
         models['smote'] = pipeline_smote
 
         # 모델 저장
-        model_path = f"{models_dir}/logistic_regression_smote_v{version}.joblib"
+        model_path = f"{models_dir}/logistic_regression_smote{run_name_suffix}_v{version}.joblib"
         joblib.dump(pipeline_smote, model_path)
         logger.info(f"모델 저장: {model_path}\n")
 
@@ -219,7 +216,7 @@ def train_logistic_regression(X_train, y_train, skf, models_dir, version, data_t
     return models
 
 
-def train_xgboost(X_train, y_train, skf, models_dir, version, data_type=None, data_params=None):
+def train_xgboost(X_train, y_train, skf, models_dir, version, data_type=None, data_params=None, cv_summary=None):
     """XGBoost 학습 (scale_pos_weight, SMOTE 비교)"""
 
     models = {}
@@ -244,7 +241,6 @@ def train_xgboost(X_train, y_train, skf, models_dir, version, data_type=None, da
         mlflow.log_param("scale_pos_weight", round(scale_pos_weight, 2))
 
         xgb_balanced = Pipeline([
-            ('scaler', StandardScaler()),
             ('xgb', xgb.XGBClassifier(
                 n_estimators=100,
                 max_depth=6,
@@ -259,17 +255,17 @@ def train_xgboost(X_train, y_train, skf, models_dir, version, data_type=None, da
         scores_balanced = cross_validate(
             xgb_balanced, X_train, y_train,
             cv=skf,
-            scoring=['roc_auc', 'precision', 'recall', 'f1'],
+            scoring=CV_SCORING,
             return_train_score=True,
             n_jobs=-1
         )
 
-        _log_cv_results(scores_balanced, method="scale_pos_weight")
+        _record_cv(cv_summary, f"xgboost_scale_pos_weight{run_name_suffix}", "XGBoost", data_type, scores_balanced, method="scale_pos_weight")
         xgb_balanced.fit(X_train, y_train)
         models['scale_pos_weight'] = xgb_balanced
 
         # 모델 저장
-        model_path = f"{models_dir}/xgboost_scale_pos_weight_v{version}.joblib"
+        model_path = f"{models_dir}/xgboost_scale_pos_weight{run_name_suffix}_v{version}.joblib"
         joblib.dump(xgb_balanced, model_path)
         logger.info(f"모델 저장: {model_path}\n")
 
@@ -290,7 +286,6 @@ def train_xgboost(X_train, y_train, skf, models_dir, version, data_type=None, da
         mlflow.log_param("learning_rate", 0.1)
 
         pipeline_smote = ImbPipeline([
-            ('scaler', StandardScaler()),
             ('smote', SMOTE(random_state=42)),
             ('clf', xgb.XGBClassifier(
                 n_estimators=100,
@@ -305,17 +300,17 @@ def train_xgboost(X_train, y_train, skf, models_dir, version, data_type=None, da
         scores_smote = cross_validate(
             pipeline_smote, X_train, y_train,
             cv=skf,
-            scoring=['roc_auc', 'precision', 'recall', 'f1'],
+            scoring=CV_SCORING,
             return_train_score=True,
             n_jobs=-1
         )
 
-        _log_cv_results(scores_smote, method="SMOTE")
+        _record_cv(cv_summary, f"xgboost_smote{run_name_suffix}", "XGBoost", data_type, scores_smote, method="SMOTE")
         pipeline_smote.fit(X_train, y_train)
         models['smote'] = pipeline_smote
 
         # 모델 저장
-        model_path = f"{models_dir}/xgboost_smote_v{version}.joblib"
+        model_path = f"{models_dir}/xgboost_smote{run_name_suffix}_v{version}.joblib"
         joblib.dump(pipeline_smote, model_path)
         logger.info(f"모델 저장: {model_path}\n")
 
@@ -324,7 +319,7 @@ def train_xgboost(X_train, y_train, skf, models_dir, version, data_type=None, da
     return models
 
 
-def train_lightgbm(X_train, y_train, skf, models_dir, version, data_type=None, data_params=None):
+def train_lightgbm(X_train, y_train, skf, models_dir, version, data_type=None, data_params=None, cv_summary=None):
     """LightGBM 학습 (is_unbalance, SMOTE 비교)"""
 
     models = {}
@@ -345,7 +340,6 @@ def train_lightgbm(X_train, y_train, skf, models_dir, version, data_type=None, d
         mlflow.log_param("learning_rate", 0.1)
 
         lgb_balanced = Pipeline([
-            ('scaler', StandardScaler()),
             ('lgb', lgb.LGBMClassifier(
                 n_estimators=100,
                 max_depth=6,
@@ -360,17 +354,17 @@ def train_lightgbm(X_train, y_train, skf, models_dir, version, data_type=None, d
         scores_balanced = cross_validate(
             lgb_balanced, X_train, y_train,
             cv=skf,
-            scoring=['roc_auc', 'precision', 'recall', 'f1'],
+            scoring=CV_SCORING,
             return_train_score=True,
             n_jobs=-1
         )
 
-        _log_cv_results(scores_balanced, method="is_unbalance=True")
+        _record_cv(cv_summary, f"lightgbm_is_unbalance{run_name_suffix}", "LightGBM", data_type, scores_balanced, method="is_unbalance=True")
         lgb_balanced.fit(X_train, y_train)
         models['is_unbalance'] = lgb_balanced
 
         # 모델 저장
-        model_path = f"{models_dir}/lightgbm_is_unbalance_v{version}.joblib"
+        model_path = f"{models_dir}/lightgbm_is_unbalance{run_name_suffix}_v{version}.joblib"
         joblib.dump(lgb_balanced, model_path)
         logger.info(f"모델 저장: {model_path}\n")
 
@@ -391,7 +385,6 @@ def train_lightgbm(X_train, y_train, skf, models_dir, version, data_type=None, d
         mlflow.log_param("learning_rate", 0.1)
 
         pipeline_smote = ImbPipeline([
-            ('scaler', StandardScaler()),
             ('smote', SMOTE(random_state=42)),
             ('clf', lgb.LGBMClassifier(
                 n_estimators=100,
@@ -406,17 +399,17 @@ def train_lightgbm(X_train, y_train, skf, models_dir, version, data_type=None, d
         scores_smote = cross_validate(
             pipeline_smote, X_train, y_train,
             cv=skf,
-            scoring=['roc_auc', 'precision', 'recall', 'f1'],
+            scoring=CV_SCORING,
             return_train_score=True,
             n_jobs=-1
         )
 
-        _log_cv_results(scores_smote, method="SMOTE")
+        _record_cv(cv_summary, f"lightgbm_smote{run_name_suffix}", "LightGBM", data_type, scores_smote, method="SMOTE")
         pipeline_smote.fit(X_train, y_train)
         models['smote'] = pipeline_smote
 
         # 모델 저장
-        model_path = f"{models_dir}/lightgbm_smote_v{version}.joblib"
+        model_path = f"{models_dir}/lightgbm_smote{run_name_suffix}_v{version}.joblib"
         joblib.dump(pipeline_smote, model_path)
         logger.info(f"모델 저장: {model_path}\n")
 
@@ -428,7 +421,8 @@ def train_lightgbm(X_train, y_train, skf, models_dir, version, data_type=None, d
 def _log_cv_results(scores, method, run_name=None):
     """Cross-Validation 결과 로깅 및 MLflow 기록"""
 
-    metrics = ['roc_auc', 'precision', 'recall', 'f1']
+    metrics = [m for m in CV_SCORING if f'test_{m}' in scores]
+    means = {}
 
     logger.info(f"\n5-Fold CV 결과 ({method}):")
     logger.info("-" * 80)
@@ -443,6 +437,7 @@ def _log_cv_results(scores, method, run_name=None):
 
         mean_score = test_scores.mean()
         std_score = test_scores.std()
+        means[f'cv_test_{metric}_mean'] = float(mean_score)
         logger.info(f"  평균: Test={mean_score:.4f} ± {std_score:.4f}")
 
         # MLflow 메트릭 기록
@@ -456,6 +451,7 @@ def _log_cv_results(scores, method, run_name=None):
             mlflow.log_metric(f"{metric}_std", std_score)
 
     logger.info("-" * 80)
+    return means
 
 
 def get_features_by_type(X_train, data_type):
@@ -516,16 +512,15 @@ def train_all_models_by_data_type(X_train, y_train, models_dir='models', version
     mlflow_user = os.getenv('MLFLOW_TRACKING_USERNAME')
     mlflow_pass = os.getenv('MLFLOW_TRACKING_PASSWORD')
 
+    if not mlflow_uri:
+        logger.warning("MLFLOW_TRACKING_URI가 없어 로컬 mlruns에 기록합니다. "
+                       "팀 서버에 기록하려면 .env에 MLFLOW_TRACKING_URI, MLFLOW_TRACKING_USERNAME, MLFLOW_TRACKING_PASSWORD를 설정하세요.")
+    elif not (mlflow_user and mlflow_pass):
+        logger.warning("MLFLOW_TRACKING_USERNAME 또는 MLFLOW_TRACKING_PASSWORD가 없습니다. "
+                       "인증 없이 서버에 연결하면 실패할 수 있습니다. .env를 확인하세요.")
+
     if mlflow_uri:
         mlflow.set_tracking_uri(mlflow_uri)
-
-        # MLflow HTTP Basic Auth 설정
-        if mlflow_user and mlflow_pass:
-            import base64
-            # requests 세션에 Basic Auth 추가
-            import requests
-            from requests.auth import HTTPBasicAuth
-            requests.Session().auth = HTTPBasicAuth(mlflow_user, mlflow_pass)
 
         try:
             mlflow.set_experiment("xai-credit-scoring")
@@ -551,6 +546,7 @@ def train_all_models_by_data_type(X_train, y_train, models_dir='models', version
     all_results = {}
     data_types = ['financial_only', 'alternative_only', 'integrated']
 
+    cv_summary = {}
     for data_type in data_types:
         logger.info(f"\n{'='*80}")
         logger.info(f"데이터 타입: {data_type}")
@@ -563,13 +559,13 @@ def train_all_models_by_data_type(X_train, y_train, models_dir='models', version
         # 각 데이터 타입별 3개 알고리즘 학습
         results = {}
         results['LogisticRegression'] = train_logistic_regression(
-            X_train_subset, y_train, skf, models_dir, version, data_type, data_params
+            X_train_subset, y_train, skf, models_dir, version, data_type, data_params, cv_summary
         )
         results['XGBoost'] = train_xgboost(
-            X_train_subset, y_train, skf, models_dir, version, data_type, data_params
+            X_train_subset, y_train, skf, models_dir, version, data_type, data_params, cv_summary
         )
         results['LightGBM'] = train_lightgbm(
-            X_train_subset, y_train, skf, models_dir, version, data_type, data_params
+            X_train_subset, y_train, skf, models_dir, version, data_type, data_params, cv_summary
         )
 
         all_results[data_type] = results
@@ -578,4 +574,140 @@ def train_all_models_by_data_type(X_train, y_train, models_dir='models', version
     logger.info(f"✅ 9개 모델 학습 완료 (금융/대안/통합 × 3 알고리즘)")
     logger.info(f"{'='*80}\n")
 
+    meta_path = Path(models_dir) / 'model_metadata.json'
+    metadata = json.loads(meta_path.read_text(encoding='utf-8')) if meta_path.exists() else {}
+    metadata['training_runs'] = {'version': version, 'data_params': data_params or {}, 'runs': cv_summary}
+    meta_path.write_text(json.dumps(metadata, ensure_ascii=False, indent=2), encoding='utf-8')
+    logger.info(f"메타데이터 저장: {meta_path}")
+
     return all_results
+
+
+def _ks_statistic(y_true, y_score):
+    fpr, tpr, _ = roc_curve(y_true, y_score)
+    return float(np.max(tpr - fpr))
+
+
+def _thin_filer_uplift(results, candidates, X_test, y_test, thin_mask):
+    """씬파일러 AUC 향상 (#27): 금융만 쓴 모델 vs 통합 모델, 각각 Val AUC가 가장 높은 후보끼리 비교."""
+    picked = {}
+    for data_type in ('financial_only', 'integrated'):
+        rows = candidates[candidates['data_type'] == data_type]
+        if rows.empty:
+            logger.warning(f"{data_type} 모델이 없어 씬파일러 AUC 향상을 계산하지 않았습니다.")
+            return None
+        best = rows.loc[rows['val_auc'].idxmax()]
+        model = results[data_type][best['algorithm']][best['method']]
+        picked[data_type] = (f"{data_type}/{best['algorithm']}/{best['method']}",
+                             model.predict_proba(get_features_by_type(X_test, data_type))[:, 1])
+    uplift = perf.thin_filer_uplift_ci(y_test, picked['financial_only'][1], picked['integrated'][1], thin_mask)
+    uplift['model_without_alt'] = picked['financial_only'][0]
+    uplift['model_with_alt'] = picked['integrated'][0]
+    return uplift
+
+
+def select_and_test_once(results, X_val, y_val, X_test, y_test, models_dir='models', version='1.0', data_params=None,
+                         X_train=None, thin_mask=None):
+    """
+    Val AUC로 최종 모델을 고르고, 선택된 모델 1개만 Test에서 1회 평가한다.
+
+    1) 데이터 종류 × 알고리즘마다 방식(class_weight/SMOTE 등) 중 Val AUC가 높은 것을 고른다 (9개 후보)
+    2) 9개 후보 중 Val AUC가 가장 높은 모델을 최종 모델로 정한다
+    3) 최종 모델만 Test로 평가한다. 이 함수는 파이프라인에서 한 번만 호출한다.
+    4) X_train을 주면 PSI(최종 모델 점수 Train vs Test, 특성별 Train vs Test)를 기록한다 (#28)
+    5) thin_mask(Test의 is_thin_filer)를 주면 씬파일러 AUC 향상과 신뢰구간을 기록한다 (#27)
+    """
+    import json
+
+    val_rows = []
+    for data_type, algos in results.items():
+        X_v = get_features_by_type(X_val, data_type)
+        for algo, methods in algos.items():
+            for method, model in methods.items():
+                p = model.predict_proba(X_v)[:, 1]
+                val_rows.append({
+                    'data_type': data_type, 'algorithm': algo, 'method': method,
+                    'val_auc': roc_auc_score(y_val, p), 'val_ks': _ks_statistic(y_val, p),
+                })
+    val_table = pd.DataFrame(val_rows)
+
+    candidates = val_table.loc[val_table.groupby(['data_type', 'algorithm'])['val_auc'].idxmax()]
+    final = candidates.loc[candidates['val_auc'].idxmax()]
+    final_name = f"{final['data_type']}/{final['algorithm']}/{final['method']}"
+    final_model = results[final['data_type']][final['algorithm']][final['method']]
+
+    X_t = get_features_by_type(X_test, final['data_type'])
+    p_test = final_model.predict_proba(X_t)[:, 1]
+    test_auc = roc_auc_score(y_test, p_test)
+    test_ks = _ks_statistic(y_test, p_test)
+
+    psi_info = None
+    if X_train is not None:
+        X_tr = get_features_by_type(X_train, final['data_type'])
+        p_train = final_model.predict_proba(X_tr)[:, 1]
+        psi_info = {'score_psi': perf.psi(p_train, p_test),
+                    'feature_psi': perf.feature_psi(X_tr, X_t, list(X_t.columns))}
+        psi_info['pass'] = psi_info['score_psi'] < perf.TARGETS['psi']
+    uplift = _thin_filer_uplift(results, candidates, X_test, y_test, thin_mask) if thin_mask is not None else None
+
+    models_path = Path(models_dir)
+    models_path.mkdir(parents=True, exist_ok=True)
+    table_path = models_path / 'val_selection_table.csv'
+    val_table.to_csv(table_path, index=False, encoding='utf-8')
+
+    with mlflow.start_run(run_name='model_selection_val'):
+        _log_data_params(data_params)
+        mlflow.set_tag('selected_model', final_name)
+        mlflow.log_param('selection_metric', 'val_auc')
+        mlflow.log_metric('selected_val_auc', float(final['val_auc']))
+        mlflow.log_artifact(str(table_path))
+
+    with mlflow.start_run(run_name='final_test'):
+        _log_data_params(data_params)
+        mlflow.set_tag('selected_model', final_name)
+        mlflow.log_metric('test_auc', float(test_auc))
+        mlflow.log_metric('test_ks', float(test_ks))
+        if psi_info:
+            mlflow.log_metric('test_psi', float(psi_info['score_psi']))
+            mlflow.log_metric('feature_psi_max', float(psi_info['feature_psi']['max']))
+            for col, value in psi_info['feature_psi']['per_feature'].items():
+                mlflow.log_metric(f'psi_{col}', float(value))
+        if uplift:
+            mlflow.log_param('uplift_model_without_alt', uplift['model_without_alt'])
+            mlflow.log_param('uplift_model_with_alt', uplift['model_with_alt'])
+            for key in ('uplift', 'ci_low', 'ci_high', 'auc_without_alt', 'auc_with_alt'):
+                mlflow.log_metric(f'thin_{key}', float(uplift[key]))
+            mlflow.log_metric('thin_n', uplift['n_thin_filer'])
+            mlflow.log_metric('thin_n_default', uplift['n_thin_filer_default'])
+
+    meta_path = models_path / 'model_metadata.json'
+    metadata = json.loads(meta_path.read_text(encoding='utf-8')) if meta_path.exists() else {}
+    metadata['selection'] = {
+        'selected_model': final_name,
+        'selection_metric': 'val_auc',
+        'val_auc': float(final['val_auc']),
+        'test_auc': float(test_auc),
+        'test_ks': float(test_ks),
+        'val_table': val_table.to_dict(orient='records'),
+    }
+    if psi_info:
+        metadata['selection']['psi'] = psi_info
+    if uplift:
+        metadata['selection']['thin_filer_uplift'] = uplift
+    meta_path.write_text(json.dumps(metadata, ensure_ascii=False, indent=2), encoding='utf-8')
+
+    logger.info(f"최종 모델: {final_name} (Val AUC {final['val_auc']:.4f}) → Test AUC {test_auc:.4f}, KS {test_ks:.4f}")
+    if psi_info:
+        fp = psi_info['feature_psi']
+        logger.info(f"PSI: 점수 {psi_info['score_psi']:.4f}, 특성 최대 {fp['max']:.4f} ({fp['max_feature']}) (목표 < {perf.TARGETS['psi']})")
+    if uplift:
+        logger.info(f"씬파일러 AUC 향상: {uplift['uplift']:+.4f} "
+                    f"[{uplift['ci_level']:.0%} 구간 {uplift['ci_low']:+.4f} ~ {uplift['ci_high']:+.4f}] "
+                    f"(씬파일러 {uplift['n_thin_filer']}명, 부도 {uplift['n_thin_filer_default']}명, 목표 +{uplift['target']})")
+    out = {'selected_model': final_name, 'val_auc': float(final['val_auc']),
+           'test_auc': float(test_auc), 'test_ks': float(test_ks)}
+    if psi_info:
+        out['psi'] = psi_info
+    if uplift:
+        out['thin_filer_uplift'] = uplift
+    return out

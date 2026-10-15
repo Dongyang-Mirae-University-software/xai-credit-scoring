@@ -1,4 +1,4 @@
-ㅣ"""씬파일러 판정 기준 테스트 (이슈 #15)"""
+"""씬파일러 판정 기준 테스트 (이슈 #15)"""
 import pandas as pd
 import pytest
 
@@ -46,15 +46,15 @@ def test_real_estate_loan_excluded():
     assert _judge([_thin_filer_row(**{'NumberRealEstateLoansOrLines': 1})]).iloc[0] == 0
 
 
-def test_high_revolving_utilization_excluded():
-    """신용한도 이용률이 1.0을 넘으면(한도 초과 사용) 제외"""
+def test_revolving_utilization_not_used_for_judgement():
+    """신용한도 이용률은 판정 기준이 아니다 (#15에서 제외)"""
     assert _judge([_thin_filer_row(
-        **{'RevolvingUtilizationOfUnsecuredLines': 1.5})]).iloc[0] == 0
+        **{'RevolvingUtilizationOfUnsecuredLines': 1.5})]).iloc[0] == 1
 
 
-def test_high_debt_ratio_excluded():
-    """부채비율이 1.0을 넘으면(소득보다 부채가 큼) 제외"""
-    assert _judge([_thin_filer_row(**{'DebtRatio': 2.0})]).iloc[0] == 0
+def test_debt_ratio_not_used_for_judgement():
+    """부채비율은 판정 기준이 아니다 (#15에서 제외)"""
+    assert _judge([_thin_filer_row(**{'DebtRatio': 2.0})]).iloc[0] == 1
 
 
 def test_delinquency_history_excluded():
@@ -69,14 +69,55 @@ def test_criteria1_missing_delinquency():
 
 
 def test_ratio_none_does_not_add_random_labels():
-    """thin_filer_ratio=None이면 기준 해당자 수와 정확히 같아야 한다"""
+    """thin_filer_ratio=None이면 기준 해당자 수와 정확히 같고, 연체 칸도 지우지 않는다"""
     rows = [_thin_filer_row()] + [_row() for _ in range(99)]
     result = label_thin_filer(pd.DataFrame(rows), thin_filer_ratio=None)
     assert result['is_thin_filer'].sum() == 1
+    assert result['NumberOfTime30-59DaysPastDueNotWorse'].notna().all()
 
 
 def test_ratio_forces_target_count():
-    """thin_filer_ratio를 주면 목표 비율만큼 강제 조정된다 (평가용 아님)"""
+    """thin_filer_ratio를 주면 연체 기록 0인 고객의 연체 칸을 지워 목표 비율에 맞춘다 (#61)"""
     rows = [_thin_filer_row()] + [_row() for _ in range(99)]
     result = label_thin_filer(pd.DataFrame(rows), thin_filer_ratio=0.3, random_seed=42)
+    assert result['is_thin_filer'].sum() == 30
+
+
+def test_ratio_erases_delinquency_not_just_label():
+    """손잡이(ratio)는 씬파일러 표시만 붙이지 않고 연체 칸을 실제로 지운다 (#61)"""
+    rows = [_thin_filer_row()] + [_row() for _ in range(99)]
+    result = label_thin_filer(pd.DataFrame(rows), thin_filer_ratio=0.3, random_seed=42)
+    assert result['is_thin_filer'].sum() == 30
+    erased = result[result['NumberOfTime30-59DaysPastDueNotWorse'].isna()]
+    assert len(erased) == 29
+    assert (erased['is_thin_filer'] == 1).all()
+
+
+def test_ratio_result_is_reproducible_with_same_seed():
+    """같은 시드면 같은 사람이 같은 방식으로 지워진다"""
+    rows = [_thin_filer_row()] + [_row() for _ in range(99)]
+    a = label_thin_filer(pd.DataFrame(rows), thin_filer_ratio=0.3, random_seed=7)
+    b = label_thin_filer(pd.DataFrame(rows), thin_filer_ratio=0.3, random_seed=7)
+    pd.testing.assert_frame_equal(a, b)
+
+
+def test_ratio_below_current_count_changes_nothing():
+    """목표가 지금보다 낮으면 아무도 지우지 않는다"""
+    rows = [_thin_filer_row() for _ in range(5)] + [_row() for _ in range(95)]
+    result = label_thin_filer(pd.DataFrame(rows), thin_filer_ratio=0.01, random_seed=1)
+    assert result['is_thin_filer'].sum() == 5
+    assert result['NumberOfTime30-59DaysPastDueNotWorse'].notna().all()
+
+
+def test_ratio_picks_only_customers_without_delinquency_and_keeps_input():
+    """지우기 후보는 연체 기록 0인 일반 고객이고, 입력 df는 바뀌지 않는다 (리뷰 반영)"""
+    rows = [_thin_filer_row()] + [_row(d30=1) for _ in range(49)] + [_row() for _ in range(50)]
+    df = pd.DataFrame(rows)
+    before = df.copy()
+    result = label_thin_filer(df, thin_filer_ratio=0.3, random_seed=3)
+    # 입력 df의 연체 칸은 그대로여야 한다 (is_thin_filer 열만 기존처럼 채워짐)
+    pd.testing.assert_frame_equal(df.drop(columns=['is_thin_filer']), before)
+    delinquent = result[result['NumberOfTime30-59DaysPastDueNotWorse'] == 1]
+    assert len(delinquent) == 49
+    assert delinquent['NumberOfTime30-59DaysPastDueNotWorse'].notna().all()
     assert result['is_thin_filer'].sum() == 30

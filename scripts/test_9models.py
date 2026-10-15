@@ -7,21 +7,20 @@
 import os
 import sys
 import logging
+import joblib
 from pathlib import Path
 
 # 프로젝트 경로 추가
 sys.path.insert(0, str(Path(__file__).parent))
 
+# .env에 있는 MLflow 인증 정보를 환경 변수로 불러옴
+from dotenv import load_dotenv
+load_dotenv(Path(__file__).parent / '.env')
+
 from src.data.loader import load_gmsc
 from src.data.simulator import generate_alternative_data
 from src.data.preprocessor import preprocess, split_data
-from src.models.train import train_all_models_by_data_type
-
-# MLflow 설정 (선택사항)
-os.environ['MLFLOW_TRACKING_URI'] = 'https://mlflow.gosky.kr'
-os.environ['MLFLOW_TRACKING_USERNAME'] = 'gosky'
-os.environ['MLFLOW_TRACKING_PASSWORD'] = 'gqDAkGZlbr63JUpixDO6yPld'
-os.environ['MLFLOW_EXPERIMENT_NAME'] = 'xai-credit-scoring'
+from src.models.train import train_all_models_by_data_type, select_and_test_once
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -55,6 +54,7 @@ def main():
     logger.info("\n🧹 Step 3: 데이터 전처리")
     try:
         df, scaler = preprocess(df)
+        joblib.dump(scaler, Path('models') / 'preprocess_scaler_v1.0.joblib')
         result = split_data(df)
         X_train, X_val, X_test, y_train, y_val, y_test = result
         logger.info(f"✅ 데이터 전처리 완료")
@@ -73,6 +73,8 @@ def main():
             X_train, y_train, models_dir='models', version='1.0',
             data_params={'thin_filer_ratio': None, 'bias_ratio': 0}
         )
+        final = select_and_test_once(results, X_val, y_val, X_test, y_test, models_dir='models', version='1.0')
+        logger.info(f"최종 선택: {final['selected_model']}")
 
         logger.info("\n" + "="*80)
         logger.info("✅ 9개 모델 학습 완료!")
