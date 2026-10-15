@@ -272,7 +272,7 @@ def add_demographic_features(df, bias_ratio: float = 0.0, rng=None):
 
     Args:
         df: 입력 데이터프레임
-        bias_ratio: 성별/연령대별 부도 편향 강도 (0-1)
+        bias_ratio: 성별/연령대별 부도 편향 강도 (0-1). 0보다 크면 남성의 앱 로그인 빈도(성별 대리 변수)도 높인다 (#41)
                    0: 편향 없음 (성별/연령대와 부도가 독립)
                    1: 최대 편향 (특정 성별/연령대에 높은 부도율)
 
@@ -297,6 +297,16 @@ def add_demographic_features(df, bias_ratio: float = 0.0, rng=None):
         include_lowest=True
     ).fillna(0).astype(int)
 
+    # 성별 대리 변수 (#41): bias_ratio > 0이면 남성의 앱 로그인 빈도를 높인다.
+    # 정답(연체 여부)과 무관하게 넣으므로, 모델은 이 변수를 통해 성별에 따른 승인율 차이를 배우게 된다.
+    # bias_ratio = 0이면 아무것도 바꾸지 않는다 (기본 데이터와 같음).
+    if bias_ratio > 0 and 'app_login_frequency' in df.columns:
+        shift = int(round(30 * bias_ratio))
+        male = df['gender'] == 1
+        df.loc[male, 'app_login_frequency'] = np.clip(
+            df.loc[male, 'app_login_frequency'] + shift, 0, 30
+        )
+        logger.info(f"   성별 대리 변수: 남성 app_login_frequency +{shift} (0~30 범위 유지)")
     # bias_ratio 적용: 특정 성별·연령대에 부도율 편향
     if bias_ratio > 0 and 'SeriousDlqin2yrs' in df.columns:
         # 남성(1) 또는 55세 이상(2)에 편향 적용
