@@ -96,7 +96,7 @@ def main():
         'features': list(X_train.columns),
         'target': 'SeriousDlqin2yrs',
         'total_features': X_train.shape[1],
-        'data_params': {'thin_filer_ratio': None, 'bias_ratio': 0},
+        'data_params': {'thin_filer_ratio': None, 'bias_ratio': 0, 'random_seed': 42},
         'note': 'Stratified Split applied, StandardScaler normalized'
     }
 
