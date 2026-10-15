@@ -54,7 +54,8 @@ def main():
         df,
         target_col='SeriousDlqin2yrs',
         thin_filer_ratio=None,
-        bias_ratio=0
+        bias_ratio=0,
+        random_seed=42
     )
 
     # 3단계: 전처리 (결측치, 이상치, 정규화)
@@ -95,7 +96,7 @@ def main():
         'features': list(X_train.columns),
         'target': 'SeriousDlqin2yrs',
         'total_features': X_train.shape[1],
-        'data_params': {'thin_filer_ratio': None, 'bias_ratio': 0},
+        'data_params': {'thin_filer_ratio': None, 'bias_ratio': 0, 'random_seed': 42},
         'note': 'Stratified Split applied, StandardScaler normalized'
     }
 
