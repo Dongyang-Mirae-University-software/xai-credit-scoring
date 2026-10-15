@@ -65,7 +65,8 @@ def _setup_logger():
 
 def generate_alternative_data(df, target_col="SeriousDlqin2yrs",
                                thin_filer_ratio: float = None,
-                               bias_ratio: float = 0):
+                               bias_ratio: float = 0,
+                               random_seed: int = None):
     """
     5개 대안 변수 생성 (Target과의 상관계수: 0.30~0.50 범위)
 
@@ -81,6 +82,7 @@ def generate_alternative_data(df, target_col="SeriousDlqin2yrs",
         thin_filer_ratio: 씬파일러 목표 비율 (0-1). 값을 주면 일반 고객의 연체 칸을 지워 기준 1로 판정됨 (#61).
                           None(기본값)이면 판정 기준대로만 분류한다 (권장).
         bias_ratio: 편향 강도 (0: 편향 없음, 1: 최대 편향)
+        random_seed: 무작위 생성 시드. 같은 시드면 같은 결과가 나온다 (None이면 매번 다름)
 
     Returns:
         대안 변수가 추가된 데이터프레임
@@ -89,6 +91,7 @@ def generate_alternative_data(df, target_col="SeriousDlqin2yrs",
 
     df_new = df.copy()
     n = len(df_new)
+    rng = np.random.default_rng(random_seed)
 
     logger.info(f"대안 데이터 시뮬레이터 실행 중...")
     logger.info(f"   샘플 크기: {n:,}")
@@ -102,11 +105,11 @@ def generate_alternative_data(df, target_col="SeriousDlqin2yrs",
     # ===== 단계 2: 공분산 행렬 정의 =====
     # Target과의 상관계수 설정 (0.30~0.50 범위)
     target_correlations = {
-        'telecom_payment_rate': np.random.uniform(0.35, 0.45),
-        'utility_payment_rate': np.random.uniform(0.35, 0.45),
-        'spending_consistency': np.random.uniform(0.35, 0.45),
-        'regular_payment_count': np.random.uniform(0.35, 0.45),
-        'app_login_frequency': np.random.uniform(0.35, 0.45)
+        'telecom_payment_rate': rng.uniform(0.35, 0.45),
+        'utility_payment_rate': rng.uniform(0.35, 0.45),
+        'spending_consistency': rng.uniform(0.35, 0.45),
+        'regular_payment_count': rng.uniform(0.35, 0.45),
+        'app_login_frequency': rng.uniform(0.35, 0.45)
     }
 
     logger.info(f"\n   설정된 목표 상관계수:")
@@ -124,7 +127,7 @@ def generate_alternative_data(df, target_col="SeriousDlqin2yrs",
     # 변수 간 상관관계 (0.20~0.40)
     for i in range(1, 6):
         for j in range(i+1, 6):
-            cov_matrix[i, j] = np.random.uniform(0.20, 0.40)
+            cov_matrix[i, j] = rng.uniform(0.20, 0.40)
             cov_matrix[j, i] = cov_matrix[i, j]
 
     # ===== 단계 3: 공분산 행렬에서 5개 변수만 샘플링 =====
@@ -138,11 +141,11 @@ def generate_alternative_data(df, target_col="SeriousDlqin2yrs",
     try:
         # 5개 변수의 기본값
         mean_alt = np.array([0.85, 0.80, 75, 8, 15])
-        samples_alt = np.random.multivariate_normal(mean_alt, scaled_cov_alt, n)
+        samples_alt = rng.multivariate_normal(mean_alt, scaled_cov_alt, n)
         logger.info(f"   공분산 행렬 기반 샘플링 성공")
     except np.linalg.LinAlgError:
         logger.warning("공분산 행렬이 양정부호가 아닙니다. 표준 정규분포 사용")
-        samples_alt = np.random.standard_normal((n, 5)) * std_devs + np.array([0.85, 0.80, 75, 8, 15])
+        samples_alt = rng.standard_normal((n, 5)) * std_devs + np.array([0.85, 0.80, 75, 8, 15])
 
     # ===== 단계 4: 공식으로 실제 Target과 상관관계 유지 =====
     # Y = r*X + sqrt(1-r^2)*Z
@@ -194,10 +197,10 @@ def generate_alternative_data(df, target_col="SeriousDlqin2yrs",
     )
 
     # ===== 단계 5: 인구통계 변수 추가 =====
-    df_new = add_demographic_features(df_new, bias_ratio)
+    df_new = add_demographic_features(df_new, bias_ratio, rng=rng)
 
     # ===== 단계 6: 씬파일러 레이블 생성 =====
-    df_new = label_thin_filer(df_new, thin_filer_ratio, target_col=target_col)
+    df_new = label_thin_filer(df_new, thin_filer_ratio, target_col=target_col, random_seed=random_seed)
 
     # ===== 단계 7: 상관계수 검증 =====
     # 생성된 대안 변수와 실제 Target의 상관계수 계산
@@ -262,7 +265,7 @@ def _validate_correlations(df, target_col):
     return correlations
 
 
-def add_demographic_features(df, bias_ratio: float = 0.0):
+def add_demographic_features(df, bias_ratio: float = 0.0, rng=None):
     """
     인구통계 변수 추가 (성별, 연령대)
 
@@ -278,9 +281,11 @@ def add_demographic_features(df, bias_ratio: float = 0.0):
     _setup_logger()
 
     n = len(df)
+    if rng is None:
+        rng = np.random.default_rng()
 
     # 성별 생성 (0: Female, 1: Male)
-    df['gender'] = np.random.binomial(1, 0.5, n)
+    df['gender'] = rng.binomial(1, 0.5, n)
 
     # 연령대 생성 (age 컬럼 기반)
     df['age_group'] = pd.cut(
@@ -301,7 +306,7 @@ def add_demographic_features(df, bias_ratio: float = 0.0):
             # 편향된 샘플 중 일부에 부도 레이블 추가
             n_bias = int(len(bias_indices) * bias_ratio)
             if n_bias > 0:
-                bias_sample_indices = np.random.choice(
+                bias_sample_indices = rng.choice(
                     bias_indices,
                     size=min(n_bias, len(bias_indices)),
                     replace=False

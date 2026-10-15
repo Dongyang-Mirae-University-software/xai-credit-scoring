@@ -16,7 +16,7 @@ def test_alt_variables_are_lower_for_defaulters(monkeypatch):
         'age': rng.integers(21, 90, n),
     })
     np.random.seed(42)
-    out = generate_alternative_data(df, thin_filer_ratio=None, bias_ratio=0)
+    out = generate_alternative_data(df, thin_filer_ratio=None, bias_ratio=0, random_seed=42)
 
     means = out.groupby('SeriousDlqin2yrs')[ALT].mean()
     assert (means.loc[1] < means.loc[0]).all()
