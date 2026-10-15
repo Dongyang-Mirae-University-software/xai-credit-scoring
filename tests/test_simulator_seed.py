@@ -12,13 +12,16 @@ def _sample(n=3000):
     })
 
 
-def test_same_seed_gives_identical_result():
+def test_same_seed_gives_identical_result(monkeypatch):
+    # generate_alternative_data는 결과를 data/intermediate에 저장하므로, 테스트에서는 저장을 막는다
+    monkeypatch.setattr(pd.DataFrame, 'to_csv', lambda self, *args, **kwargs: None)
     a = generate_alternative_data(_sample(), thin_filer_ratio=None, bias_ratio=0, random_seed=42)
     b = generate_alternative_data(_sample(), thin_filer_ratio=None, bias_ratio=0, random_seed=42)
     pd.testing.assert_frame_equal(a, b)
 
 
-def test_different_seed_gives_different_result():
+def test_different_seed_gives_different_result(monkeypatch):
+    monkeypatch.setattr(pd.DataFrame, 'to_csv', lambda self, *args, **kwargs: None)
     a = generate_alternative_data(_sample(), thin_filer_ratio=None, bias_ratio=0, random_seed=42)
     b = generate_alternative_data(_sample(), thin_filer_ratio=None, bias_ratio=0, random_seed=7)
     assert not a['telecom_payment_rate'].equals(b['telecom_payment_rate'])
