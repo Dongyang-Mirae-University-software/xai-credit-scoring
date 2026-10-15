@@ -44,7 +44,12 @@ xai-credit-scoring/
 │   ├── statistics/
 │   │   └── anova.py     # One-way ANOVA + Tukey HSD 사후 검정
 │   ├── api/
-│   │   └── main.py      # FastAPI 서버 (7개 엔드포인트, 현재 mock 응답)
+│   │   ├── main.py      # FastAPI 앱 (화면별 태그, Swagger /docs)
+│   │   ├── routers/     # 화면별 엔드포인트 (health / predict / explain / fairness / metrics / anova)
+│   │   ├── schemas.py   # 요청·응답 스키마 + Swagger 예시
+│   │   ├── model.py     # 최종 모델·스케일러·SHAP 로딩, /predict·/explain 계산
+│   │   ├── reports.py   # outputs/ 산출물 JSON 읽기 (없으면 examples/ 예시)
+│   │   └── examples/    # 산출물이 없을 때 쓰는 예시 JSON (디자인 수치)
 │   └── dashboard/
 │       └── app.py       # Streamlit 대시보드 (5개 탭, API와 HTTP 통신만)
 ├── models/              # 학습된 모델 아티팩트 (git 미포함)
@@ -61,13 +66,16 @@ xai-credit-scoring/
 
 ## 현재 진행 상황
 
-- API 서버(`src/api/main.py`)는 7개 엔드포인트(`/health`, `/predict`, `/explain`, `/fairness`, `/fairness/mitigation`, `/metrics`, `/anova`) 모두 구현 완료. 단, 실제 모델 학습 전이라 규칙 기반 mock 응답을 반환한다. 입력값에 따라 점수·등급·SHAP 기여도가 달라지긴 하지만 실제 예측값은 아님.
+- API 서버(`src/api/`)는 대시보드 5개 화면이 쓰는 9개 엔드포인트를 갖춤 (`/docs` 에서 화면별 태그로 확인).
+  - `POST /predict`, `POST /explain`: `models/` 의 최종 모델·스케일러로 즉시 계산 (모델 파일 없으면 503).
+  - `GET /explain/summary`, `/fairness`, `/fairness/mitigation`, `/metrics`, `/anova`: `main_step3~5` 가 `outputs/` 에 저장한 JSON 을 그대로 반환. 파일이 없으면 `src/api/examples/` 의 예시를 반환하며, `GET /health` 의 `reports` 로 어느 쪽인지 알 수 있다.
+  - `GET /metrics/comparison`: `models/model_metadata.json` 의 후보 모델 격자.
+  - 데이터 반영 방법: 파이프라인을 돌려 `outputs/` 를 채우면 끝. API 코드 수정 불필요.
 - Streamlit 대시보드(`src/dashboard/app.py`)는 미션 스펙의 5개 탭(고객심사/XAI분석/공정성/모델성능/통계검증) 구조를 갖추고, API 서버하고만 통신하도록 구성됨 (모델 파일 직접 로드 없음 - MSA 제약 준수).
 - `src/data/loader.py`, `src/data/simulator.py`, `src/data/preprocessor.py`는 함수 시그니처만 정의된 상태 - 이재희가 실제 로직 구현 예정.
 - `src/models/`는 3가지 모델 학습 (Logistic Regression, XGBoost, LightGBM) - 이재희가 구현 예정.
 - `src/statistics/anova.py`, `src/fairness/`, `src/explainer/`는 함수 시그니처만 정의된 상태 - 남궁명진이 실제 로직 구현 예정.
 - GMSC 데이터셋(`data/raw/`)이 추가됨. 포함 파일: `cs-training.csv`(훈련 데이터), `cs-test.csv`(테스트 데이터), `sampleEntry.csv`(샘플 제출), `Data Dictionary.xls`(데이터 사전).
-- 모델 학습이 끝나면 `src/api/main.py`의 mock 로직만 실제 모델/SHAP/Fairlearn 호출로 교체하면 되고, 엔드포인트·응답 스키마는 그대로 유지하면 됨.
 
 ## 실행 방법
 

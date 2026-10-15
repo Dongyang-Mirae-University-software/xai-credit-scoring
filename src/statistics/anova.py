@@ -70,6 +70,7 @@ def _short(label):
 
 def one_way_anova(groups, test_name='One-way ANOVA', alpha=None):
     """groups: {집단 이름: [점수, ...]} (순서 유지). F, p, η², 유의하면 Tukey HSD."""
+    import numpy as np
     from scipy import stats
     alpha = ALPHA if alpha is None else alpha
     names = list(groups)
@@ -86,6 +87,9 @@ def one_way_anova(groups, test_name='One-way ANOVA', alpha=None):
         'groups': names,
         'group_means': {n: sum(d) / len(d) for n, d in zip(names, data)},
         'group_sizes': {n: len(d) for n, d in zip(names, data)},
+        'group_std': {n: float(np.std(d, ddof=1)) for n, d in zip(names, data)},
+        'group_ci95': {n: [float(v) for v in stats.t.interval(0.95, len(d) - 1, loc=np.mean(d), scale=stats.sem(d))]
+                       for n, d in zip(names, data)},
         'f_statistic': float(f),
         'p_value': float(p),
         'effect_size_eta_squared': float(eta),
@@ -96,12 +100,14 @@ def one_way_anova(groups, test_name='One-way ANOVA', alpha=None):
     }
     if result['is_significant']:
         tukey = stats.tukey_hsd(*data)
+        ci = tukey.confidence_interval(0.95)
         for i, j in itertools.combinations(range(len(names)), 2):
             p_adj = float(tukey.pvalue[i, j])
             result['post_hoc_tukey'].append({
                 'comparison': f"{_short(names[i])} vs {_short(names[j])}",
                 'mean_diff': result['group_means'][names[i]] - result['group_means'][names[j]],
                 'p_adj': p_adj,
+                'ci95': [float(ci.low[i, j]), float(ci.high[i, j])],
                 'significant': bool(p_adj < alpha),
             })
     return result
