@@ -69,14 +69,15 @@ def test_criteria1_missing_delinquency():
 
 
 def test_ratio_none_does_not_add_random_labels():
-    """thin_filer_ratio=None이면 기준 해당자 수와 정확히 같아야 한다"""
+    """thin_filer_ratio=None이면 기준 해당자 수와 정확히 같고, 연체 칸도 지우지 않는다"""
     rows = [_thin_filer_row()] + [_row() for _ in range(99)]
     result = label_thin_filer(pd.DataFrame(rows), thin_filer_ratio=None)
     assert result['is_thin_filer'].sum() == 1
+    assert result['NumberOfTime30-59DaysPastDueNotWorse'].notna().all()
 
 
 def test_ratio_forces_target_count():
-    """thin_filer_ratio를 주면 목표 비율만큼 강제 조정된다 (평가용 아님)"""
+    """thin_filer_ratio를 주면 연체 기록 0인 고객의 연체 칸을 지워 목표 비율에 맞춘다 (#61)"""
     rows = [_thin_filer_row()] + [_row() for _ in range(99)]
     result = label_thin_filer(pd.DataFrame(rows), thin_filer_ratio=0.3, random_seed=42)
     assert result['is_thin_filer'].sum() == 30
@@ -108,9 +109,15 @@ def test_ratio_below_current_count_changes_nothing():
     assert result['NumberOfTime30-59DaysPastDueNotWorse'].notna().all()
 
 
-def test_ratio_none_keeps_criteria_count():
-    """None이면 기준 해당자 수 그대로 (지우기 없음)"""
-    rows = [_thin_filer_row()] + [_row() for _ in range(99)]
-    result = label_thin_filer(pd.DataFrame(rows), thin_filer_ratio=None)
-    assert result['is_thin_filer'].sum() == 1
-    assert result['NumberOfTime30-59DaysPastDueNotWorse'].notna().all()
+def test_ratio_picks_only_customers_without_delinquency_and_keeps_input():
+    """지우기 후보는 연체 기록 0인 일반 고객이고, 입력 df는 바뀌지 않는다 (리뷰 반영)"""
+    rows = [_thin_filer_row()] + [_row(d30=1) for _ in range(49)] + [_row() for _ in range(50)]
+    df = pd.DataFrame(rows)
+    before = df.copy()
+    result = label_thin_filer(df, thin_filer_ratio=0.3, random_seed=3)
+    # 입력 df의 연체 칸은 그대로여야 한다 (is_thin_filer 열만 기존처럼 채워짐)
+    pd.testing.assert_frame_equal(df.drop(columns=['is_thin_filer']), before)
+    delinquent = result[result['NumberOfTime30-59DaysPastDueNotWorse'] == 1]
+    assert len(delinquent) == 49
+    assert delinquent['NumberOfTime30-59DaysPastDueNotWorse'].notna().all()
+    assert result['is_thin_filer'].sum() == 30

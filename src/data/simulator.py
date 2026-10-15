@@ -13,7 +13,8 @@ thin_filer_ratio: 씬파일러 비율 조정 파라미터 (None 권장 - 기준�
 bias_ratio: 성별/연령대별 승인율 편향 조정 파라미터
 
 씬파일러 판정 기준 (이슈 #15):
-- 기준 1: 금융 연체 관련 컬럼 2개 이상 결측 (GMSC에는 해당자 0명, 형식상 유지)
+- 기준 1: 금융 연체 관련 컬럼 2개 이상 결측 (손잡이를 쓰지 않으면 GMSC 해당자 0명,
+         thin_filer_ratio를 쓰면 손잡이가 연체 칸을 지운 사람이 여기에 해당)
 - 기준 2: 아래 3개 조건을 모두(AND) 만족 - "금융 기록이 거의 없는 사람"
     (1) 보유 대출·신용 한도 1개 이하
     (2) 부동산 담보대출 없음
@@ -348,7 +349,7 @@ def label_thin_filer(df, thin_filer_ratio: float = None,
     어려운 개인")에 맞춰, 데이터 안에서 금융 기록이 가장 적은 사람을 씬파일러로 본다.
 
     판정 기준 (기준 1 OR 기준 2)
-        기준 1 : 연체 컬럼 2개 이상 결측              (GMSC 해당자 0명, 형식상 유지)
+        기준 1 : 연체 컬럼 2개 이상 결측              (thin_filer_ratio=None이면 GMSC 해당자 0명)
         기준 2 : 아래 3개 조건을 모두(AND) 만족        (GMSC 해당자 약 4,110명)
                  - NumberOfOpenCreditLinesAndLoans      <= 1     보유 대출·신용 한도
                  - NumberRealEstateLoansOrLines         == 0     부동산 담보대출
@@ -369,6 +370,8 @@ def label_thin_filer(df, thin_filer_ratio: float = None,
         thin_filer_ratio: 씬파일러 목표 비율 (0-1). None(기본값)이면 기준대로만 판정한다.
                           값을 주면 일반 고객 일부의 연체 칸 3개를 결측으로 지운 뒤
                           기준 1로 다시 판정한다 (이슈 #61). 이미 목표보다 많으면 그대로 둔다.
+                          후보는 연체 기록이 0인 일반 고객으로 한정한다 (기록을 지워도 중앙값과 같아짐).
+                          입력 df의 연체 칸은 바꾸지 않고 복사본을 만들어 수정한다.
         target_col: 타겟 컬럼명 (판정 로그의 연체율 계산에만 사용, 판정 자체에는 미사용)
         random_seed: thin_filer_ratio 사용 시 고객을 고르는 시드 (같은 값이면 같은 결과)
 
@@ -434,6 +437,26 @@ def label_thin_filer(df, thin_filer_ratio: float = None,
 
     df['is_thin_filer'] = (criteria_1 | criteria_2).astype(int)
 
+    # ===== thin_filer_ratio 조정 (#61) =====
+    # 목표 비율에 못 미치면 연체 기록이 0인 일반 고객을 골라 연체 칸 3개를 결측으로 지운 뒤,
+    # 기준 1로 다시 판정한다. 재판정(재귀 호출)이 한 번만 로그를 남기도록 여기서 먼저 처리한다.
+    if thin_filer_ratio is not None:
+        n = len(df)
+        target_count = int(n * thin_filer_ratio)
+        diff = target_count - int(df['is_thin_filer'].sum())
+        if diff > 0:
+            if len(delinquency_cols) != len(DELINQUENCY_COLS):
+                raise ValueError("thin_filer_ratio를 쓰려면 연체 칸 3개가 모두 있어야 합니다")
+            clean = (df['is_thin_filer'] == 0) & (df[DELINQUENCY_COLS] == 0).all(axis=1)
+            candidates = df.index[clean]
+            rng = np.random.default_rng(random_seed)
+            picked = rng.choice(candidates, size=min(diff, len(candidates)), replace=False)
+            logger.info(f"   목표 {thin_filer_ratio:.1%}({target_count:,}명): 연체 기록 0인 일반 고객 "
+                        f"{len(picked):,}명의 연체 칸 {len(DELINQUENCY_COLS)}개를 지운 뒤 다시 판정")
+            df = df.copy()
+            df.loc[picked, DELINQUENCY_COLS] = np.nan
+            return label_thin_filer(df, thin_filer_ratio=None, target_col=target_col)
+
     # ===== 판정 결과 로그 =====
     n = len(df)
     n_c1 = int(criteria_1.sum())
@@ -482,33 +505,4 @@ def label_thin_filer(df, thin_filer_ratio: float = None,
                 f"임계값을 완화하거나 부트스트랩 신뢰구간을 함께 보고하세요."
             )
 
-    # ===== thin_filer_ratio 조정 (기본값 None이면 건너뜀) =====
-    # 무작위로 레이블만 붙이지 않는다. 대신 아직 씬파일러가 아닌 사람을 골라
-    # 연체 칸 3개를 결측으로 지운 뒤, 기준 1(연체 칸 2개 이상 결측)로 다시 판정한다 (#61).
-    if thin_filer_ratio is None:
-        logger.info("   조정 없음 (판정 기준대로만 분류)")
-        logger.info("=" * 75 + "\n")
-        return df
-
-    target_count = int(n * thin_filer_ratio)
-    diff = target_count - n_thin
-
-    if diff <= 0:
-        logger.info(f"   목표 {thin_filer_ratio:.1%}({target_count:,}명)보다 이미 많아 그대로 둡니다 "
-                    f"(현재 {n_thin:,}명)")
-        logger.info("=" * 75 + "\n")
-        return df
-
-    if len(delinquency_cols) != len(DELINQUENCY_COLS):
-        raise ValueError("thin_filer_ratio를 쓰려면 연체 칸 3개가 모두 있어야 합니다")
-
-    rng = np.random.default_rng(random_seed)
-    candidates = df.index[df['is_thin_filer'] == 0]
-    picked = rng.choice(candidates, size=min(diff, len(candidates)), replace=False)
-
-    logger.info(f"   목표 {thin_filer_ratio:.1%}({target_count:,}명): "
-                f"일반 고객 {len(picked):,}명의 연체 칸 {len(DELINQUENCY_COLS)}개를 지운 뒤 다시 판정")
-    df.loc[picked, DELINQUENCY_COLS] = np.nan
-
-    # 지운 뒤 다시 판정 (이제 기준 1에 해당). 조정은 한 번만 하므로 ratio는 None으로 호출
-    return label_thin_filer(df, thin_filer_ratio=None, target_col=target_col)
+    return df
