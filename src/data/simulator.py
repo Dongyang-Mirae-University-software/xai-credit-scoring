@@ -13,7 +13,8 @@ thin_filer_ratio: 씬파일러 비율 조정 파라미터 (None 권장 - 기준�
 bias_ratio: 성별/연령대별 승인율 편향 조정 파라미터
 
 씬파일러 판정 기준 (이슈 #15):
-- 기준 1: 금융 연체 관련 컬럼 2개 이상 결측 (GMSC에는 해당자 0명, 형식상 유지)
+- 기준 1: 금융 연체 관련 컬럼 2개 이상 결측 (손잡이를 쓰지 않으면 GMSC 해당자 0명,
+         thin_filer_ratio를 쓰면 손잡이가 연체 칸을 지운 사람이 여기에 해당)
 - 기준 2: 아래 3개 조건을 모두(AND) 만족 - "금융 기록이 거의 없는 사람"
     (1) 보유 대출·신용 한도 1개 이하
     (2) 부동산 담보대출 없음
@@ -79,7 +80,7 @@ def generate_alternative_data(df, target_col="SeriousDlqin2yrs",
     Args:
         df: 기존 데이터프레임
         target_col: 타겟 변수명 (기본값: SeriousDlqin2yrs)
-        thin_filer_ratio: 씬파일러 비율 강제 조정 (0-1).
+        thin_filer_ratio: 씬파일러 목표 비율 (0-1). 값을 주면 일반 고객의 연체 칸을 지워 기준 1로 판정됨 (#61).
                           None(기본값)이면 판정 기준대로만 분류한다 (권장).
         bias_ratio: 편향 강도 (0: 편향 없음, 1: 최대 편향)
         random_seed: 무작위 생성 시드. 같은 시드면 같은 결과가 나온다 (None이면 매번 다름)
@@ -348,7 +349,7 @@ def label_thin_filer(df, thin_filer_ratio: float = None,
     어려운 개인")에 맞춰, 데이터 안에서 금융 기록이 가장 적은 사람을 씬파일러로 본다.
 
     판정 기준 (기준 1 OR 기준 2)
-        기준 1 : 연체 컬럼 2개 이상 결측              (GMSC 해당자 0명, 형식상 유지)
+        기준 1 : 연체 컬럼 2개 이상 결측              (thin_filer_ratio=None이면 GMSC 해당자 0명)
         기준 2 : 아래 3개 조건을 모두(AND) 만족        (GMSC 해당자 약 4,110명)
                  - NumberOfOpenCreditLinesAndLoans      <= 1     보유 대출·신용 한도
                  - NumberRealEstateLoansOrLines         == 0     부동산 담보대출
@@ -366,12 +367,13 @@ def label_thin_filer(df, thin_filer_ratio: float = None,
 
     Args:
         df: 입력 데이터프레임
-        thin_filer_ratio: 씬파일러 비율 강제 조정 (0-1).
-                          None(기본값)이면 무작위 조정 없이 기준대로만 판정한다.
-                          값을 주면 무작위로 레이블을 추가/제거하므로
-                          씬파일러 AUC 향상 측정이 왜곡된다 (디버깅 용도로만 사용).
+        thin_filer_ratio: 씬파일러 목표 비율 (0-1). None(기본값)이면 기준대로만 판정한다.
+                          값을 주면 일반 고객 일부의 연체 칸 3개를 결측으로 지운 뒤
+                          기준 1로 다시 판정한다 (이슈 #61). 이미 목표보다 많으면 그대로 둔다.
+                          후보는 연체 기록이 0인 일반 고객으로 한정한다 (기록을 지워도 중앙값과 같아짐).
+                          입력 df의 연체 칸은 바꾸지 않고 복사본을 만들어 수정한다.
         target_col: 타겟 컬럼명 (판정 로그의 연체율 계산에만 사용, 판정 자체에는 미사용)
-        random_seed: thin_filer_ratio 사용 시 무작위 선택 시드
+        random_seed: thin_filer_ratio 사용 시 고객을 고르는 시드 (같은 값이면 같은 결과)
 
     Returns:
         is_thin_filer 컬럼이 추가된 데이터프레임
@@ -435,6 +437,26 @@ def label_thin_filer(df, thin_filer_ratio: float = None,
 
     df['is_thin_filer'] = (criteria_1 | criteria_2).astype(int)
 
+    # ===== thin_filer_ratio 조정 (#61) =====
+    # 목표 비율에 못 미치면 연체 기록이 0인 일반 고객을 골라 연체 칸 3개를 결측으로 지운 뒤,
+    # 기준 1로 다시 판정한다. 재판정(재귀 호출)이 한 번만 로그를 남기도록 여기서 먼저 처리한다.
+    if thin_filer_ratio is not None:
+        n = len(df)
+        target_count = int(n * thin_filer_ratio)
+        diff = target_count - int(df['is_thin_filer'].sum())
+        if diff > 0:
+            if len(delinquency_cols) != len(DELINQUENCY_COLS):
+                raise ValueError("thin_filer_ratio를 쓰려면 연체 칸 3개가 모두 있어야 합니다")
+            clean = (df['is_thin_filer'] == 0) & (df[DELINQUENCY_COLS] == 0).all(axis=1)
+            candidates = df.index[clean]
+            rng = np.random.default_rng(random_seed)
+            picked = rng.choice(candidates, size=min(diff, len(candidates)), replace=False)
+            logger.info(f"   목표 {thin_filer_ratio:.1%}({target_count:,}명): 연체 기록 0인 일반 고객 "
+                        f"{len(picked):,}명의 연체 칸 {len(DELINQUENCY_COLS)}개를 지운 뒤 다시 판정")
+            df = df.copy()
+            df.loc[picked, DELINQUENCY_COLS] = np.nan
+            return label_thin_filer(df, thin_filer_ratio=None, target_col=target_col)
+
     # ===== 판정 결과 로그 =====
     n = len(df)
     n_c1 = int(criteria_1.sum())
@@ -482,35 +504,5 @@ def label_thin_filer(df, thin_filer_ratio: float = None,
                 f"씬파일러 AUC 향상(+0.03) 측정이 불안정할 수 있으니 "
                 f"임계값을 완화하거나 부트스트랩 신뢰구간을 함께 보고하세요."
             )
-
-    # ===== thin_filer_ratio 강제 조정 (기본값 None이면 건너뜀) =====
-    if thin_filer_ratio is None:
-        logger.info("   조정 없음 (판정 기준대로만 분류)")
-        logger.info("=" * 75 + "\n")
-        return df
-
-    logger.warning(
-        f"thin_filer_ratio={thin_filer_ratio}가 지정되어 무작위로 레이블을 조정합니다. "
-        f"기준과 무관한 샘플이 씬파일러로 섞이므로 "
-        f"씬파일러 AUC 향상 측정이 왜곡됩니다. 평가용으로는 None을 사용하세요."
-    )
-
-    rng = np.random.default_rng(random_seed)
-    target_count = int(n * thin_filer_ratio)
-    diff = target_count - n_thin
-
-    if diff > 0:
-        candidates = df.index[df['is_thin_filer'] == 0]
-        picked = rng.choice(candidates, size=min(diff, len(candidates)), replace=False)
-        df.loc[picked, 'is_thin_filer'] = 1
-    elif diff < 0:
-        candidates = df.index[df['is_thin_filer'] == 1]
-        picked = rng.choice(candidates, size=min(-diff, len(candidates)), replace=False)
-        df.loc[picked, 'is_thin_filer'] = 0
-
-    adjusted = int(df['is_thin_filer'].sum())
-    logger.info(f"   조정 후 씬파일러: {adjusted:,}명 ({adjusted/n*100:.2f}%) "
-                f"- 이 중 기준 충족 {n_thin:,}명")
-    logger.info("=" * 75 + "\n")
 
     return df
