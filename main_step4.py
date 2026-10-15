@@ -12,8 +12,8 @@ Step 4: 공정성 검증 · Bias Mitigation (남궁명진 담당)
 분할 파일에 이 칸이 없으면 #33 머지 후 실행한다.
 
 실행 예:
-  python main_step4.py --model models/xgboost_scale_pos_weight_v1.0.joblib
-  python main_step4.py --model models/xgboost_scale_pos_weight_v1.0.joblib --reweighting
+  python main_step4.py --model models/lightgbm_is_unbalance_integrated_v1.0.joblib
+  python main_step4.py --model models/lightgbm_is_unbalance_integrated_v1.0.joblib --reweighting
 """
 
 import argparse
