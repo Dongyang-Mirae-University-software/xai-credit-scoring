@@ -52,3 +52,38 @@ def test_cross_check_flags_mismatch(caplog):
     assert check['match'] is False
     assert check['by_attribute']['gender']['values']['di_ratio']['match'] is False
     assert any('교차 확인' in r.message for r in caplog.records)
+
+
+def _split_sample(n, seed):
+    y, p, gender, age = _sample(n, seed)
+    return y, p, gender, age
+
+
+@pytest.mark.parametrize('constraint', ['demographic_parity', 'equalized_odds'])
+def test_threshold_optimizer_report_shape(constraint):
+    fit = _split_sample(3000, 1)
+    ev = _split_sample(3000, 2)
+    r = lc.threshold_optimizer_report(*fit, *ev, constraints=constraint)
+    assert r['method'] == f'fairlearn_threshold_optimizer_{constraint}'
+    assert r['threshold_fit_on'] == 'validation'
+    for side in ('before', 'after'):
+        assert set(r[side]) >= {'di_ratio', 'equalized_odds_tpr_diff', 'equalized_odds_fpr_diff', 'by_attribute'}
+        assert 0 <= r['overall'][side]['approval_rate'] <= 1
+
+
+def test_threshold_optimizer_demographic_parity_evens_approval_rates():
+    # 기준값을 정한 데이터에 그대로 적용하면 6개 집단 승인율이 거의 같아야 한다
+    data = _split_sample(6000, 3)
+    r = lc.threshold_optimizer_report(*data, *data, constraints='demographic_parity')
+    before = r['before']['by_attribute']['age_group']['approval_rates'].values()
+    after = r['after']['by_attribute']['age_group']['approval_rates'].values()
+    assert max(after) - min(after) < max(before) - min(before)
+    assert max(after) - min(after) < 0.05
+
+
+def test_threshold_optimizer_is_reproducible():
+    fit = _split_sample(2000, 4)
+    ev = _split_sample(2000, 5)
+    a = lc.threshold_optimizer_report(*fit, *ev, constraints='demographic_parity')
+    b = lc.threshold_optimizer_report(*fit, *ev, constraints='demographic_parity')
+    assert a['after']['di_ratio'] == b['after']['di_ratio']

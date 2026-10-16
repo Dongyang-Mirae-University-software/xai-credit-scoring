@@ -3,6 +3,7 @@ Fairlearn으로 공정성 지표를 다시 계산해 우리 함수(metrics.py) �
 
 원본 과제 기준
 - 「AIF360/Fairlearn 기반 공정성 검증 및 Bias Mitigation 모듈을 구현한다.」
+  → 지표 교차 확인(cross_check)과, Threshold Adjustment 를 Fairlearn ThresholdOptimizer 와 비교(threshold_optimizer_report)
 - 개발 환경 「공정성 라이브러리: Fairlearn 또는 AIF360」
 
 metrics.py 의 정의를 Fairlearn 용어로 바꾸면 다음과 같다 (승인을 좋은 결과로 본다).
@@ -89,3 +90,87 @@ def cross_check(report, y_true, p_default, gender=None, age_group=None):
             logger.warning(f"[공정성 교차 확인] {attr}: Fairlearn 값과 다름 → {bad}")
     out['match'] = all_match
     return out
+
+
+# ---------------------------------------------------------------------------
+# Fairlearn ThresholdOptimizer: 우리 Threshold Adjustment(mitigation.py)와 같은 조건으로 비교
+# - 집단: 성별 × 연령대 6개 (우리 Threshold Adjustment 와 같음)
+# - 기준값은 Validation 으로 정하고 Test 에는 적용만 한다 (원본 「테스트 데이터의 라벨을 학습에 사용하는 것을 금지한다」)
+# - constraints='demographic_parity': 집단별 승인율을 같게 (우리 Threshold Adjustment 와 같은 목표)
+#   constraints='equalized_odds'   : 집단별 TPR·FPR 을 같게
+# - objective 기본값은 balanced_accuracy_score. 연체자가 6.7%뿐이라 accuracy_score 로 고르면 거의 모두 승인하는 쪽이
+#   정확도가 높아져 연체자 승인 비율이 크게 늘어난다 (최종 모델이 Recall 을 중시한 것과 맞지 않음).
+# - 경계에서는 기준값 두 개를 무작위로 섞으므로 random_state 를 고정한다.
+# ---------------------------------------------------------------------------
+
+try:
+    from sklearn.base import BaseEstimator, ClassifierMixin
+except ImportError:  # sklearn 은 requirements 에 있으므로 보통 여기로 오지 않는다
+    BaseEstimator = ClassifierMixin = object
+
+
+class _ApprovalScore(ClassifierMixin, BaseEstimator):
+    """이미 학습된 모델의 부도 확률을 Fairlearn 에 넘기기 위한 껍데기.
+    입력 X 의 첫 칸이 부도 확률이고, predict_proba[:, 1] 은 '정상 상환(승인이 맞음)' 확률 = 1 - 부도 확률."""
+    classes_ = [0, 1]
+
+    def __sklearn_is_fitted__(self):
+        return True
+
+    def fit(self, X, y=None, **kwargs):
+        return self
+
+    def predict_proba(self, X):
+        import numpy as np
+        p = np.asarray(X, dtype=float).reshape(len(X), -1)[:, 0]
+        return np.column_stack([p, 1 - p])
+
+    def predict(self, X):
+        return (self.predict_proba(X)[:, 1] >= 0.5).astype(int)
+
+
+def threshold_optimizer_report(fit_y, fit_p, fit_gender, fit_age_group,
+                               y_true, p_default, gender, age_group,
+                               constraints='demographic_parity', objective='balanced_accuracy_score',
+                               random_state=42, threshold=None):
+    """Fairlearn ThresholdOptimizer 적용 전/후 공정성 비교 (mitigation_report 와 같은 before/after 키)."""
+    import numpy as np
+    from fairlearn.postprocessing import ThresholdOptimizer
+    from src.fairness import mitigation as mt
+
+    t = fm.default_threshold() if threshold is None else threshold
+    fit_groups = mt.combine_groups(fit_gender, fit_age_group)
+    groups = mt.combine_groups(gender, age_group)
+    to = ThresholdOptimizer(estimator=_ApprovalScore(), constraints=constraints, objective=objective, prefit=True,
+                            predict_method='predict_proba')
+    to.fit(np.asarray(fm._list(fit_p)).reshape(-1, 1), [1 - int(v) for v in fm._list(fit_y)],
+           sensitive_features=fit_groups)
+    approved = [int(a) for a in to.predict(np.asarray(fm._list(p_default)).reshape(-1, 1),
+                                           sensitive_features=groups, random_state=random_state)]
+
+    y = [int(v) for v in fm._list(y_true)]
+    before_approved = fm.approvals(p_default, t)
+    before = fm.fairness_report(y_true, p_default, gender=gender, age_group=age_group, threshold=t)
+    after = mt._report_from_approved(y_true, approved, gender, age_group)
+
+    def overall(a):
+        bad = [ai for ai, yi in zip(a, y) if yi == 1]
+        good = [ai for ai, yi in zip(a, y) if yi == 0]
+        return {'approval_rate': sum(a) / len(a),
+                'defaulters_approved_rate': sum(bad) / len(bad) if bad else None,
+                'good_customers_approved_rate': sum(good) / len(good) if good else None,
+                'accuracy': sum(1 for ai, yi in zip(a, y) if ai == 1 - yi) / len(y)}
+
+    try:
+        import fairlearn
+        version = fairlearn.__version__
+    except ImportError:
+        version = None
+    return {
+        'method': f'fairlearn_threshold_optimizer_{constraints}',
+        'library': 'fairlearn', 'library_version': version,
+        'constraints': constraints, 'objective': objective, 'groups': 'gender|age_group',
+        'threshold': t, 'threshold_fit_on': 'validation', 'random_state': random_state,
+        'before': mt._summary(before), 'after': mt._summary(after),
+        'overall': {'before': overall(before_approved), 'after': overall(approved)},
+    }
