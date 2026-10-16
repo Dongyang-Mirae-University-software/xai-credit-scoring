@@ -62,6 +62,7 @@ def main():
     from src.explainer.feature_names import NON_FEATURE_COLS
     from src.explainer.performance import DISCLAIMER, save_json
     from src.explainer.shap_explainer import final_estimator
+    from src.fairness import library_check as lc
     from src.fairness import mitigation as mt
     from src.fairness.metrics import fairness_report
 
@@ -84,6 +85,9 @@ def main():
     logger.info(f"DI Ratio {report['di_ratio']:.3f} / EO TPR 차이 {report['equalized_odds_tpr_diff']:.3f} "
                 f"/ FPR 차이 {report['equalized_odds_fpr_diff']:.3f} → {save_json(report, out / 'fairness.json')}")
 
+    # Fairlearn 으로 같은 지표를 다시 계산해 우리 값과 맞는지 확인 (원본 「공정성 라이브러리: Fairlearn 또는 AIF360」)
+    checks = {'before': lc.cross_check(report, test[TARGET], p, gender=gender, age_group=age)}
+
     # Threshold Adjustment: 집단별 기준값은 Validation으로 정하고, Test에는 적용만 한다 (Test는 한 번만 평가)
     v_gender, v_age = group_columns(val)
     p_val = model.predict_proba(val[features])[:, 1]
@@ -102,8 +106,15 @@ def main():
         rw = mt.mitigation_report(test[TARGET], p, gender=gender, age_group=age, method='reweighting', p_after=p_rw)
         rw['disclaimer'] = DISCLAIMER
         save_json(rw, out / 'fairness_mitigation_reweighting.json')
+        rw_report = fairness_report(test[TARGET], p_rw, gender=gender, age_group=age)
+        checks['after_reweighting'] = lc.cross_check(rw_report, test[TARGET], p_rw, gender=gender, age_group=age)
         (out / 'comparison_reweighting.md').write_text(mt.comparison_table(rw) + f"\n\n> {DISCLAIMER}\n", encoding='utf-8')
         logger.info("Reweighting 전/후:\n" + mt.comparison_table(rw))
+
+    checks['match'] = all(c['match'] for k, c in checks.items() if k != 'match')
+    checks['disclaimer'] = DISCLAIMER
+    logger.info(f"Fairlearn 교차 확인 {'일치' if checks['match'] else '불일치'} → "
+                f"{save_json(checks, out / 'fairlearn_check.json')}")
 
 
 if __name__ == '__main__':
