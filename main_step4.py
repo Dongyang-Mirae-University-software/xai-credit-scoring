@@ -98,6 +98,19 @@ def main():
     (out / 'comparison_threshold_adjustment.md').write_text(mt.comparison_table(ta) + f"\n\n> {DISCLAIMER}\n", encoding='utf-8')
     logger.info("Threshold Adjustment 전/후:\n" + mt.comparison_table(ta))
 
+    # Fairlearn ThresholdOptimizer 와 비교 (같은 6개 집단, 기준값은 Validation 으로 정함)
+    for constraint in ('demographic_parity', 'equalized_odds'):
+        tor = lc.threshold_optimizer_report(val[TARGET], p_val, v_gender, v_age, test[TARGET], p, gender, age,
+                                            constraints=constraint)
+        tor['disclaimer'] = DISCLAIMER
+        save_json(tor, out / f'fairness_mitigation_threshold_optimizer_{constraint}.json')
+        table = mt.comparison_table(tor)
+        (out / f'comparison_threshold_optimizer_{constraint}.md').write_text(table + f"\n\n> {DISCLAIMER}\n", encoding='utf-8')
+        o = tor['overall']
+        logger.info(f"Fairlearn ThresholdOptimizer({constraint}) 전/후:\n{table}\n"
+                    f"전체 승인율 {o['before']['approval_rate']:.3f} → {o['after']['approval_rate']:.3f}, "
+                    f"연체자 승인 비율 {o['before']['defaulters_approved_rate']:.3f} → {o['after']['defaulters_approved_rate']:.3f}")
+
     if args.reweighting:
         tr_gender, tr_age = group_columns(train)
         w = mt.reweighing_weights(train[TARGET], mt.combine_groups(tr_gender, tr_age))
