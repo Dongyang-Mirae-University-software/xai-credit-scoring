@@ -31,7 +31,15 @@ def test_report_endpoints(path, keys):
 
 
 def test_predict_rejects_out_of_range():
-    assert client.post('/predict', json={**CUSTOMER_EXAMPLE, 'telecom_payment_rate': 1.5}).status_code == 422
+    assert client.post('/predict', json={**CUSTOMER_EXAMPLE, 'telecom_payment_rate': 150}).status_code == 422
+
+
+def test_percent_inputs_are_divided_by_100():
+    """이슈 #70: 부채비율·납부율은 % 로 받고 모델에는 0~1 로 넣는다"""
+    from src.api.schemas import CustomerInput
+    f = CustomerInput(**{**CUSTOMER_EXAMPLE, 'DebtRatio': 35, 'telecom_payment_rate': 78, 'utility_payment_rate': 100}).features()
+    assert (f['DebtRatio'], f['telecom_payment_rate'], f['utility_payment_rate']) == (0.35, 0.78, 1.0)
+    assert f['spending_consistency'] == CUSTOMER_EXAMPLE['spending_consistency']  # 점수는 그대로
 
 
 @pytest.mark.skipif(not model.ready(), reason='models/ 에 최종 모델 파일이 없음')
