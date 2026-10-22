@@ -1,11 +1,14 @@
-version: "3.9"
+# docker-compose up 한 번으로 API(8000) · 대시보드(8501) · MLflow UI(5000) 를 띄운다.
+# .env 는 없어도 된다 (.env.example 참고). 포트는 API_PORT / DASHBOARD_PORT / MLFLOW_PORT 로 바꾼다.
 services:
   api:
     build: .
     command: uvicorn src.api.main:app --host 0.0.0.0 --port 8000
     ports:
-      - "8000:8000"
-    env_file: .env
+      - "${API_PORT:-8000}:8000"
+    env_file:
+      - path: .env
+        required: false
     volumes:
       - ./:/app
 
@@ -13,15 +16,24 @@ services:
     build: .
     command: streamlit run src/dashboard/app.py --server.port 8501 --server.address 0.0.0.0
     ports:
-      - "8501:8501"
-    env_file: .env
+      - "${DASHBOARD_PORT:-8501}:8501"
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      API_BASE_URL: http://api:8000   # 컨테이너 안에서는 localhost 가 아니라 서비스 이름으로 API 를 찾는다
+    volumes:
+      - ./:/app
     depends_on:
       - api
 
   mlflow:
-    build: .
-    command: mlflow ui --host 0.0.0.0 --port 5000
+    image: ghcr.io/mlflow/mlflow:v2.22.0   # requirements.txt 의 mlflow==2.22.0 과 같은 버전
+    command: >
+      mlflow server --host 0.0.0.0 --port 5000
+      --backend-store-uri sqlite:////mlflow/mlflow.db
+      --artifacts-destination /mlflow/mlartifacts --serve-artifacts
     ports:
-      - "5000:5000"
+      - "${MLFLOW_PORT:-5000}:5000"
     volumes:
-      - ./mlruns:/app/mlruns
+      - ./mlruns:/mlflow   # 실험 DB + 아티팩트. 팀 서버(mlflow.gosky.kr)가 아닌 이 PC 의 기록
