@@ -1,0 +1,231 @@
+{
+  "training_runs": {
+    "version": "1.0",
+    "data_params": {
+      "thin_filer_ratio": null,
+      "bias_ratio": 0
+    },
+    "runs": {
+      "logistic_regression_class_weight_financial_only": {
+        "data_type": "financial_only",
+        "algorithm": "LogisticRegression",
+        "method": "class_weight='balanced'",
+        "cv_test_mean": {
+          "cv_test_roc_auc_mean": 0.812,
+          "cv_test_ks_mean": 0.462
+        },
+        "cv_test_std": {
+          "cv_test_roc_auc_std": 0.004
+        }
+      },
+      "logistic_regression_smote_financial_only": {
+        "data_type": "financial_only",
+        "algorithm": "LogisticRegression",
+        "method": "SMOTE",
+        "cv_test_mean": {
+          "cv_test_roc_auc_mean": 0.804,
+          "cv_test_ks_mean": 0.4575
+        },
+        "cv_test_std": {
+          "cv_test_roc_auc_std": 0.005
+        }
+      },
+      "logistic_regression_class_weight_alternative_only": {
+        "data_type": "alternative_only",
+        "algorithm": "LogisticRegression",
+        "method": "class_weight='balanced'",
+        "cv_test_mean": {
+          "cv_test_roc_auc_mean": 0.744,
+          "cv_test_ks_mean": 0.4233
+        },
+        "cv_test_std": {
+          "cv_test_roc_auc_std": 0.006
+        }
+      },
+      "logistic_regression_smote_alternative_only": {
+        "data_type": "alternative_only",
+        "algorithm": "LogisticRegression",
+        "method": "SMOTE",
+        "cv_test_mean": {
+          "cv_test_roc_auc_mean": 0.736,
+          "cv_test_ks_mean": 0.4188
+        },
+        "cv_test_std": {
+          "cv_test_roc_auc_std": 0.007
+        }
+      },
+      "logistic_regression_class_weight_integrated": {
+        "data_type": "integrated",
+        "algorithm": "LogisticRegression",
+        "method": "class_weight='balanced'",
+        "cv_test_mean": {
+          "cv_test_roc_auc_mean": 0.826,
+          "cv_test_ks_mean": 0.47
+        },
+        "cv_test_std": {
+          "cv_test_roc_auc_std": 0.004
+        }
+      },
+      "logistic_regression_smote_integrated": {
+        "data_type": "integrated",
+        "algorithm": "LogisticRegression",
+        "method": "SMOTE",
+        "cv_test_mean": {
+          "cv_test_roc_auc_mean": 0.818,
+          "cv_test_ks_mean": 0.4654
+        },
+        "cv_test_std": {
+          "cv_test_roc_auc_std": 0.005
+        }
+      },
+      "xgboost_scale_pos_weight_financial_only": {
+        "data_type": "financial_only",
+        "algorithm": "XGBoost",
+        "method": "scale_pos_weight",
+        "cv_test_mean": {
+          "cv_test_roc_auc_mean": 0.842,
+          "cv_test_ks_mean": 0.5416
+        },
+        "cv_test_std": {
+          "cv_test_roc_auc_std": 0.003
+        }
+      },
+      "xgboost_smote_financial_only": {
+        "data_type": "financial_only",
+        "algorithm": "XGBoost",
+        "method": "SMOTE",
+        "cv_test_mean": {
+          "cv_test_roc_auc_mean": 0.834,
+          "cv_test_ks_mean": 0.5365
+        },
+        "cv_test_std": {
+          "cv_test_roc_auc_std": 0.004
+        }
+      },
+      "xgboost_scale_pos_weight_alternative_only": {
+        "data_type": "alternative_only",
+        "algorithm": "XGBoost",
+        "method": "scale_pos_weight",
+        "cv_test_mean": {
+          "cv_test_roc_auc_mean": 0.771,
+          "cv_test_ks_mean": 0.496
+        },
+        "cv_test_std": {
+          "cv_test_roc_auc_std": 0.005
+        }
+      },
+      "xgboost_smote_alternative_only": {
+        "data_type": "alternative_only",
+        "algorithm": "XGBoost",
+        "method": "SMOTE",
+        "cv_test_mean": {
+          "cv_test_roc_auc_mean": 0.763,
+          "cv_test_ks_mean": 0.4908
+        },
+        "cv_test_std": {
+          "cv_test_roc_auc_std": 0.006
+        }
+      },
+      "xgboost_scale_pos_weight_integrated": {
+        "data_type": "integrated",
+        "algorithm": "XGBoost",
+        "method": "scale_pos_weight",
+        "cv_test_mean": {
+          "cv_test_roc_auc_mean": 0.855,
+          "cv_test_ks_mean": 0.55
+        },
+        "cv_test_std": {
+          "cv_test_roc_auc_std": 0.003
+        }
+      },
+      "xgboost_smote_integrated": {
+        "data_type": "integrated",
+        "algorithm": "XGBoost",
+        "method": "SMOTE",
+        "cv_test_mean": {
+          "cv_test_roc_auc_mean": 0.847,
+          "cv_test_ks_mean": 0.5449
+        },
+        "cv_test_std": {
+          "cv_test_roc_auc_std": 0.004
+        }
+      },
+      "lightgbm_is_unbalance_financial_only": {
+        "data_type": "financial_only",
+        "algorithm": "LightGBM",
+        "method": "is_unbalance=True",
+        "cv_test_mean": {
+          "cv_test_roc_auc_mean": 0.839,
+          "cv_test_ks_mean": 0.5324
+        },
+        "cv_test_std": {
+          "cv_test_roc_auc_std": 0.003
+        }
+      },
+      "lightgbm_smote_financial_only": {
+        "data_type": "financial_only",
+        "algorithm": "LightGBM",
+        "method": "SMOTE",
+        "cv_test_mean": {
+          "cv_test_roc_auc_mean": 0.831,
+          "cv_test_ks_mean": 0.5273
+        },
+        "cv_test_std": {
+          "cv_test_roc_auc_std": 0.004
+        }
+      },
+      "lightgbm_is_unbalance_alternative_only": {
+        "data_type": "alternative_only",
+        "algorithm": "LightGBM",
+        "method": "is_unbalance=True",
+        "cv_test_mean": {
+          "cv_test_roc_auc_mean": 0.768,
+          "cv_test_ks_mean": 0.4873
+        },
+        "cv_test_std": {
+          "cv_test_roc_auc_std": 0.005
+        }
+      },
+      "lightgbm_smote_alternative_only": {
+        "data_type": "alternative_only",
+        "algorithm": "LightGBM",
+        "method": "SMOTE",
+        "cv_test_mean": {
+          "cv_test_roc_auc_mean": 0.76,
+          "cv_test_ks_mean": 0.4823
+        },
+        "cv_test_std": {
+          "cv_test_roc_auc_std": 0.006
+        }
+      },
+      "lightgbm_is_unbalance_integrated": {
+        "data_type": "integrated",
+        "algorithm": "LightGBM",
+        "method": "is_unbalance=True",
+        "cv_test_mean": {
+          "cv_test_roc_auc_mean": 0.851,
+          "cv_test_ks_mean": 0.54
+        },
+        "cv_test_std": {
+          "cv_test_roc_auc_std": 0.003
+        }
+      },
+      "lightgbm_smote_integrated": {
+        "data_type": "integrated",
+        "algorithm": "LightGBM",
+        "method": "SMOTE",
+        "cv_test_mean": {
+          "cv_test_roc_auc_mean": 0.843,
+          "cv_test_ks_mean": 0.5349
+        },
+        "cv_test_std": {
+          "cv_test_roc_auc_std": 0.004
+        }
+      }
+    }
+  },
+  "selection": {
+    "selected_model": "integrated/XGBoost/scale_pos_weight",
+    "selection_metric": "val_auc"
+  }
+}
