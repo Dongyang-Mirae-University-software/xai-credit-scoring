@@ -55,6 +55,7 @@ def _init_state():
     st.session_state.setdefault("last_customer", None)
     st.session_state.setdefault("last_predict", None)
     st.session_state.setdefault("recent_predictions", [])
+    st.session_state.setdefault("customers", {})
     for field, _, default, *_ in ALL_FIELDS:
         if _key(field) not in st.session_state:
             st.session_state[_key(field)] = _format_won(default) if field == "MonthlyIncome" else default
@@ -131,6 +132,7 @@ def _run_predict(payload):
 
     st.session_state.last_customer = payload
     st.session_state.last_predict = result
+    st.session_state.customers[result["customer_id"]] = {"payload": payload, "result": result}
     st.session_state.recent_predictions = (
         [result] + st.session_state.recent_predictions
     )[:RECENT_LIMIT]
@@ -192,6 +194,7 @@ def _result_card():
     </div>
     """)
     if st.button("이 결과의 근거 보기 → XAI 분석 탭", key="scr-to-xai", use_container_width=True):
+        st.session_state.xai_customer = result["customer_id"]
         st.switch_page("views/xai.py")
 
 

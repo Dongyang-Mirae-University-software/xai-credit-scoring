@@ -14,3 +14,12 @@ USE_MOCK = os.getenv("USE_MOCK", "true").lower() == "true"
 APPROVAL_THRESHOLD = float(os.getenv("APPROVAL_THRESHOLD", "0.5"))
 # 신용점수 막대 아래 표시하는 등급 구간 (등급, 구간 상한 점수)
 GRADE_SCALE = [("E", 300), ("D", 500), ("C", 650), ("B", 800), ("A", 1000)]
+
+# ---- XAI 분석 화면 표시용 값 ----
+# 거절 사유 카드의 위험 표시: 부도 쪽 SHAP 값(log-odds)이 이 값 이상이면 고위험 / 중위험, 그 아래는 저위험
+XAI_RISK_HIGH = float(os.getenv("XAI_RISK_HIGH", "0.7"))
+XAI_RISK_MID = float(os.getenv("XAI_RISK_MID", "0.4"))
+# Waterfall에 따로 보여줄 변수 수 (나머지는 '기타 N개 변수'로 합침)
+WATERFALL_MAX_DISPLAY = int(os.getenv("WATERFALL_MAX_DISPLAY", "8"))
+# 가법성 검증 허용 오차: |sigmoid(base + Σφ) − /predict 부도 확률|
+ADDITIVITY_TOLERANCE = float(os.getenv("ADDITIVITY_TOLERANCE", "0.005"))
