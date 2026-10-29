@@ -513,6 +513,30 @@ Fairlearn에는 승인을 좋은 결과로 보도록 정답 = `1 - 연체 여부
 
 TPR·FPR 차이와 집단별 승인율도 모두 소수점 아래 9자리까지 같다(Fairlearn 0.14.0). `main_step4.py`를 실행할 때마다 `outputs/fairness/fairlearn_check.json`에 이 비교가 저장되고, 값이 다르면 WARNING 로그가 남는다.
 
+### 8.7 Fairlearn ThresholdOptimizer와 비교
+
+Bias Mitigation도 라이브러리와 비교하기 위해, 우리 Threshold Adjustment를 Fairlearn `ThresholdOptimizer`와 **같은 조건**에서 비교했다 (이슈 #91). 집단은 성별 × 연령대 6개, 기준값은 Validation으로 정하고 Test에는 적용만 한다. Fairlearn은 두 가지 목표로 돌렸다.
+
+- `demographic_parity`: 집단별 승인율을 같게 (우리 Threshold Adjustment와 같은 목표)
+- `equalized_odds`: 집단별 TPR·FPR을 같게
+
+| Test 결과 | 적용 전 | 우리 Threshold Adjustment | Fairlearn 승인율 맞추기 | Fairlearn TPR·FPR 맞추기 |
+|---|---|---|---|---|
+| 연령대 DI | 1.093 | 0.993 | 0.991 | 1.056 |
+| 연령대 TPR 차이 | 0.031 | 0.051 | 0.055 | 0.001 |
+| 연령대 FPR 차이 | 0.042 | 0.067 | 0.039 | 0.027 |
+| 성별 DI | 1.012 | 1.008 | 1.008 | 1.011 |
+| 승인율 20-34 / 35-54 / 55+ | 0.823 / 0.857 / 0.929 | 0.889 / 0.886 / 0.881 | 0.871 / 0.862 / 0.857 | 0.830 / 0.845 / 0.888 |
+| 전체 승인율 | 0.884 | 약 0.88 | 0.861 | 0.862 |
+| 연체자 승인 비율 | 8.5% | - | 8.4% | 7.6% |
+
+읽는 법:
+
+- **같은 목표에서는 결과가 거의 같다.** 승인율을 맞추는 Fairlearn도 연령대 DI 0.991(우리 0.993), TPR 차이 0.055(우리 0.051)로, 우리 Threshold Adjustment가 라이브러리와 같은 방식으로 동작함을 확인했다. 8.5의 맞바꿈(승인율을 맞추면 TPR 차이가 커짐)도 똑같이 나타난다.
+- **TPR·FPR을 맞추면** Equalized Odds 차이는 거의 0이 되지만(0.001 / 0.027), 나이대별 승인율 차이는 남는다(0.830 ~ 0.888). 두 종류의 공정성을 한 번에 맞출 수 없다는 8.5의 결론과 같다.
+- **목표 함수 선택이 중요하다.** Fairlearn 기본값(정확도 최대)으로 고르면 연체자가 6.7%뿐이라 거의 모두 승인하는 쪽이 정확도가 높아져, 연체자 승인 비율이 8.5%에서 37.4%로 늘었다. 그래서 정상 고객과 연체자를 똑같이 중요하게 보는 `balanced_accuracy_score`를 썼다. 불균형 데이터에서는 공정성 방법을 고를 때도 6장의 Precision-Recall 맞바꿈을 함께 봐야 한다.
+- 최종 모델과 `/fairness/mitigation` 응답은 바꾸지 않았다. 결과는 `outputs/fairness/fairness_mitigation_threshold_optimizer_*.json`에 저장되고 MLflow `final_test` run에도 올렸다.
+
 ## 9. ANOVA 통계 검증 (2쪽) ✅
 
 > 코드: `main_step5.py`, `src/statistics/`. 데이터: MLflow에 기록된 18개 모델의 폴드별 AUC (`fold_k_roc_auc`). 결과: `outputs/statistics/anova.json`.
@@ -620,7 +644,6 @@ Kaggle 신용 데이터에 대안 데이터 5개를 더한 통합 LightGBM 모�
 
 - 실제 대안 데이터(또는 정답과 직접 연결하지 않은 시뮬레이션)로 다시 학습해 성능과 SHAP 중요도 비교
 - 과제 노션 보너스: 씬파일러 × 모델 구성 Two-way ANOVA, Counterfactual Explanation("무엇이 바뀌면 승인되는지")
-- Fairlearn `ThresholdOptimizer`로 Threshold Adjustment 결과 비교
 
 ## 부록. 팀 결정 기록 (1쪽) ✅
 
