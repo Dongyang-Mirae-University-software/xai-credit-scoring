@@ -46,10 +46,14 @@ def _status_card():
         f'<span class="sb-row-value" title="{escape(str(value))}">{escape(str(value))}</span></div>'
         for label, value in rows
     )
+    # 면책 조항(미션 필수, 이슈 #37)은 모든 페이지에 보이도록 사이드바 하단 상태 카드 바로 위에 둔다
     st.html(
+        '<div class="sb-bottom">'
+        f'<div class="sb-disclaimer" role="note">ⓘ {escape(config.DISCLAIMER)}</div>'
         f'<div class="sb-status">'
         f'<div class="sb-status-head"><span class="{dot}"></span>{head}</div>'
         f"{rows_html}</div>"
+        "</div>"
     )
 
 
