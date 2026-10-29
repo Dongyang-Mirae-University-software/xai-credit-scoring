@@ -1,5 +1,6 @@
 {
   "status": "healthy",
   "model_version": "xgboost_v1.0",
-  "timestamp": "2026-01-30T10:15:30Z"
+  "timestamp": "2026-01-30T10:15:30Z",
+  "mlflow_stage": "Staging"
 }
