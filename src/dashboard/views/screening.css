@@ -20,12 +20,6 @@
   --scr-code-bg: #111827;
 }
 
-/* 본문 폭·여백 */
-[data-testid="stMainBlockContainer"] {
-  padding: 64px 32px 48px;
-  max-width: none;
-}
-
 .scr-badge {
   display: inline-block;
   padding: 4px 12px;
@@ -36,6 +30,21 @@
 }
 .scr-badge.blue { background: var(--scr-blue-bg); color: var(--scr-blue-text); }
 .scr-badge.amber { background: var(--scr-amber-bg); color: var(--scr-amber-text); }
+
+/* ---- 화면 채우기 (페이지 높이·블록 간격 공통 규칙은 app.css) ----
+   왼쪽 입력 폼과 오른쪽 '최근 심사' 카드가 아래 여백까지 늘어나 두 열의 끝이 맞는다. */
+[data-testid="stLayoutWrapper"]:has(> [data-testid="stHorizontalBlock"] .st-key-scr-form),
+[data-testid="stLayoutWrapper"]:has(> .st-key-scr-form),
+[data-testid="stLayoutWrapper"]:has(> .st-key-scr-recent) {
+  flex: 1 1 auto;
+}
+[data-testid="stColumn"]:has(.st-key-scr-result) > [data-testid="stVerticalBlock"] {
+  gap: 12px;
+}
+/* 폼이 늘어나도 초기화·심사 실행 버튼은 카드 맨 아래에 */
+.st-key-scr-form > [data-testid="stLayoutWrapper"]:has(.st-key-scr-submit) {
+  margin-top: auto;
+}
 
 /* ---- 카드 ---- */
 .st-key-scr-form,
@@ -49,7 +58,6 @@
 .st-key-scr-form { gap: 10px; }
 .st-key-scr-result,
 .st-key-scr-recent { gap: 14px; }
-.st-key-scr-result { margin-bottom: 8px; }
 
 .scr-card-head {
   display: flex;
@@ -143,7 +151,7 @@
   font-family: var(--font-mono);
   font-size: 12.5px;
   line-height: 1.6;
-  max-height: 260px;
+  max-height: 300px;
   overflow: auto;
   white-space: pre;
 }

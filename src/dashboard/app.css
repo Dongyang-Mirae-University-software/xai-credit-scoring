@@ -27,3 +27,27 @@
 [data-testid="stMain"] :where(h1, h2, h3, h4, h5, h6, p, li, label, [data-testid="stMarkdownContainer"]) {
   color: var(--content-text);
 }
+
+/* 상단 고정 헤더 바 숨김
+   Deploy 버튼·메뉴는 .streamlit/config.toml(toolbarMode=minimal)로 이미 숨겼고, 남은 빈 바(60px)가
+   본문 위를 덮어 여백만 차지하므로 없앤다. (사이드바는 접기 기능이 없어 헤더의 펼치기 버튼도 필요 없음) */
+[data-testid="stHeader"],
+[data-testid="stDecoration"] {
+  display: none;
+}
+
+/* 본문 폭·여백 (모든 페이지 공통)
+   페이지를 화면 높이(100vh)로 잡아, 내용이 짧아도 아래 여백이 위 여백(24px)과 같게 끝난다.
+   남는 높이를 어느 카드가 가져갈지는 각 페이지 CSS에서 정한다. */
+[data-testid="stMainBlockContainer"] {
+  padding: 24px 32px 24px;
+  max-width: none;
+  min-height: 100vh;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+}
+[data-testid="stMainBlockContainer"] > [data-testid="stVerticalBlock"] {
+  flex: 1 1 auto;
+  gap: 12px;  /* 블록 사이 간격: 기본 16px → 12px */
+}
