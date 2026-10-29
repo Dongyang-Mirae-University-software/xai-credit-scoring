@@ -290,7 +290,9 @@ def _reasons_card(explain):
         risk = _risk_of(phi)
         sentence = CONTRIBUTION_SUFFIX.sub("", r["explanation"])
         reference = r.get("reference_value")
-        ref_html = f'<span class="xai-reason-muted">기준</span> {_num(reference)}' if reference is not None else ""
+        ref_html = (f'<span class="xai-reason-ref"><span class="xai-reason-lbl">기준</span> {_num(reference)}</span>'
+                    if reference is not None else "")
+        # 카드의 다섯 줄(순위 / 이름 / 값 / 기여도 / 문장)은 xai.css 의 subgrid 로 카드끼리 같은 높이에 맞춘다
         cards.append(f"""
         <div class="xai-reason">
           <div class="xai-reason-top">
@@ -298,10 +300,11 @@ def _reasons_card(explain):
             <span class="xai-pill {risk}">{RISK_LABELS[risk]}</span>
           </div>
           <div class="xai-reason-feat" title="{escape(r["feature"])}">{escape(r.get("feature_name_kr") or _label(r["feature"]))}</div>
-          <div class="xai-reason-mid">
-            <div class="xai-reason-values"><span class="xai-reason-muted">현재</span> <b>{_num(r["current_value"])}</b> {ref_html}</div>
-            <div class="xai-reason-phi risk-{risk}">{_signed(phi)}<span>log-odds</span></div>
+          <div class="xai-reason-values">
+            <span class="xai-reason-cur"><span class="xai-reason-lbl">현재</span> {_num(r["current_value"])}</span>
+            {ref_html}
           </div>
+          <div class="xai-reason-phi risk-{risk}">{_signed(phi)}<span>log-odds</span></div>
           <div class="xai-reason-text" title="{escape(r["explanation"])}">{escape(sentence)}</div>
         </div>
         """)
