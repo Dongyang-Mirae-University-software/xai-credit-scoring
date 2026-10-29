@@ -65,6 +65,14 @@ def explain(customer):
     return _mock_for_customer("xai", "explain", customer) if config.USE_MOCK else _post("/explain", customer)
 
 
+def shap_summary():
+    """
+    전역 중요도(평균 |SHAP|). 미션 문서의 API 목록에 없는 응답이라 경로·형식은 백엔드와 합의 전 제안이다.
+    형식: {"dataset": str, "sample_size": int, "mean_abs_shap": {feature: float}}
+    """
+    return _mock("xai", "shap_summary") if config.USE_MOCK else _get("/explain/summary")
+
+
 def fairness():
     return _mock("fairness", "fairness") if config.USE_MOCK else _get("/fairness")
 
