@@ -53,6 +53,16 @@ def _post(path, payload):
     return r.json()
 
 
+def sample_customers():
+    """
+    mock 모드에서 화면에 미리 넣어 둘 예시 고객 (/predict 요청 형식). 실제 API 모드에서는 빈 목록.
+    승인 → 거절 순서라, 최근 순으로 보여주는 화면에서는 거절 고객이 먼저 나온다.
+    """
+    if not config.USE_MOCK:
+        return []
+    return [_mock("screening", "customer_approved"), _mock("screening", "customer_rejected")]
+
+
 def health():
     return _mock("sidebar", "health") if config.USE_MOCK else _get("/health")
 
