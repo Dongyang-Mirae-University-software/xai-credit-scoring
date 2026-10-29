@@ -1,6 +1,9 @@
 {
   "customer_id": "C005678",
   "approval_status": "REJECTED",
+  "default_probability": 0.58,
+  "base_value": -2.64,
+  "shap_space": "log-odds",
   "rejection_reasons": [
     {
       "rank": 1,
@@ -8,62 +11,63 @@
       "feature_name_kr": "통신비 정상납부율",
       "current_value": 0.78,
       "reference_value": 0.92,
-      "shap_contribution": -0.15,
-      "explanation": "통신비 정상납부율이 78%로, 동일 연령대 평균(92%) 대비 낮습니다 (기여도: -0.15)"
+      "shap_contribution": -0.92,
+      "explanation": "통신비 정상납부율이 78%로, 동일 연령대 평균(92%) 대비 낮습니다 (기여도: -0.92)"
     },
     {
       "rank": 2,
-      "feature": "NumberOfTimes90DaysLate",
-      "feature_name_kr": "최근90일 연체횟수",
-      "current_value": 3,
-      "reference_value": 0,
-      "shap_contribution": -0.12,
-      "explanation": "최근 90일 연체 횟수가 3회로, 승인 기준(0회) 대비 높습니다 (기여도: -0.12)"
+      "feature": "RevolvingUtilizationOfUnsecuredLines",
+      "feature_name_kr": "한도 사용 비율",
+      "current_value": 0.92,
+      "reference_value": 0.31,
+      "shap_contribution": -0.78,
+      "explanation": "한도 사용 비율이 92%로, 동일 연령대 평균(31%) 대비 높습니다 (기여도: -0.78)"
     },
     {
       "rank": 3,
-      "feature": "RevolvingUtilizationOfUnsecuredLines",
-      "feature_name_kr": "신용한도 소진율",
-      "current_value": 0.92,
-      "reference_value": 0.3,
-      "shap_contribution": -0.09,
-      "explanation": "신용한도 소진율이 92%로, 동일 연령대 평균(30%) 대비 높습니다 (기여도: -0.09)"
+      "feature": "NumberOfTimes90DaysLate",
+      "feature_name_kr": "90일 이상 연체 횟수",
+      "current_value": 3,
+      "reference_value": 0.1,
+      "shap_contribution": -0.55,
+      "explanation": "90일 이상 연체 횟수가 3회로, 동일 연령대 평균(0.1회) 대비 높습니다 (기여도: -0.55)"
     },
     {
       "rank": 4,
-      "feature": "DebtRatio",
-      "feature_name_kr": "부채비율",
-      "current_value": 0.68,
-      "reference_value": 0.35,
-      "shap_contribution": -0.07,
-      "explanation": "부채비율이 68%로, 동일 연령대 평균(35%) 대비 높습니다 (기여도: -0.07)"
+      "feature": "NumberOfTime30-59DaysPastDueNotWorse",
+      "feature_name_kr": "최근 2년 30~59일 연체 횟수",
+      "current_value": 2,
+      "reference_value": 0.3,
+      "shap_contribution": -0.41,
+      "explanation": "최근 2년 30~59일 연체 횟수가 2회로, 동일 연령대 평균(0.3회) 대비 높습니다 (기여도: -0.41)"
     },
     {
       "rank": 5,
-      "feature": "utility_payment_rate",
-      "feature_name_kr": "공과금 납부율",
-      "current_value": 0.81,
-      "reference_value": 0.9,
-      "shap_contribution": -0.05,
-      "explanation": "공과금 납부율이 81%로, 동일 연령대 평균(90%) 대비 낮습니다 (기여도: -0.05)"
+      "feature": "DebtRatio",
+      "feature_name_kr": "부채 비율",
+      "current_value": 0.68,
+      "reference_value": 0.35,
+      "shap_contribution": -0.29,
+      "explanation": "부채 비율이 0.68로, 동일 연령대 평균(0.35) 대비 높습니다 (기여도: -0.29)"
     }
   ],
   "shap_values": {
-    "telecom_payment_rate": -0.15,
-    "NumberOfTimes90DaysLate": -0.12,
-    "RevolvingUtilizationOfUnsecuredLines": -0.09,
-    "DebtRatio": -0.07,
-    "utility_payment_rate": -0.05,
-    "NumberOfTime30-59DaysPastDueNotWorse": -0.04,
-    "spending_consistency": -0.03,
-    "MonthlyIncome": -0.03,
-    "NumberOfTime60-89DaysPastDueNotWorse": -0.02,
-    "regular_payment_count": -0.01,
-    "app_login_frequency": -0.01,
-    "age": 0.01,
-    "NumberOfOpenCreditLinesAndLoans": 0.01,
+    "telecom_payment_rate": 0.92,
+    "RevolvingUtilizationOfUnsecuredLines": 0.78,
+    "NumberOfTimes90DaysLate": 0.55,
+    "NumberOfTime30-59DaysPastDueNotWorse": 0.41,
+    "DebtRatio": 0.29,
+    "utility_payment_rate": 0.18,
+    "NumberOfTime60-89DaysPastDueNotWorse": 0.08,
+    "spending_consistency": 0.05,
+    "MonthlyIncome": 0.04,
+    "regular_payment_count": 0.02,
+    "app_login_frequency": 0.01,
     "NumberRealEstateLoansOrLines": 0.0,
-    "NumberOfDependents": 0.02
+    "NumberOfOpenCreditLinesAndLoans": -0.06,
+    "NumberOfDependents": -0.03,
+    "age": -0.2772
   },
-  "total_rejection_factors": 5
+  "total_rejection_factors": 5,
+  "disclaimer": "본 시스템은 교육 목적으로 개발되었으며, 실제 금융 의사결정에 사용할 수 없습니다."
 }

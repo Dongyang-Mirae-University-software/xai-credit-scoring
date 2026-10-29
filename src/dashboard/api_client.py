@@ -31,7 +31,7 @@ def _is_rejected(customer):
     """mock 전용: 입력값에 따라 승인/거절 예시 중 하나를 고른다."""
     return (
         customer.get("NumberOfTimes90DaysLate", 0) > 0
-        or customer.get("telecom_payment_rate", 1.0) < 0.7
+        or customer.get("telecom_payment_rate", 100) < 70  # % 단위 (실제 API와 같음)
     )
 
 
@@ -53,6 +53,16 @@ def _post(path, payload):
     return r.json()
 
 
+def sample_customers():
+    """
+    mock 모드에서 화면에 미리 넣어 둘 예시 고객 (/predict 요청 형식). 실제 API 모드에서는 빈 목록.
+    승인 → 거절 순서라, 최근 순으로 보여주는 화면에서는 거절 고객이 먼저 나온다.
+    """
+    if not config.USE_MOCK:
+        return []
+    return [_mock("screening", "customer_approved"), _mock("screening", "customer_rejected")]
+
+
 def health():
     return _mock("sidebar", "health") if config.USE_MOCK else _get("/health")
 
@@ -65,6 +75,14 @@ def explain(customer):
     return _mock_for_customer("xai", "explain", customer) if config.USE_MOCK else _post("/explain", customer)
 
 
+def shap_summary():
+    """
+    전역 중요도 (GET /explain/summary).
+    형식: {"model": str, "n_samples": int, "shap_space": str, "features": [{feature, mean_abs_shap, group}]}
+    """
+    return _mock("xai", "shap_summary") if config.USE_MOCK else _get("/explain/summary")
+
+
 def fairness():
     return _mock("fairness", "fairness") if config.USE_MOCK else _get("/fairness")
 
@@ -75,6 +93,14 @@ def fairness_mitigation():
 
 def metrics():
     return _mock("performance", "metrics") if config.USE_MOCK else _get("/metrics")
+
+
+def model_comparison():
+    """
+    후보 모델 격자 비교 (GET /metrics/comparison). selected_model, val_table, cv_runs(5-Fold 평균) 등.
+    '± 표준편차' 표기용 cv_runs[*].cv_test_std 는 백엔드에 아직 없어, 없으면 평균만 표시한다.
+    """
+    return _mock("performance", "model_comparison") if config.USE_MOCK else _get("/metrics/comparison")
 
 
 def anova():

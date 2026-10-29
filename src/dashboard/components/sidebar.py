@@ -1,4 +1,5 @@
 """사이드바: 브랜드, 페이지 이동 메뉴, 하단 서버 상태 카드."""
+from html import escape
 from pathlib import Path
 from urllib.parse import urlparse
 
@@ -38,11 +39,11 @@ def _status_card():
     rows = [
         ("model_version", health.get("model_version", "—")),
         ("/predict 응답", f"{latency:.2f} s" if latency is not None else "—"),
-        ("MLflow", health.get("mlflow_stage", "—")),
+        ("MLflow", health.get("model_stage", "—")),
     ]
     rows_html = "".join(
         f'<div class="sb-row"><span class="sb-row-label">{label}</span>'
-        f'<span class="sb-row-value">{value}</span></div>'
+        f'<span class="sb-row-value" title="{escape(str(value))}">{escape(str(value))}</span></div>'
         for label, value in rows
     )
     st.html(

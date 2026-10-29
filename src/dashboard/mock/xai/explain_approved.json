@@ -1,23 +1,27 @@
 {
   "customer_id": "C001234",
   "approval_status": "APPROVED",
+  "default_probability": 0.12,
+  "base_value": -2.64,
+  "shap_space": "log-odds",
   "rejection_reasons": [],
   "shap_values": {
-    "telecom_payment_rate": 0.11,
-    "NumberOfTimes90DaysLate": 0.09,
-    "RevolvingUtilizationOfUnsecuredLines": 0.07,
-    "utility_payment_rate": 0.05,
-    "DebtRatio": 0.04,
-    "spending_consistency": 0.04,
-    "NumberOfTime30-59DaysPastDueNotWorse": 0.03,
-    "MonthlyIncome": 0.03,
-    "regular_payment_count": 0.02,
-    "NumberOfTime60-89DaysPastDueNotWorse": 0.02,
-    "app_login_frequency": 0.01,
-    "age": 0.01,
-    "NumberOfOpenCreditLinesAndLoans": 0.0,
-    "NumberRealEstateLoansOrLines": 0.0,
-    "NumberOfDependents": -0.01
+    "age": 0.25,
+    "NumberOfDependents": 0.21,
+    "DebtRatio": 0.18,
+    "RevolvingUtilizationOfUnsecuredLines": 0.15,
+    "NumberOfOpenCreditLinesAndLoans": 0.12,
+    "MonthlyIncome": 0.09,
+    "NumberRealEstateLoansOrLines": 0.08,
+    "spending_consistency": 0.05,
+    "app_login_frequency": 0.04,
+    "telecom_payment_rate": -0.12,
+    "utility_payment_rate": -0.06,
+    "NumberOfTimes90DaysLate": -0.05,
+    "regular_payment_count": 0.0,
+    "NumberOfTime60-89DaysPastDueNotWorse": 0.0,
+    "NumberOfTime30-59DaysPastDueNotWorse": -0.2924
   },
-  "total_rejection_factors": 0
+  "total_rejection_factors": 0,
+  "disclaimer": "본 시스템은 교육 목적으로 개발되었으며, 실제 금융 의사결정에 사용할 수 없습니다."
 }
