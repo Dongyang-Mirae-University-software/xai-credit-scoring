@@ -23,7 +23,7 @@ def _setup_logger():
         logger.setLevel(logging.INFO)
 
 
-def preprocess(df, target_col='SeriousDlqin2yrs', drop_cols=None):
+def preprocess(df, target_col='SeriousDlqin2yrs', drop_cols=None, fit_index=None, return_stats=False):
     """
     데이터 전처리: 결측치 처리, 범주형 인코딩, 수치형 스케일링
 
@@ -31,9 +31,12 @@ def preprocess(df, target_col='SeriousDlqin2yrs', drop_cols=None):
         df: 입력 데이터프레임
         target_col: 타겟 컬럼명
         drop_cols: 제거할 컬럼 (기본값: ['Unnamed: 0'])
+        fit_index: 중앙값·스케일러를 계산할 행 인덱스 (파이프라인에서는 학습(Train) 행).
+                   None이면 전체 행으로 계산한다 (예전 방식: 테스트 정보가 섞임).
+        return_stats: True면 (df, scaler, stats)를 돌려준다. stats에는 중앙값이 들어 있다.
 
     Returns:
-        전처리된 데이터프레임, 스케일러 객체
+        전처리된 데이터프레임, 스케일러 객체 (return_stats=True면 stats 추가)
     """
     _setup_logger()
 
@@ -56,10 +59,15 @@ def preprocess(df, target_col='SeriousDlqin2yrs', drop_cols=None):
     # ===== 단계 2: 결측치 처리 =====
     logger.info(f"\n결측치 처리:")
 
+    # 중앙값·스케일러는 fit 행(보통 학습 데이터)으로만 계산한다
+    fit_df = df_processed if fit_index is None else df_processed.loc[fit_index]
+    stats = {}
+
     # 월소득 결측 행의 DebtRatio는 비율이 아니라 금액이므로, 소득 중앙값으로 나눠 비율로 환산한다
     if 'MonthlyIncome' in df_processed.columns and 'DebtRatio' in df_processed.columns:
         income_missing = df_processed['MonthlyIncome'].isnull()
-        income_median = df_processed['MonthlyIncome'].median()
+        income_median = fit_df['MonthlyIncome'].median()
+        stats['MonthlyIncome_median'] = float(income_median)
         df_processed.loc[income_missing, 'DebtRatio'] = df_processed.loc[income_missing, 'DebtRatio'] / income_median
         logger.info(f"  DebtRatio 보정: 월소득 결측 {income_missing.sum():,}행 금액 → 비율 환산 (월소득 중앙값 {income_median:,.0f})")
 
@@ -71,8 +79,9 @@ def preprocess(df, target_col='SeriousDlqin2yrs', drop_cols=None):
         missing_count = df_processed[col].isnull().sum()
         missing_pct = (missing_count / len(df_processed)) * 100
 
-        # 중앙값으로 대체
-        median_val = df_processed[col].median()
+        # 중앙값으로 대체 (중앙값은 fit 행에서만 계산)
+        median_val = fit_df[col].median()
+        stats[f'{col}_median'] = float(median_val)
         df_processed[col] = df_processed[col].fillna(median_val)
 
         logger.info(f"  {col}: {missing_count:,}개 ({missing_pct:.2f}%) → 중앙값({median_val:.2f})으로 대체")
@@ -102,8 +111,12 @@ def preprocess(df, target_col='SeriousDlqin2yrs', drop_cols=None):
     feature_cols = [col for col in df_processed.columns
                     if col not in exclude_scaling]
 
+    # 스케일러는 fit 행으로 학습하고, 모든 행에 같은 기준을 적용한다
+    # (결측 대체·DebtRatio 환산이 끝난 표에서 fit 행을 다시 뽑아야 전처리 전 값이 섞이지 않는다)
     scaler = StandardScaler()
-    df_processed[feature_cols] = scaler.fit_transform(df_processed[feature_cols])
+    fit_features = df_processed[feature_cols] if fit_index is None else df_processed.loc[fit_index, feature_cols]
+    scaler.fit(fit_features)
+    df_processed[feature_cols] = scaler.transform(df_processed[feature_cols])
 
     logger.info(f"  {len(feature_cols)}개 변수 스케일링 완료")
     logger.info(f"  (타겟/이진변수 제외)")
@@ -112,6 +125,8 @@ def preprocess(df, target_col='SeriousDlqin2yrs', drop_cols=None):
     logger.info(f"  최종 샘플: {len(df_processed):,}")
     logger.info(f"  최종 컬럼: {df_processed.shape[1]}")
 
+    if return_stats:
+        return df_processed, scaler, stats
     return df_processed, scaler
 
 
@@ -122,6 +137,20 @@ def _to_split_csv_frame(frame):
     out = frame.copy()
     out['age_group'] = out['age_group'].map(AGE_GROUP_LABELS)
     return out
+
+
+def get_train_index(df, target_col='SeriousDlqin2yrs', test_size=0.3, random_seed=42):
+    """
+    학습(Train) 행의 인덱스만 고른다. split_data와 같은 방법(계층 분할, 같은 시드)이라
+    같은 행이 뽑힌다. 전처리 전에 호출해서 fit 행으로 넘긴다 (전처리 순서 수정).
+    """
+    train_idx, _ = train_test_split(
+        df.index,
+        test_size=test_size,
+        random_state=random_seed,
+        stratify=df[target_col],
+    )
+    return train_idx
 
 
 def split_data(df, target_col='SeriousDlqin2yrs',

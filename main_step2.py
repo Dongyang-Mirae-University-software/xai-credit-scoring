@@ -50,6 +50,12 @@ def main():
         results, X_val, y_val, X_test, y_test, models_dir=str(MODELS_DIR), version='1.0',
         data_params=data_params, X_train=X_train, thin_mask=thin_test,
     )
+    # 전처리 기준(중앙값)을 모델 설명 파일에도 남긴다 (API가 같은 기준으로 입력을 바꾸기 위함)
+    model_meta_path = MODELS_DIR / 'model_metadata.json'
+    model_meta = json.loads(model_meta_path.read_text(encoding='utf-8'))
+    model_meta['preprocess_fit'] = metadata.get('preprocess_fit')
+    model_meta['preprocess_stats'] = metadata.get('preprocess_stats')
+    model_meta_path.write_text(json.dumps(model_meta, ensure_ascii=False, indent=2), encoding='utf-8')
     logger.info("✅ Step 2 완료!")
 
 

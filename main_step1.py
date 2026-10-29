@@ -25,7 +25,7 @@ DATA_SPLITS.mkdir(exist_ok=True, parents=True)
 # src import
 from src.data.loader import load_gmsc
 from src.data.simulator import generate_alternative_data
-from src.data.preprocessor import preprocess, split_data
+from src.data.preprocessor import preprocess, split_data, get_train_index
 
 
 def main():
@@ -61,7 +61,11 @@ def main():
     # 3단계: 전처리 (결측치, 이상치, 정규화)
     logger.info("\n[3/4] 전처리 (결측치, 이상치, 정규화)")
     logger.info("-" * 60)
-    df, scaler = preprocess(df, target_col='SeriousDlqin2yrs')
+    # 전처리 순서 수정: 먼저 학습(Train) 행을 고르고, 중앙값·스케일러는 학습 행으로만 계산한다.
+    # 검증·테스트 행의 정보가 전처리 기준에 섞이지 않도록 하기 위함이다.
+    train_idx = get_train_index(df, target_col='SeriousDlqin2yrs', test_size=0.3, random_seed=42)
+    df, scaler, preprocess_stats = preprocess(
+        df, target_col='SeriousDlqin2yrs', fit_index=train_idx, return_stats=True)
 
     # 전처리 스케일러 저장 (대시보드에서 새 고객 값을 같은 기준으로 바꾸려면 필요)
     models_dir = PROJECT_ROOT / 'models'
@@ -97,6 +101,8 @@ def main():
         'target': 'SeriousDlqin2yrs',
         'total_features': X_train.shape[1],
         'data_params': {'thin_filer_ratio': None, 'bias_ratio': 0, 'random_seed': 42},
+        'preprocess_stats': preprocess_stats,
+        'preprocess_fit': 'train_only',
         'note': 'Stratified Split applied, StandardScaler normalized'
     }
 
