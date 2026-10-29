@@ -125,8 +125,9 @@ def _confusion_card(m):
 
 
 def _model_grid_card(runs_data, m, stage):
-    runs = list(runs_data["training_runs"]["runs"].values())
-    data_type, algorithm, _ = (runs_data["selection"]["selected_model"].split("/") + ["", "", ""])[:3]
+    """runs_data: GET /metrics/comparison 응답 (selected_model, cv_runs = 후보별 5-Fold CV 평균)."""
+    runs = list(runs_data.get("cv_runs", {}).values())
+    data_type, algorithm, _ = (runs_data["selected_model"].split("/") + ["", "", ""])[:3]
 
     def base_run(algo, dtype):
         # 알고리즘마다 SMOTE 가 아닌 기본 불균형 기법(class_weight 계열) 결과를 쓴다
@@ -212,8 +213,8 @@ _metric_cards(metrics)
 st.html(f'<div class="pf-row3">{_roc_card(metrics)}{_pr_card(metrics)}{_confusion_card(metrics)}</div>')
 
 try:
-    runs_data = api_client.model_runs()
-    stage = api_client.health().get("mlflow_stage")
+    runs_data = api_client.model_comparison()
+    stage = api_client.health().get("model_stage")
     grid = _model_grid_card(runs_data, metrics, stage)
 except Exception as e:
     grid = f'<div class="pf-card"><div class="pf-title">모델 격자 비교</div><div class="pf-empty">불러오지 못했습니다: {escape(str(e))}</div></div>'
