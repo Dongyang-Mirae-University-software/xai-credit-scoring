@@ -8,10 +8,10 @@ import streamlit as st
 
 import api_client
 import config
+from components.page_header import render_page_header
 
 CSS_PATH = Path(__file__).with_suffix(".css")
 RECENT_LIMIT = 5
-DISCLAIMER = "본 시스템은 교육 목적으로 개발되었으며, 실제 금융 의사결정에 사용할 수 없습니다."
 
 # (요청 키, 라벨, 기본값, 최소, 최대, 증감 단위) — 요청 키는 mock/screening/customer_*.json과 동일
 TRADITIONAL_FIELDS = [
@@ -89,28 +89,6 @@ def _build_payload():
 # ---------------------------------------------------------------------------
 # 화면 조각
 # ---------------------------------------------------------------------------
-def _header():
-    try:
-        model_version = api_client.health()["model_version"]
-        auc = api_client.metrics()["auc"]
-        model_badge = f"모델 {escape(model_version)} · AUC {auc:.3f}"
-    except Exception:
-        model_badge = "모델 정보를 불러오지 못했습니다"
-
-    st.html(f"""
-    <div class="scr-header">
-      <div>
-        <div class="scr-title">고객 심사</div>
-        <div class="scr-subtitle">고객 정보를 입력하면 FastAPI /predict 를 호출해 승인 여부·신용점수·리스크 등급을 반환합니다</div>
-      </div>
-      <div class="scr-badges">
-        <span class="scr-badge blue">{model_badge}</span>
-        <span class="scr-badge amber" title="{DISCLAIMER}">교육용 · 실제 금융 의사결정 불가</span>
-      </div>
-    </div>
-    """)
-
-
 def _section_title(title, caption):
     st.html(f'<div class="scr-section"><span class="scr-section-title">{title}</span>'
             f'<span class="scr-section-caption">{caption}</span></div>')
@@ -241,7 +219,7 @@ def _recent_card():
 # ---------------------------------------------------------------------------
 st.html(f"<style>{CSS_PATH.read_text(encoding='utf-8')}</style>")
 _init_state()
-_header()
+render_page_header("고객 심사", "고객 정보를 입력하면 FastAPI /predict 를 호출해 승인 여부·신용점수·리스크 등급을 반환합니다")
 
 left, right = st.columns([1.45, 1], gap="medium")
 
