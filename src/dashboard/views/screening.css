@@ -394,3 +394,15 @@
 .scr-recent-row .scr-pill {
   justify-self: end;
 }
+
+/* 씬파일러 판정 배지 (버튼 줄 왼쪽) */
+.scr-thin {
+  display: inline-block;
+  background: var(--scr-blue-bg);
+  color: var(--scr-blue-text);
+  border-radius: 999px;
+  padding: 4px 12px;
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+}

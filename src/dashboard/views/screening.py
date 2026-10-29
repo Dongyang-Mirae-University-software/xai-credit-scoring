@@ -13,11 +13,13 @@ from components.page_header import render_page_header
 CSS_PATH = Path(__file__).with_suffix(".css")
 RECENT_LIMIT = 5
 
-# (요청 키, 라벨, 기본값, 최소, 최대, 증감 단위) — 요청 키는 mock/screening/customer_*.json과 동일
+# (요청 키, 라벨, 기본값, 최소, 최대, 증감 단위) — 요청 키·단위는 실제 API(src/api/schemas.py CustomerInput)와 동일
+# 부채비율·통신비·공과금 납부율은 % 로 보내고 서버가 ÷100 한다 (이슈 #70)
+# 기본값은 백엔드 Swagger 예시 고객(src/api/schemas.py CUSTOMER_EXAMPLE)과 같다
 TRADITIONAL_FIELDS = [
     ("age", "나이", 45, 18, 100, 1),
     ("MonthlyIncome", "월소득 (원)", 4_200_000, 0, None, None),
-    ("DebtRatio", "부채비율", 0.32, 0.0, None, 0.01),
+    ("DebtRatio", "부채비율 (%)", 32.0, 0.0, None, 1.0),
     ("RevolvingUtilizationOfUnsecuredLines", "리볼빙 이용률", 0.48, 0.0, None, 0.01),
     ("NumberOfDependents", "부양가족 수", 2, 0, None, 1),
     ("NumberOfTime30-59DaysPastDueNotWorse", "30–59일 연체 횟수", 1, 0, None, 1),
@@ -27,10 +29,10 @@ TRADITIONAL_FIELDS = [
     ("NumberRealEstateLoansOrLines", "부동산 대출 건수", 1, 0, None, 1),
 ]
 ALTERNATIVE_FIELDS = [
-    ("telecom_payment_rate", "통신비 정상납부율", 0.78, 0.0, 1.0, 0.01),
-    ("utility_payment_rate", "공과금 납부율", 0.91, 0.0, 1.0, 0.01),
-    ("spending_consistency", "소비 일관성", 64.0, 0.0, 100.0, 1.0),
-    ("regular_payment_count", "정기결제 건수", 3, 0, 20, 1),
+    ("telecom_payment_rate", "통신비 정상납부율 (%)", 90.0, 0.0, 100.0, 1.0),
+    ("utility_payment_rate", "공과금 납부율 (%)", 93.0, 0.0, 100.0, 1.0),
+    ("spending_consistency", "소비 일관성", 75.0, 0.0, 100.0, 1.0),
+    ("regular_payment_count", "정기결제 건수", 5, 0, 20, 1),
     ("app_login_frequency", "앱 로그인 빈도 (월)", 22, 0, 30, 1),
 ]
 ALL_FIELDS = TRADITIONAL_FIELDS + ALTERNATIVE_FIELDS
@@ -137,6 +139,16 @@ def _run_predict(payload):
         [result] + st.session_state.recent_predictions
     )[:RECENT_LIMIT]
     st.session_state.scr_seq += 1
+    st.rerun()  # 사이드바(응답 시간)와 씬파일러 배지가 이번 결과로 바로 보이도록 한 번 더 그린다
+
+
+def _thin_filer_badge():
+    """마지막 심사 결과의 씬파일러 판정 (/predict 의 is_thin_filer)."""
+    result = st.session_state.last_predict
+    if not result or "is_thin_filer" not in result:
+        return
+    label = "예" if result["is_thin_filer"] else "아니오"
+    st.html(f'<span class="scr-thin">씬파일러 판정: {label} · 고객 #{escape(result["customer_id"])}</span>')
 
 
 def _status_pill(status):
@@ -184,7 +196,7 @@ def _result_card():
       <div class="scr-tile"><div class="scr-tile-label">리스크 등급</div>
         <div class="scr-tile-value risk-{risk}">{escape(grade)}</div></div>
       <div class="scr-tile"><div class="scr-tile-label">승인 임계값</div>
-        <div class="scr-tile-value">p &lt; {config.APPROVAL_THRESHOLD:.2f}</div></div>
+        <div class="scr-tile-value">p &lt; {result.get("approval_threshold", config.APPROVAL_THRESHOLD):.2f}</div></div>
     </div>
     <div class="scr-legend">
       <span class="scr-legend-label">등급 색상</span>
@@ -238,7 +250,8 @@ with left:
         payload = _build_payload()
         _request_preview(payload)
 
-        _, reset_col, submit_col = st.columns([3.2, 1, 1.3], gap="small")
+        thin_col, reset_col, submit_col = st.columns([3.2, 1, 1.3], gap="small", vertical_alignment="center")
+        thin_slot = thin_col.empty()  # 심사 결과가 나온 뒤 채운다 (아래)
         with reset_col:
             st.button("초기화", key="scr-reset", on_click=_reset_form, use_container_width=True)
         with submit_col:
@@ -246,6 +259,8 @@ with left:
 
 if submitted:
     _run_predict(payload)
+with thin_slot.container():
+    _thin_filer_badge()
 
 with right:
     with st.container(key="scr-result"):

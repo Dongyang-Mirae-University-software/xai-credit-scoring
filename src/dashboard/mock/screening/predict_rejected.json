@@ -4,6 +4,9 @@
   "risk_grade": "D",
   "approval_status": "REJECTED",
   "default_probability": 0.58,
+  "is_thin_filer": false,
+  "approval_threshold": 0.5,
   "model_version": "xgboost_v1.0",
-  "timestamp": "2026-01-30T10:15:30Z"
+  "timestamp": "2026-01-30T10:15:30Z",
+  "disclaimer": "본 시스템은 교육 목적으로 개발되었으며, 실제 금융 의사결정에 사용할 수 없습니다."
 }

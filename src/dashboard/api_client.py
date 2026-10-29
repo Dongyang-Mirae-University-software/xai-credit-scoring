@@ -31,7 +31,7 @@ def _is_rejected(customer):
     """mock 전용: 입력값에 따라 승인/거절 예시 중 하나를 고른다."""
     return (
         customer.get("NumberOfTimes90DaysLate", 0) > 0
-        or customer.get("telecom_payment_rate", 1.0) < 0.7
+        or customer.get("telecom_payment_rate", 100) < 70  # % 단위 (실제 API와 같음)
     )
 
 
