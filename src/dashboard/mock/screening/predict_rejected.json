@@ -3,7 +3,7 @@
   "credit_score": 412,
   "risk_grade": "D",
   "approval_status": "REJECTED",
-  "default_probability": 0.41,
+  "default_probability": 0.58,
   "model_version": "xgboost_v1.0",
   "timestamp": "2026-01-30T10:15:30Z"
 }
