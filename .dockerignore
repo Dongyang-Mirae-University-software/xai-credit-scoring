@@ -1,0 +1,11 @@
+.git
+.venv
+venv
+__pycache__
+*.pyc
+mlruns
+outputs
+data/intermediate
+data/processed
+data/splits
+notebooks

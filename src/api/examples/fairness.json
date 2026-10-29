@@ -1,0 +1,41 @@
+{
+  "di_ratio": 0.79,
+  "equalized_odds_tpr_diff": 0.06,
+  "equalized_odds_fpr_diff": 0.04,
+  "by_attribute": {
+    "gender": {
+      "protected_group": "female",
+      "approval_rates": {
+        "female": 0.54,
+        "male": 0.62
+      },
+      "di_ratio": 0.87,
+      "di_passed": true,
+      "equalized_odds_tpr_diff": 0.05,
+      "equalized_odds_fpr_diff": 0.03,
+      "equalized_odds_passed": true
+    },
+    "age_group": {
+      "protected_group": "20-34",
+      "approval_rates": {
+        "20-34": 0.48,
+        "35-54": 0.61,
+        "55+": 0.58
+      },
+      "di_ratio": 0.79,
+      "di_passed": false,
+      "equalized_odds_tpr_diff": 0.06,
+      "equalized_odds_fpr_diff": 0.04,
+      "equalized_odds_passed": true
+    }
+  },
+  "threshold": 0.5,
+  "n": 22500,
+  "criteria": {
+    "di_min": 0.8,
+    "di_max": 1.25,
+    "eo_max": 0.1
+  },
+  "model": "lightgbm_is_unbalance_integrated_v1.0.joblib",
+  "disclaimer": "본 시스템은 교육 목적으로 개발되었으며, 실제 금융 의사결정에 사용할 수 없습니다."
+}

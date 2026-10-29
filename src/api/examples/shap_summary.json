@@ -1,0 +1,83 @@
+{
+  "model": "lightgbm_is_unbalance_integrated_v1.0.joblib",
+  "n_samples": 2000,
+  "shap_space": "log-odds",
+  "features": [
+    {
+      "feature": "RevolvingUtilizationOfUnsecuredLines",
+      "mean_abs_shap": 0.82,
+      "group": "financial"
+    },
+    {
+      "feature": "telecom_payment_rate",
+      "mean_abs_shap": 0.61,
+      "group": "alternative"
+    },
+    {
+      "feature": "NumberOfTimes90DaysLate",
+      "mean_abs_shap": 0.55,
+      "group": "financial"
+    },
+    {
+      "feature": "age",
+      "mean_abs_shap": 0.48,
+      "group": "financial"
+    },
+    {
+      "feature": "NumberOfTime30-59DaysPastDueNotWorse",
+      "mean_abs_shap": 0.44,
+      "group": "financial"
+    },
+    {
+      "feature": "DebtRatio",
+      "mean_abs_shap": 0.39,
+      "group": "financial"
+    },
+    {
+      "feature": "utility_payment_rate",
+      "mean_abs_shap": 0.33,
+      "group": "alternative"
+    },
+    {
+      "feature": "MonthlyIncome",
+      "mean_abs_shap": 0.31,
+      "group": "financial"
+    },
+    {
+      "feature": "NumberOfTime60-89DaysPastDueNotWorse",
+      "mean_abs_shap": 0.27,
+      "group": "financial"
+    },
+    {
+      "feature": "spending_consistency",
+      "mean_abs_shap": 0.22,
+      "group": "alternative"
+    },
+    {
+      "feature": "NumberOfOpenCreditLinesAndLoans",
+      "mean_abs_shap": 0.18,
+      "group": "financial"
+    },
+    {
+      "feature": "regular_payment_count",
+      "mean_abs_shap": 0.14,
+      "group": "alternative"
+    },
+    {
+      "feature": "app_login_frequency",
+      "mean_abs_shap": 0.11,
+      "group": "alternative"
+    },
+    {
+      "feature": "NumberRealEstateLoansOrLines",
+      "mean_abs_shap": 0.09,
+      "group": "financial"
+    },
+    {
+      "feature": "NumberOfDependents",
+      "mean_abs_shap": 0.06,
+      "group": "financial"
+    }
+  ],
+  "disclaimer": "본 시스템은 교육 목적으로 개발되었으며, 실제 금융 의사결정에 사용할 수 없습니다."
+}

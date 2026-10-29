@@ -44,7 +44,12 @@ xai-credit-scoring/
 │   ├── statistics/
 │   │   └── anova.py     # One-way ANOVA + Tukey HSD 사후 검정
 │   ├── api/
-│   │   └── main.py      # FastAPI 서버 (7개 엔드포인트, 현재 mock 응답)
+│   │   ├── main.py      # FastAPI 앱 (화면별 태그, Swagger /docs)
+│   │   ├── routers/     # 화면별 엔드포인트 (health / predict / explain / fairness / metrics / anova)
+│   │   ├── schemas.py   # 요청·응답 스키마 + Swagger 예시
+│   │   ├── model.py     # 최종 모델·스케일러·SHAP 로딩, /predict·/explain 계산
+│   │   ├── reports.py   # outputs/ 산출물 JSON 읽기 (없으면 examples/ 예시)
+│   │   └── examples/    # 산출물이 없을 때 쓰는 예시 JSON (디자인 수치)
 │   └── dashboard/
 │       └── app.py       # Streamlit 대시보드 (5개 탭, API와 HTTP 통신만)
 ├── models/              # 학습된 모델 아티팩트 (git 미포함)
@@ -61,13 +66,16 @@ xai-credit-scoring/
 
 ## 현재 진행 상황
 
-- API 서버(`src/api/main.py`)는 7개 엔드포인트(`/health`, `/predict`, `/explain`, `/fairness`, `/fairness/mitigation`, `/metrics`, `/anova`) 모두 구현 완료. 단, 실제 모델 학습 전이라 규칙 기반 mock 응답을 반환한다. 입력값에 따라 점수·등급·SHAP 기여도가 달라지긴 하지만 실제 예측값은 아님.
+- API 서버(`src/api/`)는 대시보드 5개 화면이 쓰는 9개 엔드포인트를 갖춤 (`/docs` 에서 화면별 태그로 확인).
+  - `POST /predict`, `POST /explain`: `models/` 의 최종 모델·스케일러로 즉시 계산 (모델 파일 없으면 503).
+  - `GET /explain/summary`, `/fairness`, `/fairness/mitigation`, `/metrics`, `/anova`: `main_step3~5` 가 `outputs/` 에 저장한 JSON 을 그대로 반환. 파일이 없으면 `src/api/examples/` 의 예시를 반환하며, `GET /health` 의 `reports` 로 어느 쪽인지 알 수 있다.
+  - `GET /metrics/comparison`: `models/model_metadata.json` 의 후보 모델 격자.
+  - 데이터 반영 방법: 파이프라인을 돌려 `outputs/` 를 채우면 끝. API 코드 수정 불필요.
 - Streamlit 대시보드(`src/dashboard/app.py`)는 미션 스펙의 5개 탭(고객심사/XAI분석/공정성/모델성능/통계검증) 구조를 갖추고, API 서버하고만 통신하도록 구성됨 (모델 파일 직접 로드 없음 - MSA 제약 준수).
 - `src/data/loader.py`, `src/data/simulator.py`, `src/data/preprocessor.py`는 함수 시그니처만 정의된 상태 - 이재희가 실제 로직 구현 예정.
 - `src/models/`는 3가지 모델 학습 (Logistic Regression, XGBoost, LightGBM) - 이재희가 구현 예정.
 - `src/statistics/anova.py`, `src/fairness/`, `src/explainer/`는 함수 시그니처만 정의된 상태 - 남궁명진이 실제 로직 구현 예정.
 - GMSC 데이터셋(`data/raw/`)이 추가됨. 포함 파일: `cs-training.csv`(훈련 데이터), `cs-test.csv`(테스트 데이터), `sampleEntry.csv`(샘플 제출), `Data Dictionary.xls`(데이터 사전).
-- 모델 학습이 끝나면 `src/api/main.py`의 mock 로직만 실제 모델/SHAP/Fairlearn 호출로 교체하면 되고, 엔드포인트·응답 스키마는 그대로 유지하면 됨.
 
 ## 실행 방법
 
@@ -88,12 +96,14 @@ streamlit run src/dashboard/app.py
 ### Docker Compose
 
 ```bash
-docker-compose up
+docker compose up --build     # .env 없이도 뜬다. 처음 한 번은 이미지 빌드에 몇 분 걸림
 ```
 
-- api: http://localhost:8000
-- dashboard: http://localhost:8501
-- mlflow: http://localhost:5000
+- api: http://localhost:8000 (Swagger: /docs)
+- dashboard: http://localhost:8501 — 컨테이너 안에서는 `API_BASE_URL=http://api:8000` 으로 API 를 찾는다
+- mlflow: http://localhost:5000 — 이 PC 의 `./mlruns` 기록을 보여 준다. 팀 서버(`mlflow.gosky.kr`) 기록은 `.env` 의 `MLFLOW_TRACKING_URI` 로 학습 스크립트가 올리는 곳이며, 로컬 UI 에서 보려면 `MLFLOW_TRACKING_URI=http://localhost:5000` 으로 학습을 다시 돌린다
+
+포트를 바꾸려면 `.env` 에 `API_PORT`, `DASHBOARD_PORT`, `MLFLOW_PORT` 를 적는다. 대시보드를 실제 API 로 연결하려면 `USE_MOCK=false`.
 
 ## 환경 변수 설명
 
@@ -105,6 +115,9 @@ docker-compose up
 | RANDOM_SEED | 재현성을 위한 랜덤 시드 |
 | THIN_FILER_RATIO | 시뮬레이터의 씬파일러 비율 조정 파라미터 |
 | BIAS_RATIO | 시뮬레이터의 성별/연령대별 승인율 편향 조정 파라미터 |
-| API_PORT | FastAPI 서버 포트 |
-| DASHBOARD_PORT | Streamlit 대시보드 포트 |
-| MLFLOW_PORT | MLflow UI 포트 |
+| API_PORT | FastAPI 서버 포트 (docker compose 호스트 포트, 기본 8000) |
+| DASHBOARD_PORT | Streamlit 대시보드 포트 (기본 8501) |
+| MLFLOW_PORT | MLflow UI 포트 (기본 5000) |
+| API_BASE_URL | 대시보드가 호출할 API 주소 (로컬 `http://localhost:8000`, compose 에서는 자동으로 `http://api:8000`) |
+| USE_MOCK | `true` 면 대시보드가 API 대신 mock JSON 을 쓴다 (기본 true) |
+| MLFLOW_TRACKING_URI / USERNAME / PASSWORD | 학습 스크립트가 실험을 올릴 MLflow 서버. 비밀번호는 `.env` 에만 적는다 |
