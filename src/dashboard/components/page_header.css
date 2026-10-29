@@ -1,0 +1,33 @@
+/* 페이지 상단 헤더 */
+.ph-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+}
+.ph-title {
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1.3;
+}
+.ph-subtitle {
+  color: #6b7280;
+  font-size: 13px;
+  margin-top: 4px;
+}
+.ph-badges {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+.ph-badge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+.ph-badge.blue { background: #dbeafe; color: #1d4ed8; }
+.ph-badge.amber { background: #fef3c7; color: #b45309; }

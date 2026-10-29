@@ -1,0 +1,234 @@
+/* 모델 성능 페이지 스타일 */
+:root {
+  --pf-card-bg: #ffffff;
+  --pf-border: #e5e7eb;
+  --pf-muted: #6b7280;
+  --pf-label: #4b5563;
+  --pf-chip-bg: #f3f4f6;
+  --pf-plot-bg: #f8fafc;
+  --pf-blue: #2563eb;
+  --pf-blue-bg: #dbeafe;
+  --pf-blue-text: #1d4ed8;
+  --pf-purple: #7c3aed;
+  --pf-ok: #16a34a;
+  --pf-ok-bg: #dcfce7;
+  --pf-ng: #dc2626;
+  --pf-ng-bg: #fee2e2;
+  --pf-amber: #b45309;
+  --pf-amber-bg: #fef3c7;
+}
+
+/* ---- 화면 채우기 (페이지 높이·블록 간격 공통 규칙은 app.css) ----
+   남는 높이는 ROC · PR · 혼동행렬 줄이 가져가 그래프가 커진다 → 위·아래 여백이 항상 같다 */
+[data-testid="stElementContainer"]:has(.pf-row3),
+[data-testid="stElementContainer"]:has(.pf-row3) > [data-testid="stHtml"] {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+}
+.pf-row3 { flex: 1 1 auto; }
+
+/* ---- 공통 카드 ---- */
+.pf-card {
+  background: var(--pf-card-bg);
+  border: 1px solid var(--pf-border);
+  border-radius: 12px;
+  padding: 18px 22px;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.pf-card-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+.pf-title {
+  font-size: 15px;
+  font-weight: 700;
+}
+.pf-caption {
+  color: var(--pf-muted);
+  font-size: 11.5px;
+  margin-top: 2px;
+  word-break: keep-all;
+}
+.pf-empty {
+  color: var(--pf-muted);
+  font-size: 13px;
+  padding: 12px 0;
+}
+.pf-pill {
+  display: inline-block;
+  border-radius: 999px;
+  padding: 2px 9px;
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+.pf-pill.ok { background: var(--pf-ok-bg); color: var(--pf-ok); }
+.pf-pill.ng { background: var(--pf-ng-bg); color: var(--pf-ng); }
+.pf-pill.none { background: var(--pf-chip-bg); color: var(--pf-muted); }
+.pf-pill.wide {
+  align-self: flex-start;
+  margin-top: 14px;
+  white-space: normal;
+  border-radius: 10px;
+  padding: 4px 10px;
+  line-height: 1.5;
+}
+.pf-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 14px;
+}
+.pf-chip {
+  background: var(--pf-chip-bg);
+  color: var(--pf-label);
+  border-radius: 999px;
+  padding: 4px 10px;
+  font-size: 11.5px;
+  white-space: nowrap;
+}
+.pf-chip.blue { background: var(--pf-blue-bg); color: var(--pf-blue-text); }
+
+/* ---- 지표 카드 6개 ---- */
+.pf-metrics {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 12px;
+}
+.pf-metric { padding: 16px 18px; }
+.pf-metric .pf-caption {
+  font-size: 11px;  /* 좁은 화면에서는 두 줄로 줄바꿈 (6개 카드 높이는 같게 유지) */
+}
+.pf-metric-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 13px;
+  color: var(--pf-label);
+}
+.pf-metric-value {
+  font-family: var(--font-mono);
+  font-size: 26px;
+  font-weight: 700;
+  margin: 6px 0 4px;
+}
+
+/* ---- ROC · PR · 혼동행렬 ---- */
+.pf-row3 {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 12px;
+}
+.pf-plot {
+  display: block;
+  box-sizing: border-box;
+  width: 100%;
+  flex: 1 1 210px;
+  min-height: 210px;
+  object-fit: fill;
+  margin-top: 14px;
+  background: var(--pf-plot-bg);
+  border-left: 1px solid var(--pf-border);
+  border-bottom: 1px solid var(--pf-border);
+}
+.pf-axis {
+  display: flex;
+  justify-content: space-between;
+  color: var(--pf-muted);
+  font-size: 11.5px;
+  margin-top: 8px;
+}
+.pf-cm {
+  display: grid;
+  grid-template-columns: 64px 1fr 1fr;
+  grid-template-rows: auto 1fr 1fr;
+  gap: 8px;
+  align-items: center;
+  margin-top: 16px;
+  flex: 1 1 auto;
+}
+.pf-cm-col {
+  text-align: center;
+  color: var(--pf-label);
+  font-size: 12px;
+}
+.pf-cm-row {
+  color: var(--pf-label);
+  font-size: 12px;
+}
+.pf-cm-cell {
+  height: 100%;
+  min-height: 64px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  font-family: var(--font-mono);
+  font-size: 15px;
+}
+.pf-cm-cell b { font-weight: 700; }
+.pf-cm-cell.tn { background: var(--pf-blue-bg); color: var(--pf-blue-text); }
+.pf-cm-cell.fp { background: var(--pf-amber-bg); color: var(--pf-amber); }
+.pf-cm-cell.fn { background: var(--pf-ng-bg); color: var(--pf-ng); }
+.pf-cm-cell.tp { background: var(--pf-blue); color: #ffffff; }
+
+/* ---- 모델 격자 비교 · 씬파일러 ---- */
+.pf-row2 {
+  display: grid;
+  grid-template-columns: 1.6fr 1fr;
+  gap: 12px;
+}
+.pf-table {
+  width: 100%;
+  margin-top: 14px;
+  border: 1px solid var(--pf-border);
+  border-radius: 8px;
+  border-collapse: separate;
+  border-spacing: 0;
+  overflow: hidden;
+  font-size: 13px;
+}
+.pf-table th,
+.pf-table td {
+  padding: 9px 12px;
+  text-align: left;
+  border-bottom: 1px solid var(--pf-border);
+  white-space: nowrap;
+}
+.pf-table tbody tr:last-child th,
+.pf-table tbody tr:last-child td { border-bottom: none; }
+.pf-table thead th {
+  color: var(--pf-muted);
+  font-weight: 400;
+  font-size: 12px;
+}
+.pf-table tbody th { font-weight: 700; }
+.pf-table td { font-family: var(--font-mono); }
+.pf-table .pf-sel { color: var(--pf-blue); font-weight: 700; }
+.pf-thin {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 14px;
+}
+.pf-thin-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--pf-plot-bg);
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 13px;
+}
+.pf-thin-row b {
+  font-family: var(--font-mono);
+  font-size: 17px;
+  color: var(--pf-label);
+}
+.pf-thin-row b.ok { color: var(--pf-ok); }

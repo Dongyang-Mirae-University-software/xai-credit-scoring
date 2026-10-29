@@ -1,0 +1,348 @@
+/* XAI 분석 페이지 스타일 */
+:root {
+  --xai-card-bg: #ffffff;
+  --xai-border: #e5e7eb;
+  --xai-muted: #6b7280;
+  --xai-label: #4b5563;
+  --xai-chip-bg: #f3f4f6;
+  --xai-blue: #2563eb;
+  --xai-blue-bg: #dbeafe;
+  --xai-blue-text: #1d4ed8;
+  --xai-trad: #94a3b8;
+  --xai-low: #16a34a;
+  --xai-low-bg: #dcfce7;
+  --xai-mid: #d97706;
+  --xai-mid-bg: #fef3c7;
+  --xai-high: #dc2626;
+  --xai-high-bg: #fee2e2;
+  --xai-up: #ef4444;
+  --xai-down: #3b82f6;
+}
+
+/* ---- 화면 채우기 ----
+   남는 높이는 거절 사유 섹션이 가져간다 (Summary·Waterfall 막대 간격은 고정).
+   페이지 높이·블록 간격 공통 규칙은 app.css */
+[data-testid="stLayoutWrapper"]:has(> .st-key-xai-reasons) {
+  flex: 1 1 auto;
+}
+.st-key-xai-reasons > [data-testid="stElementContainer"],
+.st-key-xai-reasons [data-testid="stHtml"] {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+}
+.xai-reasons { flex: 1 1 auto; }  /* 그리드 행이 늘어나 카드 박스가 커진다 */
+
+/* ---- 카드 ---- */
+.st-key-xai-toolbar,
+.st-key-xai-summary,
+.st-key-xai-waterfall,
+.st-key-xai-reasons {
+  background: var(--xai-card-bg);
+  border: 1px solid var(--xai-border);
+  border-radius: 12px;
+  padding: 18px 22px;
+}
+.st-key-xai-toolbar { padding: 10px 22px; }
+.st-key-xai-summary,
+.st-key-xai-waterfall { height: 100%; gap: 14px; }
+/* Summary·Waterfall 두 카드 높이를 같게: 카드를 감싼 stLayoutWrapper가 열 높이를 다 채우도록 */
+[data-testid="stLayoutWrapper"]:has(> .st-key-xai-summary),
+[data-testid="stLayoutWrapper"]:has(> .st-key-xai-waterfall) {
+  flex: 1 1 auto;
+}
+
+.xai-card-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+.xai-card-title {
+  font-size: 15px;
+  font-weight: 700;
+}
+.xai-card-caption {
+  word-break: keep-all;
+  color: var(--xai-muted);
+  font-size: 11.5px;
+  margin-top: 2px;
+}
+.xai-empty,
+.xai-muted {
+  color: var(--xai-muted);
+  font-size: 13px;
+  padding: 8px 0;
+}
+.xai-label {
+  font-size: 14px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+/* ---- 칩·배지 ---- */
+.xai-chips {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.xai-chips.right { justify-content: flex-end; }
+.xai-chip {
+  background: var(--xai-chip-bg);
+  color: var(--xai-label);
+  border-radius: 999px;
+  padding: 4px 12px;
+  font-size: 12px;
+  white-space: nowrap;
+}
+.xai-pill {
+  display: inline-block;
+  border-radius: 999px;
+  padding: 2px 9px;
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+.xai-pill.low { background: var(--xai-low-bg); color: var(--xai-low); }
+.xai-pill.mid { background: var(--xai-mid-bg); color: var(--xai-mid); }
+.xai-pill.high { background: var(--xai-high-bg); color: var(--xai-high); }
+.xai-pill.blue { background: var(--xai-blue-bg); color: var(--xai-blue-text); }
+.xai-legend {
+  border-radius: 999px;
+  padding: 4px 10px;
+  font-size: 12px;
+  white-space: nowrap;
+}
+.xai-legend.trad { background: var(--xai-chip-bg); color: var(--xai-trad); }
+.xai-legend.alt { background: var(--xai-blue-bg); color: var(--xai-blue); }
+
+/* ---- 고객 선택 줄 ---- */
+.st-key-xai-toolbar [data-baseweb="select"] > div {
+  background: #f8fafc;
+  border-radius: 6px;
+  /* BaseWeb이 변마다 테두리 색을 따로 지정하므로 !important로 통일 */
+  border: 1px solid #e2e8f0 !important;
+  color: #000000;
+  font-family: var(--font-mono);
+  font-size: 14px;
+}
+.st-key-xai-toolbar [data-baseweb="select"] > div {
+  cursor: pointer;
+  transition: background-color 0.15s, border-color 0.15s;
+}
+/* 호버: 테두리·배경을 한 단계 진하게 (포커스 규칙보다 앞에 두어 클릭 중에는 파란 테두리가 우선) */
+.st-key-xai-toolbar [data-baseweb="select"] > div:hover {
+  background: #f1f5f9;
+  border-color: #cbd5e1 !important;
+}
+.st-key-xai-toolbar [data-baseweb="select"] > div:focus-within {
+  border-color: var(--xai-blue) !important;
+}
+/* 드롭다운 표시: 기본 화살표(svg) 대신 아래쪽 삼각형(▼), 목록이 열리면 위로 뒤집힘 */
+.st-key-xai-toolbar [data-baseweb="select"] > div > div:last-child svg {
+  display: none;
+}
+.st-key-xai-toolbar [data-baseweb="select"] > div > div:last-child::after {
+  content: "";
+  display: block;
+  width: 0;
+  height: 0;
+  margin-right: 4px;
+  border-left: 5px solid transparent;
+  border-right: 5px solid transparent;
+  border-top: 6px solid #64748b;
+  transition: transform 0.15s, border-top-color 0.15s;
+}
+.st-key-xai-toolbar [data-baseweb="select"] > div:hover > div:last-child::after {
+  border-top-color: #0f172a;
+}
+.st-key-xai-toolbar [data-baseweb="select"]:has(input[aria-expanded="true"]) > div > div:last-child::after {
+  transform: rotate(180deg);
+}
+/* 셀렉트박스를 누르면 열리는 목록 (페이지 맨 아래에 따로 그려지므로 툴바 밖에서 지정) */
+[data-baseweb="popover"]:has([data-testid="stSelectboxVirtualDropdown"]) > div {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);
+  overflow: hidden;
+}
+[data-testid="stSelectboxVirtualDropdown"] {
+  background: #f8fafc;
+}
+[data-testid="stSelectboxVirtualDropdown"] li[role="option"] {
+  color: #000000;
+  font-family: var(--font-mono);
+  font-size: 14px;
+}
+/* 목록 항목 호버·선택: 셀렉트박스 호버와 같은 색 */
+[data-testid="stSelectboxVirtualDropdown"] li[role="option"]:hover,
+[data-testid="stSelectboxVirtualDropdown"] li[role="option"][aria-selected="true"] {
+  background: #f1f5f9;
+  cursor: pointer;
+}
+.st-key-xai-explain button,
+.st-key-xai-explain button:hover,
+.st-key-xai-explain button:focus,
+.st-key-xai-explain button:focus-visible,
+.st-key-xai-explain button:active {
+  background: var(--xai-blue);
+  border: 1px solid var(--xai-blue);
+  border-radius: 8px;
+  height: 40px;
+}
+.st-key-xai-explain button:hover { background: #1d4ed8; border-color: #1d4ed8; }
+.st-key-xai-explain button p {
+  white-space: nowrap;
+  font-size: 13px;
+  color: #ffffff;
+  font-family: var(--font-mono);
+  font-weight: 500;
+}
+.st-key-xai-go-screening button {
+  border-radius: 8px;
+  border: 1px solid var(--xai-blue);
+  background: #ffffff;
+}
+.st-key-xai-go-screening button p { color: var(--xai-blue); font-weight: 500; }
+
+/* ---- 공통: 변수 이름 칸 ---- */
+.xai-feat {
+  font-family: var(--font-sans);
+  font-size: 13px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ---- SHAP Summary ---- */
+.xai-sum-row {
+  display: grid;
+  grid-template-columns: 190px 1fr 40px;
+  align-items: center;
+  gap: 12px;
+  height: 20px;
+}
+.xai-sum-track { height: 10px; }
+.xai-sum-bar {
+  display: block;
+  height: 100%;
+  border-radius: 2px;
+}
+.xai-sum-bar.trad { background: var(--xai-trad); }
+.xai-sum-bar.alt { background: var(--xai-blue); }
+.xai-sum-val {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--xai-label);
+}
+
+/* ---- Waterfall ---- */
+.xai-wf { margin-bottom: 12px; }
+.xai-wf-row {
+  display: grid;
+  grid-template-columns: 215px 1fr 52px;
+  align-items: center;
+  gap: 12px;
+  height: 22px;
+}
+.xai-wf-track {
+  position: relative;
+  height: 10px;
+}
+.xai-wf-track::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: -5px;
+  bottom: -5px;
+  border-left: 1px solid var(--xai-border);
+}
+.xai-wf-bar {
+  position: absolute;
+  top: 0;
+  height: 100%;
+  border-radius: 2px;
+}
+.xai-wf-bar.up { left: 50%; background: var(--xai-up); }
+.xai-wf-bar.down { right: 50%; background: var(--xai-down); }
+.xai-wf-val {
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  text-align: right;
+}
+.xai-wf-val.up { color: var(--xai-high); }
+.xai-wf-val.down { color: var(--xai-blue); }
+
+/* ---- 거절 사유 Top 5 ---- */
+/* 카드 5개 × 다섯 줄을 하나의 격자로: 같은 줄은 카드끼리 같은 높이에 온다.
+   섹션이 커지면 남는 높이는 '이름' 줄과 '기여도' 줄(1fr)이 나눠 가지고, 내용은 그 줄의 아래에 붙는다.
+   → [순위·위험도] … [이름 + 현재·기준] … [기여도 + 문장] 세 묶음으로 카드가 꽉 찬다 */
+.xai-reasons {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-rows: auto 1fr auto 1fr auto;
+  column-gap: 12px;
+  row-gap: 8px;
+}
+.xai-reason {
+  grid-row: span 5;
+  display: grid;
+  grid-template-rows: subgrid;
+  background: #f9fafb;
+  border: 1px solid var(--xai-border);
+  border-radius: 10px;
+  padding: 14px 16px;
+}
+.xai-reason-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+/* 글자 크기는 화면 높이에 따라 조금씩 커진다 (작은 화면 최소값 ~ 큰 화면 최대값) */
+.xai-reason-feat {
+  align-self: end;
+  font-family: var(--font-sans);
+  font-size: clamp(14px, 1.6vh, 17px);
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.xai-reason-values {
+  display: flex;
+  gap: 10px;
+  font-family: var(--font-mono);
+  font-size: clamp(12.5px, 1.35vh, 14.5px);
+  white-space: nowrap;
+}
+.xai-reason-lbl {
+  font-family: var(--font-sans);
+  margin-right: 3px;
+}
+.xai-reason-cur { color: #111827; font-weight: 700; }
+.xai-reason-ref { color: var(--xai-muted); }
+.xai-reason-phi {
+  align-self: end;
+  font-family: var(--font-mono);
+  font-size: clamp(24px, 2.8vh, 32px);
+  font-weight: 700;
+  line-height: 1.1;
+}
+.xai-reason-phi span {
+  font-size: 11px;
+  font-weight: 400;
+  color: var(--xai-muted);
+  margin-left: 6px;
+}
+.xai-reason-phi.risk-high { color: var(--xai-high); }
+.xai-reason-phi.risk-mid { color: var(--xai-mid); }
+.xai-reason-phi.risk-low { color: var(--xai-low); }
+.xai-reason-text {
+  word-break: keep-all;
+  color: var(--xai-label);
+  font-size: clamp(12.5px, 1.4vh, 15px);
+  line-height: 1.5;
+}
