@@ -96,12 +96,14 @@ streamlit run src/dashboard/app.py
 ### Docker Compose
 
 ```bash
-docker-compose up
+docker compose up --build     # .env 없이도 뜬다. 처음 한 번은 이미지 빌드에 몇 분 걸림
 ```
 
-- api: http://localhost:8000
-- dashboard: http://localhost:8501
-- mlflow: http://localhost:5000
+- api: http://localhost:8000 (Swagger: /docs)
+- dashboard: http://localhost:8501 — 컨테이너 안에서는 `API_BASE_URL=http://api:8000` 으로 API 를 찾는다
+- mlflow: http://localhost:5000 — 이 PC 의 `./mlruns` 기록을 보여 준다. 팀 서버(`mlflow.gosky.kr`) 기록은 `.env` 의 `MLFLOW_TRACKING_URI` 로 학습 스크립트가 올리는 곳이며, 로컬 UI 에서 보려면 `MLFLOW_TRACKING_URI=http://localhost:5000` 으로 학습을 다시 돌린다
+
+포트를 바꾸려면 `.env` 에 `API_PORT`, `DASHBOARD_PORT`, `MLFLOW_PORT` 를 적는다. 대시보드를 실제 API 로 연결하려면 `USE_MOCK=false`.
 
 ## 환경 변수 설명
 
@@ -113,6 +115,9 @@ docker-compose up
 | RANDOM_SEED | 재현성을 위한 랜덤 시드 |
 | THIN_FILER_RATIO | 시뮬레이터의 씬파일러 비율 조정 파라미터 |
 | BIAS_RATIO | 시뮬레이터의 성별/연령대별 승인율 편향 조정 파라미터 |
-| API_PORT | FastAPI 서버 포트 |
-| DASHBOARD_PORT | Streamlit 대시보드 포트 |
-| MLFLOW_PORT | MLflow UI 포트 |
+| API_PORT | FastAPI 서버 포트 (docker compose 호스트 포트, 기본 8000) |
+| DASHBOARD_PORT | Streamlit 대시보드 포트 (기본 8501) |
+| MLFLOW_PORT | MLflow UI 포트 (기본 5000) |
+| API_BASE_URL | 대시보드가 호출할 API 주소 (로컬 `http://localhost:8000`, compose 에서는 자동으로 `http://api:8000`) |
+| USE_MOCK | `true` 면 대시보드가 API 대신 mock JSON 을 쓴다 (기본 true) |
+| MLFLOW_TRACKING_URI / USERNAME / PASSWORD | 학습 스크립트가 실험을 올릴 MLflow 서버. 비밀번호는 `.env` 에만 적는다 |
