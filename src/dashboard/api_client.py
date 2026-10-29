@@ -95,5 +95,14 @@ def metrics():
     return _mock("performance", "metrics") if config.USE_MOCK else _get("/metrics")
 
 
+def model_runs():
+    """
+    모델 격자 비교(데이터 구성 × 알고리즘 × 불균형 기법, 5-Fold 결과). 미션 문서의 API 목록에 없는 응답이다.
+    형식은 백엔드 models/model_metadata.json 과 같다 ({"training_runs": {...}, "selection": {...}}).
+    각 run 의 cv_test_std(표준편차)는 그 파일에 아직 없는 칸이라 백엔드 추가가 필요하다.
+    """
+    return _mock("performance", "model_runs") if config.USE_MOCK else _get("/metrics/models")
+
+
 def anova():
     return _mock("statistical_test", "anova") if config.USE_MOCK else _get("/anova")
