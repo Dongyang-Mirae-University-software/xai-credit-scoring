@@ -1,0 +1,21 @@
+{
+  "dataset": "validation",
+  "sample_size": 22500,
+  "mean_abs_shap": {
+    "RevolvingUtilizationOfUnsecuredLines": 0.82,
+    "telecom_payment_rate": 0.61,
+    "NumberOfTimes90DaysLate": 0.55,
+    "age": 0.48,
+    "NumberOfTime30-59DaysPastDueNotWorse": 0.44,
+    "DebtRatio": 0.39,
+    "utility_payment_rate": 0.33,
+    "MonthlyIncome": 0.31,
+    "NumberOfTime60-89DaysPastDueNotWorse": 0.27,
+    "spending_consistency": 0.22,
+    "NumberOfOpenCreditLinesAndLoans": 0.18,
+    "regular_payment_count": 0.14,
+    "app_login_frequency": 0.11,
+    "NumberRealEstateLoansOrLines": 0.09,
+    "NumberOfDependents": 0.06
+  }
+}
