@@ -214,7 +214,7 @@ def _result_card():
     </div>
     """)
     if st.button("이 결과의 근거 보기 → XAI 분석 탭", key="scr-to-xai", use_container_width=True):
-        st.switch_page("pages/xai.py")
+        st.switch_page("views/xai.py")
 
 
 def _recent_card():
