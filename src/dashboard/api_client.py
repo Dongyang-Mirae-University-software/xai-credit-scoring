@@ -77,8 +77,8 @@ def explain(customer):
 
 def shap_summary():
     """
-    전역 중요도(평균 |SHAP|). 미션 문서의 API 목록에 없는 응답이라 경로·형식은 백엔드와 합의 전 제안이다.
-    형식: {"dataset": str, "sample_size": int, "mean_abs_shap": {feature: float}}
+    전역 중요도 (GET /explain/summary).
+    형식: {"model": str, "n_samples": int, "shap_space": str, "features": [{feature, mean_abs_shap, group}]}
     """
     return _mock("xai", "shap_summary") if config.USE_MOCK else _get("/explain/summary")
 

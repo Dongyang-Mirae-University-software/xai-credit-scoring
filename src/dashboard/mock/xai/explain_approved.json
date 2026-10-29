@@ -1,6 +1,9 @@
 {
   "customer_id": "C001234",
   "approval_status": "APPROVED",
+  "default_probability": 0.12,
+  "base_value": -2.64,
+  "shap_space": "log-odds",
   "rejection_reasons": [],
   "shap_values": {
     "age": 0.25,
@@ -19,6 +22,6 @@
     "NumberOfTime60-89DaysPastDueNotWorse": 0.0,
     "NumberOfTime30-59DaysPastDueNotWorse": -0.2924
   },
-  "base_value": -2.64,
-  "total_rejection_factors": 0
+  "total_rejection_factors": 0,
+  "disclaimer": "본 시스템은 교육 목적으로 개발되었으며, 실제 금융 의사결정에 사용할 수 없습니다."
 }

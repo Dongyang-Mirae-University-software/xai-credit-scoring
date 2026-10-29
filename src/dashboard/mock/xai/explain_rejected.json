@@ -1,6 +1,9 @@
 {
   "customer_id": "C005678",
   "approval_status": "REJECTED",
+  "default_probability": 0.58,
+  "base_value": -2.64,
+  "shap_space": "log-odds",
   "rejection_reasons": [
     {
       "rank": 1,
@@ -65,6 +68,6 @@
     "NumberOfDependents": -0.03,
     "age": -0.2772
   },
-  "base_value": -2.64,
-  "total_rejection_factors": 5
+  "total_rejection_factors": 5,
+  "disclaimer": "본 시스템은 교육 목적으로 개발되었으며, 실제 금융 의사결정에 사용할 수 없습니다."
 }
