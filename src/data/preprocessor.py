@@ -112,8 +112,10 @@ def preprocess(df, target_col='SeriousDlqin2yrs', drop_cols=None, fit_index=None
                     if col not in exclude_scaling]
 
     # 스케일러는 fit 행으로 학습하고, 모든 행에 같은 기준을 적용한다
+    # (결측 대체·DebtRatio 환산이 끝난 표에서 fit 행을 다시 뽑아야 전처리 전 값이 섞이지 않는다)
     scaler = StandardScaler()
-    scaler.fit(fit_df[feature_cols])
+    fit_features = df_processed[feature_cols] if fit_index is None else df_processed.loc[fit_index, feature_cols]
+    scaler.fit(fit_features)
     df_processed[feature_cols] = scaler.transform(df_processed[feature_cols])
 
     logger.info(f"  {len(feature_cols)}개 변수 스케일링 완료")
