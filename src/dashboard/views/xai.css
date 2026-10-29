@@ -277,62 +277,65 @@
 .xai-wf-val.down { color: var(--xai-blue); }
 
 /* ---- 거절 사유 Top 5 ---- */
+/* 카드 5개 × 다섯 줄을 하나의 격자로: 같은 줄은 카드끼리 같은 높이에 온다.
+   섹션이 커지면 남는 높이는 '이름' 줄과 '기여도' 줄(1fr)이 나눠 가지고, 내용은 그 줄의 아래에 붙는다.
+   → [순위·위험도] … [이름 + 현재·기준] … [기여도 + 문장] 세 묶음으로 카드가 꽉 찬다 */
 .xai-reasons {
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
-  gap: 12px;
+  grid-template-rows: auto 1fr auto 1fr auto;
+  column-gap: 12px;
+  row-gap: 8px;
 }
 .xai-reason {
+  grid-row: span 5;
+  display: grid;
+  grid-template-rows: subgrid;
   background: #f9fafb;
   border: 1px solid var(--xai-border);
   border-radius: 10px;
-  padding: 10px 12px;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
+  padding: 14px 16px;
 }
 .xai-reason-top {
   display: flex;
   justify-content: space-between;
+  align-items: center;
 }
+/* 글자 크기는 화면 높이에 따라 조금씩 커진다 (작은 화면 최소값 ~ 큰 화면 최대값) */
 .xai-reason-feat {
+  align-self: end;
   font-family: var(--font-sans);
-  font-size: 13.5px;
+  font-size: clamp(14px, 1.6vh, 17px);
   font-weight: 700;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
-/* 현재·기준 값과 기여도를 한 줄에 (세로 공간 절약) */
-.xai-reason-mid {
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  flex-wrap: wrap;
-  column-gap: 8px;
-}
 .xai-reason-values {
+  display: flex;
+  gap: 10px;
   font-family: var(--font-mono);
-  font-size: 12px;
+  font-size: clamp(12.5px, 1.35vh, 14.5px);
   white-space: nowrap;
 }
-.xai-reason-muted {
-  color: var(--xai-muted);
+.xai-reason-lbl {
   font-family: var(--font-sans);
-  margin-right: 2px;
+  margin-right: 3px;
 }
-.xai-reason-values .xai-reason-muted:not(:first-child) { margin-left: 8px; }
+.xai-reason-cur { color: #111827; font-weight: 700; }
+.xai-reason-ref { color: var(--xai-muted); }
 .xai-reason-phi {
+  align-self: end;
   font-family: var(--font-mono);
-  font-size: 20px;
+  font-size: clamp(24px, 2.8vh, 32px);
   font-weight: 700;
   line-height: 1.1;
 }
 .xai-reason-phi span {
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 400;
   color: var(--xai-muted);
-  margin-left: 4px;
+  margin-left: 6px;
 }
 .xai-reason-phi.risk-high { color: var(--xai-high); }
 .xai-reason-phi.risk-mid { color: var(--xai-mid); }
@@ -340,6 +343,6 @@
 .xai-reason-text {
   word-break: keep-all;
   color: var(--xai-label);
-  font-size: 12px;
-  line-height: 1.45;
+  font-size: clamp(12.5px, 1.4vh, 15px);
+  line-height: 1.5;
 }
