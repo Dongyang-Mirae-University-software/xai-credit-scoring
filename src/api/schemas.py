@@ -28,16 +28,22 @@ def _with_example(data):
 CUSTOMER_EXAMPLE = {
     "customer_id": "C-10482",
     "RevolvingUtilizationOfUnsecuredLines": 0.48, "age": 45,
-    "NumberOfTime30-59DaysPastDueNotWorse": 1, "DebtRatio": 0.32, "MonthlyIncome": 4200000,
+    "NumberOfTime30-59DaysPastDueNotWorse": 1, "DebtRatio": 32, "MonthlyIncome": 4200000,
     "NumberOfOpenCreditLinesAndLoans": 6, "NumberOfTimes90DaysLate": 0,
     "NumberRealEstateLoansOrLines": 1, "NumberOfTime60-89DaysPastDueNotWorse": 0, "NumberOfDependents": 2,
-    "telecom_payment_rate": 0.90, "utility_payment_rate": 0.93, "spending_consistency": 75.0,
+    "telecom_payment_rate": 90, "utility_payment_rate": 93, "spending_consistency": 75.0,
     "regular_payment_count": 5, "app_login_frequency": 22,
 }
 
 
+# 화면·API 는 % 로 받고 모델은 0~1 을 쓰는 칸 (이슈 #70)
+PERCENT_FIELDS = ('DebtRatio', 'telecom_payment_rate', 'utility_payment_rate')
+
+
 class CustomerInput(BaseModel):
-    """고객 1명의 입력 (전통 10개 + 대안 5개). 성별·연령대·민감정보는 받지 않는다."""
+    """고객 1명의 입력 (전통 10개 + 대안 5개). 성별·연령대·민감정보는 받지 않는다.
+
+    단위는 docs/column_spec.md §9 (이슈 #70): 부채비율·납부율은 % 로 받고 서버가 ÷100 해서 모델에 넣는다."""
     model_config = ConfigDict(populate_by_name=True, json_schema_extra={'examples': [CUSTOMER_EXAMPLE]})
 
     customer_id: str = Field('C000000', description='고객 번호 (표시용)')
@@ -45,23 +51,26 @@ class CustomerInput(BaseModel):
     RevolvingUtilizationOfUnsecuredLines: float = Field(..., ge=0, description='신용한도 소진율 (0~1, 초과 가능)')
     age: int = Field(..., ge=18, le=120, description='나이')
     past_due_30_59: int = Field(0, ge=0, alias='NumberOfTime30-59DaysPastDueNotWorse', description='최근 2년 30~59일 연체 횟수')
-    DebtRatio: float = Field(..., ge=0, description='부채비율')
-    MonthlyIncome: float = Field(..., ge=0, description='월소득')
+    DebtRatio: float = Field(..., ge=0, description='부채비율 % (월 대출 상환액 ÷ 월소득 × 100). 서버가 ÷100')
+    MonthlyIncome: float = Field(..., ge=0, description='월소득 (원)')
     NumberOfOpenCreditLinesAndLoans: int = Field(0, ge=0, description='보유 대출·신용 한도 개수')
     NumberOfTimes90DaysLate: int = Field(0, ge=0, description='90일 이상 연체 횟수')
     NumberRealEstateLoansOrLines: int = Field(0, ge=0, description='부동산 담보대출 개수')
     past_due_60_89: int = Field(0, ge=0, alias='NumberOfTime60-89DaysPastDueNotWorse', description='최근 2년 60~89일 연체 횟수')
-    NumberOfDependents: float = Field(0, ge=0, description='부양가족 수')
+    NumberOfDependents: float = Field(0, ge=0, description='부양가족 수 (선택, 비우면 0 = 학습 데이터 중앙값)')
     # 대안 데이터 (시뮬레이터 5개)
-    telecom_payment_rate: float = Field(..., ge=0, le=1, description='통신비 정상납부율')
-    utility_payment_rate: float = Field(..., ge=0, le=1, description='공과금 납부율')
+    telecom_payment_rate: float = Field(..., ge=0, le=100, description='통신비 정상납부율 % (0~100). 서버가 ÷100')
+    utility_payment_rate: float = Field(..., ge=0, le=100, description='공과금 납부율 % (0~100). 서버가 ÷100')
     spending_consistency: float = Field(..., ge=0, le=100, description='소비 일관성 점수')
     regular_payment_count: int = Field(0, ge=0, le=20, description='정기결제 건수 (월)')
     app_login_frequency: int = Field(0, ge=0, le=30, description='앱 로그인 빈도 (월)')
 
     def features(self):
-        """모델 입력 칸 이름(alias 포함) → 값. customer_id 제외."""
-        return self.model_dump(by_alias=True, exclude={'customer_id'})
+        """모델 입력 칸 이름(alias 포함) → 모델 단위 값. customer_id 제외, % 입력은 ÷100."""
+        values = self.model_dump(by_alias=True, exclude={'customer_id'})
+        for key in PERCENT_FIELDS:
+            values[key] = values[key] / 100
+        return values
 
 
 PREDICT_EXAMPLE = {
