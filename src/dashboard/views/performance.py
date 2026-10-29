@@ -206,16 +206,17 @@ render_page_header("모델 성능", "ROC · PR 곡선과 혼동행렬, AUC · KS
 try:
     metrics = api_client.metrics()
 except Exception as e:
+    metrics = None
     st.error(f"/metrics 호출 실패: {e}")
-    st.stop()
 
-_metric_cards(metrics)
-st.html(f'<div class="pf-row3">{_roc_card(metrics)}{_pr_card(metrics)}{_confusion_card(metrics)}</div>')
+if metrics is not None:  # 실패해도 st.stop() 하지 않아야 하단 면책 조항(app.py)이 그려진다
+    _metric_cards(metrics)
+    st.html(f'<div class="pf-row3">{_roc_card(metrics)}{_pr_card(metrics)}{_confusion_card(metrics)}</div>')
 
-try:
-    runs_data = api_client.model_comparison()
-    stage = api_client.health().get("model_stage")
-    grid = _model_grid_card(runs_data, metrics, stage)
-except Exception as e:
-    grid = f'<div class="pf-card"><div class="pf-title">모델 격자 비교</div><div class="pf-empty">불러오지 못했습니다: {escape(str(e))}</div></div>'
-st.html(f'<div class="pf-row2">{grid}{_thin_filer_card(metrics)}</div>')
+    try:
+        runs_data = api_client.model_comparison()
+        stage = api_client.health().get("model_stage")
+        grid = _model_grid_card(runs_data, metrics, stage)
+    except Exception as e:
+        grid = f'<div class="pf-card"><div class="pf-title">모델 격자 비교</div><div class="pf-empty">불러오지 못했습니다: {escape(str(e))}</div></div>'
+    st.html(f'<div class="pf-row2">{grid}{_thin_filer_card(metrics)}</div>')

@@ -97,15 +97,28 @@ section[data-testid="stSidebar"] [class*="st-key-nav-active"] a[data-testid="stP
   color: #dbe4ff;
 }
 
-/* 하단 상태 카드: 사이드바(stSidebarContent) 기준으로 바닥에 고정 */
-section[data-testid="stSidebar"] .stElementContainer:has(.sb-status) {
+/* 하단 묶음(면책 조항 + 상태 카드): 사이드바(stSidebarContent) 기준으로 바닥에 고정 */
+section[data-testid="stSidebar"] .stElementContainer:has(.sb-bottom) {
   position: static;
 }
-.sb-status {
+.sb-bottom {
   position: absolute;
   left: 17px;
   right: 20px;
   bottom: 23px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.sb-disclaimer {
+  color: var(--sb-muted);
+  font-family: 'Noto Sans KR', sans-serif;
+  font-size: 11px;
+  line-height: 1.5;
+  word-break: keep-all;
+  padding: 0 2px;
+}
+.sb-status {
   background: var(--sb-card);
   border-radius: 9px;
   padding: 12px 15px 13px;

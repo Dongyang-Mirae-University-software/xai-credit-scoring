@@ -1,6 +1,9 @@
 """대시보드 설정값. 환경 변수로 덮어쓸 수 있다."""
 import os
 
+# 미션 필수 면책 조항 (원본 과제 문구 그대로, API 응답의 disclaimer 필드와 같은 문장)
+DISCLAIMER = "본 시스템은 교육 목적으로 개발되었으며, 실제 금융 의사결정에 사용할 수 없습니다."
+
 API_BASE_URL = os.getenv("API_BASE_URL", "http://localhost:8000")
 HEALTH_TIMEOUT = float(os.getenv("HEALTH_TIMEOUT", "2"))
 HEALTH_CACHE_TTL = int(os.getenv("HEALTH_CACHE_TTL", "10"))

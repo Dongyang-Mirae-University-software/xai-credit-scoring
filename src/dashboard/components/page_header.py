@@ -5,9 +5,9 @@ from pathlib import Path
 import streamlit as st
 
 import api_client
+from config import DISCLAIMER
 
 CSS_PATH = Path(__file__).with_suffix(".css")
-DISCLAIMER = "본 시스템은 교육 목적으로 개발되었으며, 실제 금융 의사결정에 사용할 수 없습니다."
 
 
 def render_page_header(title, subtitle):

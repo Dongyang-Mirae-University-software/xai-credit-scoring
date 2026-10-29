@@ -43,11 +43,12 @@
   padding: 24px 32px 24px;
   max-width: none;
   min-height: 100vh;
+  flex-shrink: 0;  /* 부모(stMain)가 flex라, 그대로 두면 긴 페이지에서 100vh로 눌려 하단 여백이 사라진다 */
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
 }
 [data-testid="stMainBlockContainer"] > [data-testid="stVerticalBlock"] {
-  flex: 1 1 auto;
+  flex: 1 0 auto;  /* 남는 높이는 채우되 내용보다 작아지지는 않게 */
   gap: 12px;  /* 블록 사이 간격: 기본 16px → 12px */
 }
