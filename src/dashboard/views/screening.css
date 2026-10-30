@@ -17,14 +17,13 @@
   --scr-mid-bg: #fef3c7;
   --scr-high: #dc2626;
   --scr-high-bg: #fee2e2;
-  --scr-code-bg: #111827;
 }
 
 .scr-badge {
   display: inline-block;
   padding: 4px 12px;
   border-radius: 999px;
-  font-size: 12px;
+  font-size: 13.5px;
   font-weight: 500;
   white-space: nowrap;
 }
@@ -62,7 +61,7 @@
   padding: 24px;
 }
 .st-key-scr-form {
-  gap: 10px;
+  gap: 14px;
 }
 .st-key-scr-result,
 .st-key-scr-recent {
@@ -75,16 +74,16 @@
   align-items: center;
 }
 .scr-card-title {
-  font-size: 15px;
+  font-size: 17px;
   font-weight: 700;
 }
 .scr-card-caption {
   color: var(--scr-muted);
-  font-size: 12px;
+  font-size: 13.5px;
 }
 .scr-empty {
   color: var(--scr-muted);
-  font-size: 13px;
+  font-size: 14.5px;
   padding: 12px 0;
 }
 
@@ -96,16 +95,12 @@
   margin-top: 6px;
 }
 .scr-section-title {
-  font-size: 15px;
+  font-size: 17px;
   font-weight: 700;
-}
-.scr-section-caption {
-  color: var(--scr-muted);
-  font-size: 12px;
 }
 .st-key-scr-form [data-testid="stWidgetLabel"] p {
   color: var(--scr-label);
-  font-size: 13px;
+  font-size: 14.5px;
 }
 /* 입력칸 테두리는 가장 바깥 요소 하나에만 그린다.
    number input은 바깥 컨테이너(overflow:hidden) 안에 테두리 있는 박스가 또 있어서,
@@ -135,9 +130,9 @@
 }
 .st-key-scr-form input {
   font-family: var(--font-mono);
-  font-size: 15px;
+  font-size: 17px;
   color: #111827;
-  padding: 10px 12px;
+  padding: 12px 14px;
 }
 .st-key-scr-form [data-testid="stNumberInputStepUp"],
 .st-key-scr-form [data-testid="stNumberInputStepDown"] {
@@ -149,21 +144,8 @@
   color: var(--scr-blue-text);
   border-radius: 6px;
   padding: 10px 14px;
-  font-size: 12.5px;
+  font-size: 14px;
   margin: 6px 0;
-}
-.scr-code {
-  background: var(--scr-code-bg);
-  color: #e5e7eb;
-  border-radius: 8px;
-  padding: 16px 18px;
-  margin: 8px 0 0;
-  font-family: var(--font-mono);
-  font-size: 12.5px;
-  line-height: 1.6;
-  max-height: 300px;
-  overflow: auto;
-  white-space: pre;
 }
 
 /* ---- 버튼 ---- */
@@ -233,7 +215,7 @@
   gap: 12px;
 }
 .scr-decision-badge {
-  font-size: 24px;
+  font-size: 26px;
   font-weight: 700;
   padding: 8px 18px;
   border-radius: 8px;
@@ -245,12 +227,6 @@
 .scr-decision-badge.high {
   background: var(--scr-high-bg);
   color: var(--scr-high);
-}
-.scr-decision-raw {
-  font-family: var(--font-mono);
-  font-size: 11px;
-  color: var(--scr-label);
-  line-height: 1.5;
 }
 .scr-score {
   display: flex;
@@ -266,11 +242,11 @@
 }
 .scr-score-max {
   font-family: var(--font-mono);
-  font-size: 15px;
+  font-size: 17px;
   color: var(--scr-label);
 }
 .scr-score-label {
-  font-size: 12px;
+  font-size: 13.5px;
   color: var(--scr-muted);
 }
 .scr-bar {
@@ -297,7 +273,7 @@
   display: flex;
   justify-content: space-between;
   font-family: var(--font-mono);
-  font-size: 10px;
+  font-size: 11.5px;
   color: var(--scr-muted);
   margin-top: 6px;
 }
@@ -313,13 +289,13 @@
   padding: 12px 14px;
 }
 .scr-tile-label {
-  font-size: 11px;
+  font-size: 12.5px;
   color: var(--scr-muted);
 }
 .scr-tile-value {
   font-family: var(--font-mono);
   white-space: nowrap;
-  font-size: 18px;
+  font-size: 20px;
   font-weight: 700;
   margin-top: 4px;
 }
@@ -332,24 +308,11 @@
 .scr-tile-value.risk-high {
   color: var(--scr-high);
 }
-.scr-legend {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  border-top: 1px solid var(--scr-border);
-  margin-top: 16px;
-  padding-top: 16px;
-}
-.scr-legend-label {
-  font-size: 12px;
-  color: var(--scr-label);
-  margin-right: 2px;
-}
 .scr-pill {
   display: inline-block;
   padding: 3px 10px;
   border-radius: 999px;
-  font-size: 12px;
+  font-size: 13.5px;
   font-weight: 500;
   white-space: nowrap;
 }
@@ -374,7 +337,7 @@
   gap: 10px;
   padding: 11px 0;
   border-bottom: 1px solid var(--scr-border);
-  font-size: 13px;
+  font-size: 14.5px;
 }
 .scr-recent-row:last-child {
   border-bottom: none;
@@ -389,7 +352,7 @@
 }
 .scr-recent-grade {
   color: var(--scr-label);
-  font-size: 12px;
+  font-size: 13.5px;
 }
 .scr-recent-row .scr-pill {
   justify-self: end;
@@ -402,7 +365,7 @@
   color: var(--scr-blue-text);
   border-radius: 999px;
   padding: 4px 12px;
-  font-size: 12px;
+  font-size: 13.5px;
   font-weight: 500;
   white-space: nowrap;
 }

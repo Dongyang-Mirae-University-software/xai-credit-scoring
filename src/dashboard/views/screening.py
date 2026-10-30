@@ -1,5 +1,4 @@
 """고객 심사 페이지"""
-import json
 import time
 from html import escape
 from pathlib import Path
@@ -12,6 +11,7 @@ from components.api_error import api_error_html
 from components.page_header import render_page_header
 
 CSS_PATH = Path(__file__).with_suffix(".css")
+FIELDS_PER_ROW = 4  # 한 줄 입력칸 수 (칸이 넓어야 월소득 같은 긴 숫자가 잘리지 않는다)
 RECENT_LIMIT = 5
 
 # (요청 키, 라벨, 기본값, 최소, 최대, 증감 단위) — 요청 키·단위는 실제 API(src/api/schemas.py CustomerInput)와 동일
@@ -30,7 +30,7 @@ TRADITIONAL_FIELDS = [
     ("NumberRealEstateLoansOrLines", "부동산 대출 건수", 1, 0, None, 1),
 ]
 ALTERNATIVE_FIELDS = [
-    ("telecom_payment_rate", "통신비 정상납부율 (%)", 90.0, 0.0, 100.0, 1.0),
+    ("telecom_payment_rate", "통신비 납부율 (%)", 90.0, 0.0, 100.0, 1.0),
     ("utility_payment_rate", "공과금 납부율 (%)", 93.0, 0.0, 100.0, 1.0),
     ("spending_consistency", "소비 일관성", 75.0, 0.0, 100.0, 1.0),
     ("regular_payment_count", "정기결제 건수", 5, 0, 20, 1),
@@ -94,15 +94,14 @@ def _build_payload():
 # ---------------------------------------------------------------------------
 # 화면 조각
 # ---------------------------------------------------------------------------
-def _section_title(title, caption):
-    st.html(f'<div class="scr-section"><span class="scr-section-title">{title}</span>'
-            f'<span class="scr-section-caption">{caption}</span></div>')
+def _section_title(title):
+    st.html(f'<div class="scr-section"><span class="scr-section-title">{title}</span></div>')
 
 
 def _field_grid(fields):
-    for row_start in range(0, len(fields), 5):
-        cols = st.columns(5, gap="small")
-        for col, (field, label, default, min_v, max_v, step) in zip(cols, fields[row_start:row_start + 5]):
+    for row_start in range(0, len(fields), FIELDS_PER_ROW):
+        cols = st.columns(FIELDS_PER_ROW, gap="small")
+        for col, (field, label, default, min_v, max_v, step) in zip(cols, fields[row_start:row_start + FIELDS_PER_ROW]):
             with col:
                 if field == "MonthlyIncome":
                     st.text_input(label, key=_key(field), on_change=_reformat_income)
@@ -112,17 +111,6 @@ def _field_grid(fields):
                         format=("%.2f" if step < 1 else "%.0f") if isinstance(default, float) else None,
                         key=_key(field),
                     )
-
-
-def _request_preview(payload):
-    body = escape(json.dumps(payload, ensure_ascii=False, indent=2))
-    st.html(f"""
-    <div class="scr-section">
-      <span class="scr-section-title">요청 미리보기</span>
-      <span class="scr-section-caption">POST {escape(config.API_BASE_URL)}/predict · 대시보드는 이 JSON만 보내고 모델은 만지지 않음</span>
-    </div>
-    <pre class="scr-code">{body}</pre>
-    """)
 
 
 def _run_predict(payload):
@@ -188,12 +176,11 @@ def _result_card():
     </div>
     <div class="scr-decision">
       <span class="scr-decision-badge {'low' if approved else 'high'}">{'승인' if approved else '거절'}</span>
-      <span class="scr-decision-raw">approval_status<br>{escape(result["approval_status"])}</span>
     </div>
     <div class="scr-score">
       <span class="scr-score-value">{score}</span>
       <span class="scr-score-max">/ 1000</span>
-      <span class="scr-score-label">신용점수 (credit_score)</span>
+      <span class="scr-score-label">신용점수</span>
     </div>
     <div class="scr-bar"><div class="scr-bar-fill {risk}" style="width:{max(0, min(score, 1000)) / 10}%"></div></div>
     <div class="scr-scale"><span>0</span>{scale_labels}</div>
@@ -202,17 +189,11 @@ def _result_card():
         <div class="scr-tile-value">{result["default_probability"] * 100:.1f}%</div></div>
       <div class="scr-tile"><div class="scr-tile-label">리스크 등급</div>
         <div class="scr-tile-value risk-{risk}">{escape(grade)}</div></div>
-      <div class="scr-tile"><div class="scr-tile-label">승인 임계값</div>
-        <div class="scr-tile-value">p &lt; {result.get("approval_threshold", config.APPROVAL_THRESHOLD):.2f}</div></div>
-    </div>
-    <div class="scr-legend">
-      <span class="scr-legend-label">등급 색상</span>
-      <span class="scr-pill low">A·B 저위험</span>
-      <span class="scr-pill mid">C 중위험</span>
-      <span class="scr-pill high">D·E 고위험</span>
+      <div class="scr-tile"><div class="scr-tile-label">승인 기준</div>
+        <div class="scr-tile-value">부도 &lt; {result.get("approval_threshold", config.APPROVAL_THRESHOLD):.0%}</div></div>
     </div>
     """)
-    if st.button("이 결과의 근거 보기 → XAI 분석 탭", key="scr-to-xai", use_container_width=True):
+    if st.button("이 결과의 근거 보기 →", key="scr-to-xai", use_container_width=True):
         st.session_state.xai_customer = result["customer_id"]
         st.switch_page("views/xai.py")
 
@@ -230,7 +211,6 @@ def _recent_card():
     st.html(f"""
     <div class="scr-card-head">
       <span class="scr-card-title">최근 심사</span>
-      <span class="scr-card-caption">세션 기준 {RECENT_LIMIT}건</span>
     </div>
     {rows}
     """)
@@ -241,21 +221,20 @@ def _recent_card():
 # ---------------------------------------------------------------------------
 st.html(f"<style>{CSS_PATH.read_text(encoding='utf-8')}</style>")
 _init_state()
-render_page_header("고객 심사", "고객 정보를 입력하면 FastAPI /predict 를 호출해 승인 여부·신용점수·리스크 등급을 반환합니다")
+render_page_header("고객 심사", "고객 정보를 입력하면 승인 여부와 신용점수, 리스크 등급을 알려 줍니다")
 
 left, right = st.columns([1.45, 1], gap="medium")
 
 with left:
     with st.container(key="scr-form"):
-        _section_title("전통 신용 데이터", "Give Me Some Credit 10개 변수")
+        _section_title("전통 신용 데이터")
         _field_grid(TRADITIONAL_FIELDS)
-        _section_title("대안 데이터", "시뮬레이터 생성 5개 변수 · 씬파일러 판정 근거")
+        _section_title("대안 데이터")
         _field_grid(ALTERNATIVE_FIELDS)
         st.html('<div class="scr-notice">ⓘ 민감정보(인종·종교·장애 여부)는 입력받지 않습니다. '
                 '성별·연령대는 공정성 검증에만 사용되며 예측 피처에서 제외됩니다.</div>')
 
         payload = _build_payload()
-        _request_preview(payload)
 
         thin_col, reset_col, submit_col = st.columns([3.2, 1, 1.3], gap="small", vertical_alignment="center")
         thin_slot = thin_col.empty()  # 심사 결과가 나온 뒤 채운다 (아래)
