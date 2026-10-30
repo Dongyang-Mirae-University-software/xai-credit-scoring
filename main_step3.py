@@ -131,16 +131,22 @@ def main():
     raw_path = Path(args.raw)
     if raw_path.exists() and SPLIT_ID in sample.columns:
         raw = pd.read_csv(raw_path)
-        # 전처리(#54)와 같게: 월소득이 비어 있는 행의 DebtRatio는 금액이므로 월소득 중앙값으로 나눠 비율로 맞춘다
+        raw_id = RAW_ID if RAW_ID in raw.columns else (SPLIT_ID if SPLIT_ID in raw.columns else None)
+        train_ids = train[SPLIT_ID] if SPLIT_ID in train.columns else []
+        # 전처리(#54, #81)와 같게: 월소득이 비어 있는 행의 DebtRatio는 금액이므로
+        # 학습(Train) 행의 월소득 중앙값으로 나눠 비율로 맞춘다 (학습 행을 못 찾으면 전체 중앙값)
         if 'MonthlyIncome' in raw.columns and 'DebtRatio' in raw.columns:
             income_missing = raw['MonthlyIncome'].isna()
-            raw.loc[income_missing, 'DebtRatio'] = raw.loc[income_missing, 'DebtRatio'] / raw['MonthlyIncome'].median()
-        raw_id = RAW_ID if RAW_ID in raw.columns else (SPLIT_ID if SPLIT_ID in raw.columns else None)
+            is_train = raw[raw_id].isin(train_ids) if raw_id is not None else pd.Series(False, index=raw.index)
+            income_median = raw.loc[is_train, 'MonthlyIncome'].median() if is_train.any() else raw['MonthlyIncome'].median()
+            raw.loc[income_missing, 'DebtRatio'] = raw.loc[income_missing, 'DebtRatio'] / income_median
+            logger.info(f"DebtRatio 보정: 월소득 결측 {income_missing.sum():,}행 ÷ 월소득 중앙값 {income_median:,.0f}")
         if raw_id is not None:
             raw = raw.set_index(raw_id)
             cols = [c for c in FINANCIAL_COLS + ALTERNATIVE_COLS if c in raw.columns]
-            train_ids = train[SPLIT_ID] if SPLIT_ID in train.columns else []
-            refs = reference_values(raw.loc[raw.index.isin(train_ids), cols + ['age']].to_dict('records'), cols)
+            # age는 FINANCIAL_COLS에도 있어서, 연령대 구분용으로 한 번만 넣는다
+            ref_cols = cols if 'age' in cols else cols + ['age']
+            refs = reference_values(raw.loc[raw.index.isin(train_ids), ref_cols].to_dict('records'), cols)
             perf.save_json(refs, out / 'reference_values.json')  # API POST /explain 의 '동일 연령대 평균'
             customer = sample.iloc[idx][SPLIT_ID]
             if customer in raw.index:
