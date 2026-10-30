@@ -7,31 +7,69 @@
       "통합모델"
     ],
     "group_means": {
-      "전통모델": 0.72,
-      "대안모델": 0.68,
-      "통합모델": 0.79
+      "전통모델": 0.842,
+      "대안모델": 0.771,
+      "통합모델": 0.861
     },
-    "f_statistic": 12.45,
-    "p_value": 0.00023,
-    "effect_size_eta_squared": 0.34,
+    "group_sizes": {
+      "전통모델": 20,
+      "대안모델": 20,
+      "통합모델": 20
+    },
+    "group_std": {
+      "전통모델": 0.003,
+      "대안모델": 0.005,
+      "통합모델": 0.003
+    },
+    "group_ci95": {
+      "전통모델": [
+        0.841,
+        0.843
+      ],
+      "대안모델": [
+        0.769,
+        0.773
+      ],
+      "통합모델": [
+        0.86,
+        0.862
+      ]
+    },
+    "f_statistic": 148.2,
+    "p_value": 0.0001,
+    "effect_size_eta_squared": 0.84,
+    "effect_size_interpretation": "large",
+    "alpha": 0.05,
     "is_significant": true,
     "post_hoc_tukey": [
       {
         "comparison": "전통 vs 대안",
-        "mean_diff": 0.04,
-        "p_adj": 0.18,
-        "significant": false
+        "mean_diff": 0.071,
+        "p_adj": 0.0001,
+        "ci95": [
+          0.068,
+          0.074
+        ],
+        "significant": true
       },
       {
         "comparison": "전통 vs 통합",
-        "mean_diff": -0.07,
-        "p_adj": 0.002,
+        "mean_diff": -0.019,
+        "p_adj": 0.0001,
+        "ci95": [
+          -0.022,
+          -0.016
+        ],
         "significant": true
       },
       {
         "comparison": "대안 vs 통합",
-        "mean_diff": -0.11,
-        "p_adj": 0.0004,
+        "mean_diff": -0.09,
+        "p_adj": 0.0001,
+        "ci95": [
+          -0.093,
+          -0.087
+        ],
         "significant": true
       }
     ]
@@ -44,33 +82,85 @@
       "LightGBM"
     ],
     "group_means": {
-      "LogisticRegression": 0.71,
-      "XGBoost": 0.79,
-      "LightGBM": 0.78
+      "LogisticRegression": 0.826,
+      "XGBoost": 0.861,
+      "LightGBM": 0.858
     },
-    "f_statistic": 8.92,
-    "p_value": 0.0012,
-    "effect_size_eta_squared": 0.28,
+    "group_sizes": {
+      "LogisticRegression": 20,
+      "XGBoost": 20,
+      "LightGBM": 20
+    },
+    "group_std": {
+      "LogisticRegression": 0.004,
+      "XGBoost": 0.003,
+      "LightGBM": 0.003
+    },
+    "group_ci95": {
+      "LogisticRegression": [
+        0.824,
+        0.828
+      ],
+      "XGBoost": [
+        0.86,
+        0.862
+      ],
+      "LightGBM": [
+        0.857,
+        0.859
+      ]
+    },
+    "f_statistic": 21.7,
+    "p_value": 0.0001,
+    "effect_size_eta_squared": 0.43,
+    "effect_size_interpretation": "large",
+    "alpha": 0.05,
     "is_significant": true,
     "post_hoc_tukey": [
       {
         "comparison": "LogisticRegression vs XGBoost",
-        "mean_diff": -0.08,
-        "p_adj": 0.001,
+        "mean_diff": -0.035,
+        "p_adj": 0.0001,
+        "ci95": [
+          -0.038,
+          -0.032
+        ],
         "significant": true
       },
       {
         "comparison": "LogisticRegression vs LightGBM",
-        "mean_diff": -0.07,
-        "p_adj": 0.004,
+        "mean_diff": -0.032,
+        "p_adj": 0.0001,
+        "ci95": [
+          -0.035,
+          -0.029
+        ],
         "significant": true
       },
       {
         "comparison": "XGBoost vs LightGBM",
-        "mean_diff": 0.01,
-        "p_adj": 0.62,
+        "mean_diff": 0.003,
+        "p_adj": 0.412,
+        "ci95": [
+          0.0,
+          0.006
+        ],
         "significant": false
       }
     ]
-  }
+  },
+  "source": {
+    "metric": "fold_k_roc_auc",
+    "runs_used": 18,
+    "test_2_data_type": "integrated"
+  },
+  "interpretation": {
+    "test_1": [
+      "귀무가설 기각 · 대안 데이터 효용 유의"
+    ],
+    "test_2": [
+      "귀무가설 기각 · 알고리즘 간 차이 유의"
+    ]
+  },
+  "disclaimer": "본 시스템은 교육 목적으로 개발되었으며, 실제 금융 의사결정에 사용할 수 없습니다."
 }
