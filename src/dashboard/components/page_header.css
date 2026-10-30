@@ -30,4 +30,5 @@
   white-space: nowrap;
 }
 .ph-badge.blue { background: #dbeafe; color: #1d4ed8; }
+.ph-badge.gray { background: #f1f5f9; color: #64748b; }
 .ph-badge.amber { background: #fef3c7; color: #b45309; }

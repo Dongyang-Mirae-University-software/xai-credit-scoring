@@ -8,6 +8,7 @@ import streamlit as st
 
 import api_client
 import config
+from components.api_error import api_error_html, render_api_error
 from components.page_header import render_page_header
 
 CSS_PATH = Path(__file__).with_suffix(".css")
@@ -108,7 +109,7 @@ def _add_sample_customers():
             for payload in api_client.sample_customers()
         }
     except Exception as e:
-        st.warning(f"예시 고객을 불러오지 못했습니다: {e}")
+        render_api_error("예시 고객 /predict", e)
         return
     # 예시 고객은 가장 오래된 쪽에 두어, 고객 심사에서 직접 심사한 고객이 목록 위에 오게 한다
     samples.update(st.session_state.customers)
@@ -187,7 +188,8 @@ def _summary_card():
     try:
         summary = api_client.shap_summary()
     except Exception as e:
-        st.error(f"전역 중요도를 불러오지 못했습니다: {e}")
+        st.html('<div class="xai-card-title">SHAP Summary · 전역 중요도</div>'
+                + api_error_html("GET /explain/summary", e, "inline"))
         return
 
     features = sorted(summary.get("features", []), key=lambda x: x["mean_abs_shap"], reverse=True)
@@ -345,7 +347,7 @@ if customer_id:
         explain = _get_explain(customer_id, force=refresh)
         _fill_chips(chip_slot, explain, st.session_state.customers[customer_id]["payload"])
     except Exception as e:
-        st.error(f"/explain 호출 실패: {e}")
+        render_api_error("POST /explain", e)
 
 left, right = st.columns([1, 0.86], gap="medium")
 with left:

@@ -8,6 +8,7 @@ import streamlit as st
 
 import api_client
 import config
+from components.api_error import api_error_html
 from components.page_header import render_page_header
 
 CSS_PATH = Path(__file__).with_suffix(".css")
@@ -56,6 +57,7 @@ def _init_state():
     st.session_state.setdefault("scr_seq", 1)
     st.session_state.setdefault("last_customer", None)
     st.session_state.setdefault("last_predict", None)
+    st.session_state.setdefault("predict_error", None)
     st.session_state.setdefault("recent_predictions", [])
     st.session_state.setdefault("customers", {})
     for field, _, default, *_ in ALL_FIELDS:
@@ -129,9 +131,10 @@ def _run_predict(payload):
         result = api_client.predict(payload)
         st.session_state.predict_latency = time.perf_counter() - started
     except Exception as e:
-        st.error(f"API 호출 실패: {e}")
+        st.session_state.predict_error = e  # 심사 결과 카드 자리에 안내한다 (_result_card)
         return
 
+    st.session_state.predict_error = None
     st.session_state.last_customer = payload
     st.session_state.last_predict = result
     st.session_state.customers[result["customer_id"]] = {"payload": payload, "result": result}
@@ -159,6 +162,10 @@ def _status_pill(status):
 
 def _result_card():
     result = st.session_state.last_predict
+    if st.session_state.predict_error is not None:
+        st.html('<div class="scr-card-head"><span class="scr-card-title">심사 결과</span></div>'
+                + api_error_html("POST /predict", st.session_state.predict_error, "inline"))
+        return
     if result is None:
         st.html("""
         <div class="scr-card-head"><span class="scr-card-title">심사 결과</span></div>

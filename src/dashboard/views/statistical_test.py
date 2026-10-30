@@ -5,6 +5,7 @@ from pathlib import Path
 import streamlit as st
 
 import api_client
+from components.api_error import render_api_error
 from components.page_header import render_page_header
 
 CSS_PATH = Path(__file__).with_suffix(".css")
@@ -192,7 +193,7 @@ try:
     anova = api_client.anova()
 except Exception as e:
     anova = None
-    st.error(f"/anova 호출 실패: {e}")
+    render_api_error("GET /anova", e, "page")
 
 if anova is not None:
     st.html('<div class="st-row2 st-anova">'

@@ -14,9 +14,9 @@ def render_page_header(title, subtitle):
     try:
         model_version = api_client.health()["model_version"]
         auc = api_client.metrics()["auc"]
-        model_badge = f"모델 {escape(model_version)} · AUC {auc:.3f}"
+        model_badge, badge_cls = f"모델 {escape(model_version)} · AUC {auc:.3f}", "blue"
     except Exception:
-        model_badge = "모델 정보를 불러오지 못했습니다"
+        model_badge, badge_cls = "모델 정보 없음 · API 연결 확인", "gray"
 
     st.html(f"""
     <style>{CSS_PATH.read_text(encoding='utf-8')}</style>
@@ -26,7 +26,7 @@ def render_page_header(title, subtitle):
         <div class="ph-subtitle">{escape(subtitle)}</div>
       </div>
       <div class="ph-badges">
-        <span class="ph-badge blue">{model_badge}</span>
+        <span class="ph-badge {badge_cls}">{model_badge}</span>
         <span class="ph-badge amber" title="{DISCLAIMER}">교육용 · 실제 금융 의사결정 불가</span>
       </div>
     </div>

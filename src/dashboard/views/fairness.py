@@ -5,6 +5,7 @@ from pathlib import Path
 import streamlit as st
 
 import api_client
+from components.api_error import api_error_html, render_api_error
 from components.page_header import render_page_header
 
 CSS_PATH = Path(__file__).with_suffix(".css")
@@ -223,7 +224,7 @@ try:
     fair = api_client.fairness()
 except Exception as e:
     fair = None
-    st.error(f"/fairness 호출 실패: {e}")
+    render_api_error("GET /fairness", e, "page")
 
 if fair is not None:
     criteria = {**DEFAULT_CRITERIA, **fair.get("criteria", {})}
@@ -237,6 +238,6 @@ if fair is not None:
         mitigation = _mitigation_card(api_client.fairness_mitigation(), targets)
     except Exception as e:
         mitigation = (f'<div class="fa-card"><div class="fa-title">Bias Mitigation 전 / 후 비교</div>'
-                      f'<div class="fa-empty">불러오지 못했습니다: {escape(str(e))}</div></div>')
+                      f'{api_error_html("GET /fairness/mitigation", e, "inline")}</div>')
     st.html(f'<div class="fa-row2">{_approval_card(fair, criteria)}{mitigation}</div>')
     st.html(_protected_card(fair))
