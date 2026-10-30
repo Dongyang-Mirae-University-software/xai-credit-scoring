@@ -8,7 +8,8 @@ import pytest
 from src.fairness import metrics as fm
 from src.fairness import mitigation as mt
 
-MOCK_DIR = Path(__file__).resolve().parent.parent / 'src' / 'dashboard' / 'mock' / 'fairness'
+# 대시보드 mock 은 없어졌고(#48), 같은 형식의 API 응답 예시를 기준으로 비교한다
+MOCK_DIR = Path(__file__).resolve().parent.parent / 'src' / 'api' / 'examples'
 
 
 def test_normalize_gender_follows_column_spec():
