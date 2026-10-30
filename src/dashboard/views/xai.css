@@ -60,23 +60,23 @@
   margin-bottom: 10px;
 }
 .xai-card-title {
-  font-size: 15px;
+  font-size: 17px;
   font-weight: 700;
 }
 .xai-card-caption {
   word-break: keep-all;
   color: var(--xai-muted);
-  font-size: 11.5px;
+  font-size: 13px;
   margin-top: 2px;
 }
 .xai-empty,
 .xai-muted {
   color: var(--xai-muted);
-  font-size: 13px;
+  font-size: 14.5px;
   padding: 8px 0;
 }
 .xai-label {
-  font-size: 14px;
+  font-size: 15.5px;
   font-weight: 700;
   white-space: nowrap;
 }
@@ -94,14 +94,14 @@
   color: var(--xai-label);
   border-radius: 999px;
   padding: 4px 12px;
-  font-size: 12px;
+  font-size: 13.5px;
   white-space: nowrap;
 }
 .xai-pill {
   display: inline-block;
   border-radius: 999px;
   padding: 2px 9px;
-  font-size: 12px;
+  font-size: 13.5px;
   font-weight: 500;
   white-space: nowrap;
 }
@@ -112,7 +112,7 @@
 .xai-legend {
   border-radius: 999px;
   padding: 4px 10px;
-  font-size: 12px;
+  font-size: 13.5px;
   white-space: nowrap;
 }
 .xai-legend.trad { background: var(--xai-chip-bg); color: var(--xai-trad); }
@@ -126,7 +126,7 @@
   border: 1px solid #e2e8f0 !important;
   color: #000000;
   font-family: var(--font-mono);
-  font-size: 14px;
+  font-size: 15.5px;
 }
 .st-key-xai-toolbar [data-baseweb="select"] > div {
   cursor: pointer;
@@ -175,7 +175,7 @@
 [data-testid="stSelectboxVirtualDropdown"] li[role="option"] {
   color: #000000;
   font-family: var(--font-mono);
-  font-size: 14px;
+  font-size: 15.5px;
 }
 /* 목록 항목 호버·선택: 셀렉트박스 호버와 같은 색 */
 [data-testid="stSelectboxVirtualDropdown"] li[role="option"]:hover,
@@ -196,7 +196,7 @@
 .st-key-xai-explain button:hover { background: #1d4ed8; border-color: #1d4ed8; }
 .st-key-xai-explain button p {
   white-space: nowrap;
-  font-size: 13px;
+  font-size: 14.5px;
   color: #ffffff;
   font-family: var(--font-mono);
   font-weight: 500;
@@ -211,7 +211,7 @@
 /* ---- 공통: 변수 이름 칸 ---- */
 .xai-feat {
   font-family: var(--font-sans);
-  font-size: 13px;
+  font-size: 14.5px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -235,7 +235,7 @@
 .xai-sum-bar.alt { background: var(--xai-blue); }
 .xai-sum-val {
   font-family: var(--font-mono);
-  font-size: 11px;
+  font-size: 12.5px;
   color: var(--xai-label);
 }
 
@@ -270,7 +270,7 @@
 .xai-wf-bar.down { right: 50%; background: var(--xai-down); }
 .xai-wf-val {
   font-family: var(--font-mono);
-  font-size: 11.5px;
+  font-size: 13px;
   text-align: right;
 }
 .xai-wf-val.up { color: var(--xai-high); }
@@ -332,7 +332,7 @@
   line-height: 1.1;
 }
 .xai-reason-phi span {
-  font-size: 11px;
+  font-size: 12.5px;
   font-weight: 400;
   color: var(--xai-muted);
   margin-left: 6px;
