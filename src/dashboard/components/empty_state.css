@@ -23,6 +23,7 @@
   padding: 16px 0;
 }
 .es-box.inline code { max-width: 100%; }
+.es-box.inline .es-text { flex: none; }
 
 /* 빈 막대 차트 모양 아이콘 */
 .es-icon {
