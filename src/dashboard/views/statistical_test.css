@@ -1,0 +1,166 @@
+/* 통계 검증 페이지 스타일 */
+:root {
+  --st-card-bg: #ffffff;
+  --st-border: #e5e7eb;
+  --st-muted: #6b7280;
+  --st-label: #4b5563;
+  --st-chip-bg: #f3f4f6;
+  --st-head-bg: #f8fafc;
+  --st-blue: #2563eb;
+  --st-blue-bg: #dbeafe;
+  --st-blue-text: #1d4ed8;
+  --st-ok: #16a34a;
+  --st-ok-bg: #dcfce7;
+  --st-amber: #d97706;
+  --st-amber-text: #b45309;
+  --st-amber-bg: #fef3c7;
+}
+
+/* ---- 화면 채우기 (페이지 높이·블록 간격 공통 규칙은 app.css) ----
+   남는 높이는 ANOVA 줄과 Tukey 줄이 나눠 가지고, 표의 행이 늘어난다 → 위·아래 여백이 항상 같다 */
+[data-testid="stElementContainer"]:has(.st-row2),
+[data-testid="stElementContainer"]:has(.st-row2) > [data-testid="stHtml"] {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+}
+.st-row2 { flex: 1 1 auto; }
+
+/* ---- 공통 카드 ---- */
+.st-card {
+  background: var(--st-card-bg);
+  border: 1px solid var(--st-border);
+  border-radius: 12px;
+  padding: 18px 22px;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.st-card-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+.st-title {
+  font-size: 15px;
+  font-weight: 700;
+}
+.st-subtitle {
+  font-size: 13px;
+  font-weight: 700;
+}
+.st-subtitle.warn { color: var(--st-amber); }
+.st-nowrap { white-space: nowrap; }
+.st-caption {
+  color: var(--st-muted);
+  font-size: 11.5px;
+  margin-top: 2px;
+  line-height: 1.5;
+  word-break: keep-all;
+}
+.st-pill {
+  border-radius: 999px;
+  padding: 2px 9px;
+  font-size: 11.5px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+.st-pill.ok { background: var(--st-ok-bg); color: var(--st-ok); }
+.st-pill.warn { background: var(--st-amber-bg); color: var(--st-amber-text); }
+.st-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+.st-chip {
+  background: var(--st-chip-bg);
+  color: var(--st-label);
+  border-radius: 999px;
+  padding: 3px 10px;
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  white-space: nowrap;
+}
+.st-eta .st-chip { padding: 3px 9px; font-family: var(--font-sans); font-size: 11.5px; }
+.st-chip.medium { background: var(--st-amber-bg); color: var(--st-amber-text); }
+.st-chip.large { background: var(--st-ok-bg); color: var(--st-ok); }
+.st-chip.blue { background: var(--st-blue-bg); color: var(--st-blue-text); }
+
+/* ---- 줄 배치 ---- */
+.st-row2 {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+.st-row3 {
+  display: grid;
+  grid-template-columns: 1.1fr 1.1fr 0.9fr;
+  gap: 12px;
+}
+.st-row3 .st-card { padding: 14px 22px; }
+
+/* ---- F · p · η² ---- */
+.st-stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 14px;
+}
+.st-stat {
+  background: var(--st-head-bg);
+  border-radius: 8px;
+  padding: 10px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.st-stat span {
+  color: var(--st-muted);
+  font-size: 12px;
+}
+.st-stat b {
+  font-family: var(--font-mono);
+  font-size: 19px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.st-stat b.ok { color: var(--st-ok); }
+.st-stat b.warn { color: var(--st-amber); }
+
+/* ---- 표 ---- */
+.st-table {
+  width: 100%;
+  margin-top: 14px;
+  border: 1px solid var(--st-border);
+  border-radius: 8px;
+  border-collapse: separate;
+  border-spacing: 0;
+  overflow: hidden;
+  font-size: 13px;
+  flex: 1 1 auto;
+}
+.st-table th,
+.st-table td {
+  padding: 8px 12px;
+  text-align: left;
+  border-bottom: 1px solid var(--st-border);
+  white-space: nowrap;
+}
+.st-table tbody tr:last-child th,
+.st-table tbody tr:last-child td { border-bottom: none; }
+.st-table thead th {
+  background: var(--st-head-bg);
+  color: var(--st-muted);
+  font-weight: 400;
+  font-size: 12px;
+}
+.st-anova .st-table tbody th { font-weight: 700; }
+.st-tukey .st-table tbody th { font-weight: 400; }
+.st-table td { font-family: var(--font-mono); }
+.st-table .st-best th,
+.st-table .st-best .st-mean { color: var(--st-blue); font-weight: 700; }
+.st-table .ok { color: var(--st-ok); }
+.st-table .warn { color: var(--st-amber); }
+.st-table td.st-reject { font-family: var(--font-sans); font-weight: 500; }
