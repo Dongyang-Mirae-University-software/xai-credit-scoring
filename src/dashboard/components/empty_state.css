@@ -1,0 +1,85 @@
+/* 데이터 없음 안내 (초기 화면) */
+.es-box {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  font-family: var(--font-sans);
+  min-width: 0;
+}
+/* banner: 페이지 위 한 줄 (왼쪽 안내 문구, 오른쪽 명령어 + 복사 버튼) */
+[class*="st-key-es-banner-"] {
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  border-radius: 12px;
+  padding: 12px 20px;
+}
+/* inline: 카드 안 가운데 (카드의 남는 높이를 채우고 그 가운데에) */
+[data-testid="stLayoutWrapper"]:has(> [class*="st-key-es-inline-"]) { flex: 1 1 auto; }
+[class*="st-key-es-inline-"] {
+  flex: 1 1 auto;
+  justify-content: center;
+  align-items: center;
+  gap: 14px;
+}
+[class*="st-key-es-inline-"] > [data-testid="stElementContainer"] { width: min(100%, 560px) !important; }
+.es-box.inline {
+  flex-direction: column;
+  text-align: center;
+  gap: 10px;
+}
+.es-box.inline .es-text { flex: none; }
+
+/* 빈 막대 차트 모양 아이콘 */
+.es-icon {
+  flex: none;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: #dbeafe;
+  background-image:
+    linear-gradient(#60a5fa, #60a5fa), linear-gradient(#60a5fa, #60a5fa), linear-gradient(#60a5fa, #60a5fa);
+  background-size: 6px 9px, 6px 17px, 6px 13px;
+  background-position: 10px 21px, 17px 13px, 24px 17px;
+  background-repeat: no-repeat;
+}
+.es-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.es-text b {
+  font-size: 16px;
+  font-weight: 700;
+}
+.es-text span {
+  color: #4b5563;
+  font-size: 14px;
+}
+/* 결과가 없을 때 자리만 지키는 카드 */
+.es-ghost-body {
+  flex: 1 1 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 72px;
+  margin-top: 12px;
+  border-radius: 8px;
+  background: repeating-linear-gradient(-45deg, #f8fafc 0 10px, #f1f5f9 10px 20px);
+  color: #94a3b8;
+  font-size: 14px;
+}
+.es-ghost-metric {
+  justify-content: space-between;
+  gap: 6px;
+}
+.es-ghost-metric span {
+  color: #4b5563;
+  font-size: 14px;
+}
+.es-ghost-metric b {
+  color: #cbd5e1;
+  font-family: var(--font-mono);
+  font-size: 30px;
+}

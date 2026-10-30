@@ -69,7 +69,7 @@ uvicorn src.api.main:app --port 8000
 streamlit run src/dashboard/app.py
 ```
 
-API 없이 대시보드 화면만 볼 때는 `USE_MOCK=true streamlit run src/dashboard/app.py`.
+대시보드는 API 응답만 보여 줍니다. 파이프라인(step3~5) 결과가 아직 없는 페이지는 "데이터 없음" 안내와 실행할 명령을 보여 줍니다.
 
 ### 3. 파이프라인 (데이터 → 모델 → 검증)
 
@@ -111,7 +111,7 @@ xai-credit-scoring/
 │   ├── statistics/          # anova.py(One-way ANOVA 2종 + Tukey HSD)
 │   ├── tracking/            # MLflow 기록 도우미 (run 설명·REST)
 │   ├── api/                 # FastAPI: main.py · routers/ · schemas.py · model.py · reports.py · examples/
-│   └── dashboard/           # Streamlit: app.py · views/(5개 페이지) · components/ · api_client.py · config.py · mock/
+│   └── dashboard/           # Streamlit: app.py · views/(5개 페이지) · components/ · api_client.py · config.py
 ├── models/                  # 최종 모델 · 스케일러 · model_metadata.json (변경 이력은 models/README.md)
 ├── outputs/                 # step3~6 결과 JSON·그림 (실행하면 생김, 저장소에는 없음)
 ├── notebooks/01_eda.ipynb   # 탐색적 데이터 분석
@@ -146,7 +146,6 @@ xai-credit-scoring/
 | 변수 | 기본값 | 설명 |
 |---|---|---|
 | `API_BASE_URL` | `http://localhost:8000` | 대시보드가 부를 API 주소 (Docker Compose에서는 자동으로 `http://api:8000`) |
-| `USE_MOCK` | `false` | `true`면 API 대신 `mock/*.json`을 씀 (화면만 볼 때) |
 | `API_TIMEOUT` / `HEALTH_TIMEOUT` | 5 / 2 | API 응답 대기 시간(초) |
 | `HEALTH_CACHE_TTL` | 10 | 서버 상태 카드 새로고침 간격(초) |
 | `XAI_RISK_HIGH` / `XAI_RISK_MID` | 0.7 / 0.4 | 거절 사유 카드의 고·중위험 표시 기준 (SHAP 값) |

@@ -8,6 +8,8 @@ import streamlit as st
 
 import api_client
 import config
+from components.api_error import api_error_html, render_api_error
+from components.empty_state import render_no_report
 from components.page_header import render_page_header
 
 CSS_PATH = Path(__file__).with_suffix(".css")
@@ -71,12 +73,6 @@ def _num(value):
     return f"{value:.2f}".rstrip("0").rstrip(".") if abs(value) < 1 else f"{value:,.2f}"
 
 
-def _age_group(age):
-    if age is None:
-        return None
-    return "20–34" if age < 35 else "35–54" if age < 55 else "55+"
-
-
 def _risk_of(phi):
     if phi >= config.XAI_RISK_HIGH:
         return "high"
@@ -95,24 +91,6 @@ def _sigmoid(x):
 def _init_state():
     st.session_state.setdefault("customers", {})
     st.session_state.setdefault("xai_explain", {})
-    if not st.session_state.get("xai_samples_added"):
-        _add_sample_customers()
-        st.session_state.xai_samples_added = True
-
-
-def _add_sample_customers():
-    """mock 모드: 고객 심사를 거치지 않아도 승인·거절 예시 고객을 고를 수 있게 넣어 둔다."""
-    try:
-        samples = {
-            payload["customer_id"]: {"payload": payload, "result": api_client.predict(payload)}
-            for payload in api_client.sample_customers()
-        }
-    except Exception as e:
-        st.warning(f"예시 고객을 불러오지 못했습니다: {e}")
-        return
-    # 예시 고객은 가장 오래된 쪽에 두어, 고객 심사에서 직접 심사한 고객이 목록 위에 오게 한다
-    samples.update(st.session_state.customers)
-    st.session_state.customers = samples
 
 
 def _customer_ids():
@@ -132,7 +110,7 @@ def _get_explain(customer_id, force=False):
 # 화면 조각
 # ---------------------------------------------------------------------------
 def _toolbar(ids):
-    """고객 선택 줄. 선택된 고객 ID와 '/explain 다시 요청' 여부를 돌려준다."""
+    """고객 선택 줄. 선택된 고객 ID와 '다시 분석' 여부를 돌려준다."""
     with st.container(key="xai-toolbar"):
         if not ids:
             msg_col, btn_col = st.columns([5, 1.3], vertical_alignment="center")
@@ -142,52 +120,41 @@ def _toolbar(ids):
             with btn_col:
                 if st.button("고객 심사로 이동", key="xai-go-screening", use_container_width=True):
                     st.switch_page("views/screening.py")
-            return None, False, None
+            return None, False
 
         if st.session_state.get("xai_customer") not in ids:
             st.session_state.xai_customer = ids[0]
 
-        label_col, select_col, badge_col, chip_col, btn_col = st.columns(
-            [0.55, 1.1, 2.3, 3.0, 1.3], vertical_alignment="center")
+        label_col, select_col, badge_col, btn_col = st.columns(
+            [0.6, 1.2, 5.2, 1.1], vertical_alignment="center")
         with label_col:
             st.html('<div class="xai-label">고객 선택</div>')
         with select_col:
             customer_id = st.selectbox("고객 선택", ids, key="xai_customer", label_visibility="collapsed")
 
         entry = st.session_state.customers[customer_id]
-        result, payload = entry["result"], entry["payload"]
+        result = entry["result"]
         approved = result["approval_status"] == "APPROVED"
         risk = GRADE_RISK.get(result["risk_grade"], "high")
         with badge_col:
             st.html(f'<div class="xai-chips">'
                     f'<span class="xai-pill {risk}">{"승인" if approved else "거절"} · {result["credit_score"]}점 · '
                     f'등급 {escape(result["risk_grade"])}</span></div>')
-        chip_slot = chip_col.empty()  # 기준값·SHAP 공간 칩: /explain 결과를 본 뒤 채운다 (_fill_chips)
         with btn_col:
-            refresh = st.button("POST /explain", key="xai-explain", type="primary", use_container_width=True)
-    return customer_id, refresh, chip_slot
-
-
-def _fill_chips(chip_slot, explain, payload):
-    """거절 사유에 기준값(동일 연령대 평균)이 실제로 들어 있을 때만 '동일 연령대 평균' 이라고 표시한다."""
-    has_reference = any(r.get("reference_value") is not None for r in explain.get("rejection_reasons") or [])
-    group = _age_group(payload.get("age"))
-    if has_reference:
-        base_label = f"동일 연령대({group}) 평균" if group else "전체 평균"
-    else:
-        base_label = "없음 (reference_values 미생성)"
-    space = escape(explain.get("shap_space", "log-odds"))
-    with chip_slot.container():
-        st.html(f'<div class="xai-chips right">'
-                f'<span class="xai-chip">기준값: {base_label}</span>'
-                f'<span class="xai-chip">SHAP 공간: {space}</span></div>')
+            refresh = st.button("다시 분석", key="xai-explain", type="primary", use_container_width=True)
+    return customer_id, refresh
 
 
 def _summary_card():
     try:
         summary = api_client.shap_summary()
     except Exception as e:
-        st.error(f"전역 중요도를 불러오지 못했습니다: {e}")
+        st.html('<div class="xai-card-title">전체 변수 중요도</div>'
+                + api_error_html("GET /explain/summary", e, "inline"))
+        return
+    if summary is None:
+        st.html('<div class="xai-card-title">전체 변수 중요도</div>')
+        render_no_report("shap_summary", "inline")
         return
 
     features = sorted(summary.get("features", []), key=lambda x: x["mean_abs_shap"], reverse=True)
@@ -195,10 +162,7 @@ def _summary_card():
               x.get("group") == "alternative" if "group" in x else x["feature"] in ALTERNATIVE_FEATURES)
              for x in features[:SUMMARY_MAX_DISPLAY]]
     top = items[0][1] if items else 1
-    size = summary.get("n_samples")
-    caption = f"mean |SHAP| · 상위 {len(items)}개 변수"
-    if size:
-        caption += f" · 표본 {size:,}건"
+    caption = f"모델 전체에서 영향이 큰 변수 {len(items)}개"
 
     rows = "".join(
         f'<div class="xai-sum-row">'
@@ -211,7 +175,7 @@ def _summary_card():
     st.html(f"""
     <div class="xai-card-head">
       <div>
-        <div class="xai-card-title">SHAP Summary · 전역 중요도</div>
+        <div class="xai-card-title">전체 변수 중요도</div>
         <div class="xai-card-caption">{caption}</div>
       </div>
       <div class="xai-chips">
@@ -227,8 +191,8 @@ def _waterfall_card(customer_id, explain, entry):
     shap_values = explain.get("shap_values") or {}
     base = explain.get("base_value")
     if not shap_values or base is None:
-        st.html(f'<div class="xai-card-title">Waterfall · 개별 고객 {escape(customer_id)}</div>'
-                '<div class="xai-empty">/explain 응답에 shap_values 또는 base_value가 없어 Waterfall을 그릴 수 없습니다.</div>')
+        st.html(f'<div class="xai-card-title">개별 고객 기여도 · {escape(customer_id)}</div>'
+                '<div class="xai-empty">기여도 정보가 없어 그래프를 그릴 수 없습니다.</div>')
         return
 
     payload, result = entry["payload"], entry["result"]
@@ -254,20 +218,17 @@ def _waterfall_card(customer_id, explain, entry):
     )
 
     predicted = explain.get("default_probability", result.get("default_probability"))
-    if predicted is not None and abs(p - predicted) <= config.ADDITIVITY_TOLERANCE:
-        additivity = '<span class="xai-pill low">가법성 검증: Σφ + base = f(x) ✓</span>'
-    elif predicted is not None:
-        additivity = (f'<span class="xai-pill mid">가법성 불일치: σ(Σφ + base) = {p:.3f}, '
-                      f'/predict = {predicted:.3f}</span>')
+    # 기여도 합으로 다시 계산한 확률이 /predict 결과와 어긋날 때만 알린다
+    if predicted is not None and abs(p - predicted) > config.ADDITIVITY_TOLERANCE:
+        additivity = f'<span class="xai-pill mid">기여도 합({p:.1%})과 예측 확률({predicted:.1%})이 달라요</span>'
     else:
         additivity = ""
 
     st.html(f"""
     <div class="xai-card-head">
       <div>
-        <div class="xai-card-title">Waterfall · 개별 고객 {escape(customer_id)}</div>
-        <div class="xai-card-caption">E[f(x)] = {_signed(base)} → f(x) = {_signed(fx)}
-          (p = {p:.3f} {"≥" if p >= threshold else "&lt;"} {threshold:.2f} → {decision})</div>
+        <div class="xai-card-title">개별 고객 기여도 · {escape(customer_id)}</div>
+        <div class="xai-card-caption">부도 확률 {p:.1%} · 기준 {threshold:.0%} {"이상" if p >= threshold else "미만"} → {decision}</div>
       </div>
     </div>
     <div class="xai-wf">{rows_html}</div>
@@ -285,19 +246,13 @@ def _reasons_card(explain):
 
     # 실제 API는 승인 고객에게도 '승인에 불리한 변수'를 주므로 제목을 나눈다
     title = "승인에 불리했던 요인 Top 5" if approved else "거절 사유 Top 5"
-    has_reference = any(r.get("reference_value") is not None for r in reasons)
-    base_chip = "기준값 = 동일 연령대 평균" if has_reference else "기준값 없음 (reference_values 미생성)"
     head = f"""
     <div class="xai-card-head">
-      <div>
-        <div class="xai-card-title">{title}</div>
-        <div class="xai-card-caption">POST /explain → rejection_reasons[] · 항목당 4개 필드: feature · current_value · shap_contribution · explanation</div>
-      </div>
-      <span class="xai-chip">고객 고지용 문장 · {base_chip}</span>
+      <div class="xai-card-title">{title}</div>
     </div>
     """
     if not reasons:
-        message = "승인된 고객이라 승인에 불리했던 요인이 없습니다." if approved else "/explain 응답에 거절 사유가 없습니다."
+        message = "승인에 불리했던 요인이 없습니다." if approved else "거절 사유가 없습니다."
         st.html(head + f'<div class="xai-empty">{message}</div>')
         return
 
@@ -321,7 +276,7 @@ def _reasons_card(explain):
             <span class="xai-reason-cur"><span class="xai-reason-lbl">현재</span> {_num(r["current_value"])}</span>
             {ref_html}
           </div>
-          <div class="xai-reason-phi risk-{risk}">{_signed(phi)}<span>log-odds</span></div>
+          <div class="xai-reason-phi risk-{risk}">{_signed(phi)}</div>
           <div class="xai-reason-text" title="{escape(r["explanation"])}">{escape(sentence)}</div>
         </div>
         """)
@@ -335,17 +290,16 @@ def _reasons_card(explain):
 # ---------------------------------------------------------------------------
 st.html(f"<style>{CSS_PATH.read_text(encoding='utf-8')}</style>")
 _init_state()
-render_page_header("XAI 분석", "SHAP TreeExplainer 로 전역·개별 기여도를 시각화하고, 거절 사유 Top 5 를 자연어로 고지합니다")
+render_page_header("XAI 분석", "어떤 정보가 심사 결과에 영향을 줬는지 보여 줍니다")
 
-customer_id, refresh, chip_slot = _toolbar(_customer_ids())
+customer_id, refresh = _toolbar(_customer_ids())
 
 explain = None
 if customer_id:
     try:
         explain = _get_explain(customer_id, force=refresh)
-        _fill_chips(chip_slot, explain, st.session_state.customers[customer_id]["payload"])
     except Exception as e:
-        st.error(f"/explain 호출 실패: {e}")
+        render_api_error("POST /explain", e)
 
 left, right = st.columns([1, 0.86], gap="medium")
 with left:
@@ -356,7 +310,7 @@ with right:
         if explain:
             _waterfall_card(customer_id, explain, st.session_state.customers[customer_id])
         else:
-            st.html('<div class="xai-card-title">Waterfall · 개별 고객</div>'
+            st.html('<div class="xai-card-title">개별 고객 기여도</div>'
                     '<div class="xai-empty">고객을 선택하면 개별 기여도가 표시됩니다.</div>')
 
 with st.container(key="xai-reasons"):
