@@ -1,0 +1,250 @@
+/* 공정성 페이지 스타일 */
+:root {
+  --fa-card-bg: #ffffff;
+  --fa-border: #e5e7eb;
+  --fa-muted: #6b7280;
+  --fa-label: #4b5563;
+  --fa-chip-bg: #f3f4f6;
+  --fa-head-bg: #f8fafc;
+  --fa-blue: #2563eb;
+  --fa-blue-bg: #dbeafe;
+  --fa-blue-text: #1d4ed8;
+  --fa-purple: #7c3aed;
+  --fa-purple-bg: #ede9fe;
+  --fa-ok: #16a34a;
+  --fa-ok-bg: #dcfce7;
+  --fa-ng: #dc2626;
+  --fa-ng-bg: #fee2e2;
+  --fa-amber: #d97706;
+  --fa-amber-text: #b45309;
+  --fa-amber-bg: #fef3c7;
+}
+
+/* ---- 화면 채우기 (페이지 높이·블록 간격 공통 규칙은 app.css) ----
+   남는 높이는 승인율 차트 · Mitigation 표 줄이 가져간다 → 위·아래 여백이 항상 같다 */
+[data-testid="stElementContainer"]:has(.fa-row2),
+[data-testid="stElementContainer"]:has(.fa-row2) > [data-testid="stHtml"] {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+}
+.fa-row2 { flex: 1 1 auto; }
+
+/* ---- 공통 카드 ---- */
+.fa-card {
+  background: var(--fa-card-bg);
+  border: 1px solid var(--fa-border);
+  border-radius: 12px;
+  padding: 18px 22px;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.fa-card-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+.fa-title {
+  font-size: 15px;
+  font-weight: 700;
+}
+.fa-caption {
+  color: var(--fa-muted);
+  font-size: 11.5px;
+  margin-top: 2px;
+  word-break: keep-all;
+}
+.fa-empty {
+  color: var(--fa-muted);
+  font-size: 13px;
+  padding: 12px 0;
+}
+.fa-pill {
+  display: inline-block;
+  border-radius: 999px;
+  padding: 2px 9px;
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+.fa-pill.ok { background: var(--fa-ok-bg); color: var(--fa-ok); }
+.fa-pill.ng { background: var(--fa-ng-bg); color: var(--fa-ng); }
+.fa-chip {
+  background: var(--fa-chip-bg);
+  color: var(--fa-label);
+  border-radius: 999px;
+  padding: 4px 10px;
+  font-size: 12px;
+  white-space: nowrap;
+}
+.fa-chip.blue { background: var(--fa-blue-bg); color: var(--fa-blue-text); }
+.fa-chip.amber { background: var(--fa-amber-bg); color: var(--fa-amber-text); }
+.fa-note {
+  margin-top: 14px;
+  background: var(--fa-head-bg);
+  border-radius: 8px;
+  padding: 8px 12px;
+  color: var(--fa-label);
+  font-size: 12px;
+  line-height: 1.5;
+  word-break: keep-all;
+}
+.fa-note.warn { background: var(--fa-amber-bg); color: var(--fa-amber-text); }
+
+/* ---- 지표 카드 4개 ---- */
+.fa-metrics {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+.fa-metric { padding: 16px 20px; }
+.fa-metric-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 13px;
+  color: var(--fa-label);
+}
+.fa-metric-value {
+  font-family: var(--font-mono);
+  font-size: 28px;
+  font-weight: 700;
+  margin: 6px 0 4px;
+}
+.fa-metric-value.ok { color: var(--fa-ok); }
+.fa-metric-value.ng { color: var(--fa-ng); }
+
+/* ---- 집단별 승인율 · Mitigation ---- */
+.fa-row2 {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr);
+  gap: 12px;
+}
+.fa-legend {
+  display: flex;
+  gap: 6px;
+}
+.fa-legend-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  border-radius: 999px;
+  padding: 3px 9px;
+  font-size: 12px;
+  white-space: nowrap;
+}
+.fa-legend-chip i {
+  width: 9px;
+  height: 9px;
+  border-radius: 2px;
+}
+.fa-legend-chip.gender { background: var(--fa-blue-bg); color: var(--fa-blue-text); }
+.fa-legend-chip.gender i { background: var(--fa-blue); }
+.fa-legend-chip.age { background: var(--fa-purple-bg); color: var(--fa-purple); }
+.fa-legend-chip.age i { background: var(--fa-purple); }
+
+/* 막대 높이는 % 라서, 남는 높이를 차트가 가져가면 막대도 같이 커진다 */
+.fa-bars {
+  flex: 1 1 200px;
+  min-height: 200px;
+  display: grid;
+  grid-template-columns: 2fr 3fr;
+  margin-top: 16px;
+}
+.fa-bar-group {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 1fr);
+  gap: 22px;
+  padding: 0 12px;
+}
+.fa-bar-group + .fa-bar-group { border-left: 1px solid var(--fa-border); }
+.fa-bar-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 0;
+}
+/* 막대 높이(%)의 기준 영역. 위쪽 padding 은 막대 위 값 라벨 자리 */
+.fa-bar-area {
+  flex: 1 1 auto;
+  width: 100%;
+  padding-top: 22px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: center;
+}
+.fa-bar {
+  position: relative;
+  width: 100%;
+  max-width: 64px;
+  border-radius: 4px 4px 0 0;
+}
+.fa-bar-val {
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  margin-bottom: 6px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 700;
+}
+.fa-bar-label {
+  grid-row: 2;
+  color: var(--fa-label);
+  font-size: 12px;
+  margin-top: 8px;
+}
+
+.fa-table {
+  width: 100%;
+  margin-top: 16px;
+  border: 1px solid var(--fa-border);
+  border-radius: 8px;
+  border-collapse: separate;
+  border-spacing: 0;
+  overflow: hidden;
+  font-size: 13px;
+  flex: 1 1 auto;
+}
+.fa-table th,
+.fa-table td {
+  padding: 8px 12px;
+  text-align: left;
+  border-bottom: 1px solid var(--fa-border);
+  white-space: nowrap;
+}
+.fa-table tbody tr:last-child th,
+.fa-table tbody tr:last-child td { border-bottom: none; }
+.fa-table thead th {
+  background: var(--fa-head-bg);
+  color: var(--fa-muted);
+  font-weight: 400;
+  font-size: 12px;
+}
+.fa-table tbody th { font-weight: 400; }
+.fa-table tbody th.bold { font-weight: 700; }
+.fa-table td { font-family: var(--font-mono); }
+.fa-table td.fa-verdict { font-family: var(--font-sans); }
+.fa-table .ok { color: var(--fa-ok); }
+.fa-table .ng { color: var(--fa-ng); }
+.fa-table .warn { color: var(--fa-amber); }
+.fa-table .muted { color: var(--fa-muted); }
+
+/* ---- 보호속성 ---- */
+.fa-protected {
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+}
+.fa-protected-label {
+  font-size: 13px;
+  font-weight: 700;
+  margin-right: 4px;
+}
