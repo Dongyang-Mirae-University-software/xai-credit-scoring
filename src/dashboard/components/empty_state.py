@@ -1,13 +1,17 @@
 """데이터 없음 안내: 파이프라인 산출물이 아직 없을 때의 초기 화면.
-페이지 위에 한 줄 안내(무엇을 실행하면 채워지는지)를 두고, 카드 자리는 ghost_card 로 비워 둔다."""
+페이지 위에 한 줄 안내(무엇을 실행하면 채워지는지 + 복사 버튼)를 두고, 카드 자리는 ghost_card 로 비워 둔다."""
+import json
 from html import escape
 from pathlib import Path
 
 import streamlit as st
+import streamlit.components.v1 as components
 
 import api_client
 
 CSS_PATH = Path(__file__).with_suffix(".css")
+COPY_TEMPLATE = Path(__file__).with_name("copy_command.html")
+COPY_HEIGHT = 40  # 명령어 상자 높이 (iframe 높이는 내용에 맞춰 직접 정해야 한다)
 
 # 리포트 이름(/health 의 reports 키) → 안내 문구와 만드는 명령 (실행 예는 각 main_step*.py 설명 참고)
 REPORTS = {
@@ -26,24 +30,32 @@ def _model_name():
         return "<모델 파일>"
 
 
-def no_report_html(name, variant="banner"):
-    """banner: 페이지 위 한 줄 안내 / inline: 카드 안 가운데 안내."""
-    title, command = REPORTS[name]
-    command = command.format(model=_model_name())
-    return f"""
-    <style>{CSS_PATH.read_text(encoding='utf-8')}</style>
-    <div class="es-box {variant}">
-      <span class="es-icon"></span>
-      <div class="es-text">
-        <b>{title}</b>
-        <span>프로젝트 폴더에서 실행한 뒤 새로고침하세요</span>
-      </div>
-      <code>{escape(command)}</code>
-    </div>"""
+def copy_command(command):
+    """명령어 상자 + 복사 버튼. st.html 은 스크립트를 지우므로 components.html(iframe)로 그린다.
+    복사하면 바깥 페이지 오른쪽 아래에 토스트를 띄운다."""
+    html = (COPY_TEMPLATE.read_text(encoding="utf-8")
+            .replace("{{COMMAND_HTML}}", escape(command))
+            .replace("{{COMMAND_JSON}}", json.dumps(command)))
+    components.html(html, height=COPY_HEIGHT)
 
 
 def render_no_report(name, variant="banner"):
-    st.html(no_report_html(name, variant))
+    """banner: 페이지 위 한 줄 안내 / inline: 카드 안 가운데 안내."""
+    title, command = REPORTS[name]
+    command = command.format(model=_model_name())
+    text = (f'<div class="es-box {variant}"><span class="es-icon"></span>'
+            f'<div class="es-text"><b>{title}</b><span>프로젝트 폴더에서 실행한 뒤 새로고침하세요</span></div></div>')
+    st.html(f"<style>{CSS_PATH.read_text(encoding='utf-8')}</style>")
+    with st.container(key=f"es-{variant}-{name}"):
+        if variant == "banner":
+            text_col, command_col = st.columns([1, 2], vertical_alignment="center")
+            with text_col:
+                st.html(text)
+            with command_col:
+                copy_command(command)
+        else:
+            st.html(text)
+            copy_command(command)
 
 
 def ghost_card(title, card_cls, title_cls, message="결과가 나오면 여기에 표시됩니다"):

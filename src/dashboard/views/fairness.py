@@ -6,7 +6,7 @@ import streamlit as st
 
 import api_client
 from components.api_error import api_error_html, render_api_error
-from components.empty_state import ghost_card, ghost_metric, no_report_html, render_no_report
+from components.empty_state import ghost_card, ghost_metric, render_no_report
 from components.page_header import render_page_header
 
 CSS_PATH = Path(__file__).with_suffix(".css")
@@ -234,19 +234,20 @@ except Exception as e:
 
 if fair is not None:
     criteria = {**DEFAULT_CRITERIA, **fair.get("criteria", {})}
-    _metric_cards(fair, criteria)
-
     try:
         targets = (api_client.metrics() or {}).get("targets", {})
     except Exception:
         targets = {}
     try:
         data = api_client.fairness_mitigation()
-        mitigation = _mitigation_card(data, targets) if data else (
-            '<div class="fa-card"><div class="fa-title">Bias Mitigation 전 / 후 비교</div>'
-            f'{no_report_html("fairness_mitigation", "inline")}</div>')
+        if data:
+            mitigation = _mitigation_card(data, targets)
+        else:  # 공정성 결과만 있고 완화 결과가 없으면: 위에 안내 한 줄, 표 자리는 비워 둔다
+            render_no_report("fairness_mitigation")
+            mitigation = ghost_card("Bias Mitigation 전 / 후 비교", "fa-card", "fa-title")
     except Exception as e:
         mitigation = (f'<div class="fa-card"><div class="fa-title">Bias Mitigation 전 / 후 비교</div>'
                       f'{api_error_html("GET /fairness/mitigation", e, "inline")}</div>')
+    _metric_cards(fair, criteria)
     st.html(f'<div class="fa-row2">{_approval_card(fair, criteria)}{mitigation}</div>')
     st.html(_protected_card(fair))

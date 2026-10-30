@@ -25,10 +25,10 @@
 [data-testid="stLayoutWrapper"]:has(> [data-testid="stHorizontalBlock"] .st-key-xai-summary) {
   flex: 1 1 auto;
 }
-.st-key-xai-summary > [data-testid="stElementContainer"],
-.st-key-xai-summary [data-testid="stHtml"],
-.st-key-xai-waterfall > [data-testid="stElementContainer"],
-.st-key-xai-waterfall [data-testid="stHtml"] {
+.st-key-xai-summary > [data-testid="stElementContainer"]:has(.xai-sum),
+.st-key-xai-summary [data-testid="stHtml"]:has(.xai-sum),
+.st-key-xai-waterfall > [data-testid="stElementContainer"]:has(.xai-wf),
+.st-key-xai-waterfall [data-testid="stHtml"]:has(.xai-wf) {
   flex: 1 1 auto;
   display: flex;
   flex-direction: column;

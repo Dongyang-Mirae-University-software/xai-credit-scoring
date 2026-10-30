@@ -6,23 +6,27 @@
   font-family: var(--font-sans);
   min-width: 0;
 }
-/* banner: 페이지 위 한 줄 */
-.es-box.banner {
+/* banner: 페이지 위 한 줄 (왼쪽 안내 문구, 오른쪽 명령어 + 복사 버튼) */
+[class*="st-key-es-banner-"] {
   background: #eff6ff;
   border: 1px solid #bfdbfe;
   border-radius: 12px;
-  padding: 14px 20px;
+  padding: 12px 20px;
 }
-/* inline: 카드 안 가운데 */
-.es-box.inline {
+/* inline: 카드 안 가운데 (카드의 남는 높이를 채우고 그 가운데에) */
+[data-testid="stLayoutWrapper"]:has(> [class*="st-key-es-inline-"]) { flex: 1 1 auto; }
+[class*="st-key-es-inline-"] {
   flex: 1 1 auto;
-  flex-direction: column;
   justify-content: center;
+  align-items: center;
+  gap: 14px;
+}
+[class*="st-key-es-inline-"] > [data-testid="stElementContainer"] { width: min(100%, 560px) !important; }
+.es-box.inline {
+  flex-direction: column;
   text-align: center;
   gap: 10px;
-  padding: 16px 0;
 }
-.es-box.inline code { max-width: 100%; }
 .es-box.inline .es-text { flex: none; }
 
 /* 빈 막대 차트 모양 아이콘 */
@@ -53,18 +57,6 @@
   color: #4b5563;
   font-size: 14px;
 }
-.es-box code {
-  background: #0f172a;
-  color: #e2e8f0;
-  border-radius: 8px;
-  padding: 8px 12px;
-  font-family: var(--font-mono);
-  font-size: 13px;
-  white-space: pre-wrap;
-  word-break: break-all;
-  user-select: all;  /* 한 번 클릭으로 명령 전체 선택 */
-}
-
 /* 결과가 없을 때 자리만 지키는 카드 */
 .es-ghost-body {
   flex: 1 1 auto;

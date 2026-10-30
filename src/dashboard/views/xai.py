@@ -9,7 +9,7 @@ import streamlit as st
 import api_client
 import config
 from components.api_error import api_error_html, render_api_error
-from components.empty_state import no_report_html
+from components.empty_state import render_no_report
 from components.page_header import render_page_header
 
 CSS_PATH = Path(__file__).with_suffix(".css")
@@ -153,8 +153,8 @@ def _summary_card():
                 + api_error_html("GET /explain/summary", e, "inline"))
         return
     if summary is None:
-        st.html('<div class="xai-card-title">전체 변수 중요도</div>'
-                + no_report_html("shap_summary", "inline"))
+        st.html('<div class="xai-card-title">전체 변수 중요도</div>')
+        render_no_report("shap_summary", "inline")
         return
 
     features = sorted(summary.get("features", []), key=lambda x: x["mean_abs_shap"], reverse=True)
