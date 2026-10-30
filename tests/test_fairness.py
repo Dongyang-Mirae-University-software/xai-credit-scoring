@@ -9,6 +9,7 @@ from src.fairness import metrics as fm
 from src.fairness import mitigation as mt
 
 MOCK_DIR = Path(__file__).resolve().parent.parent / 'src' / 'dashboard' / 'mock' / 'fairness'
+SAVED_KEYS = {'model', 'disclaimer'}  # main_step4가 파일로 저장할 때 붙이는 칸
 
 
 def test_normalize_gender_follows_column_spec():
@@ -68,7 +69,8 @@ def test_fairness_report_has_dashboard_mock_keys():
     y, p, g, a = _biased_sample()
     report = fm.fairness_report(y, p, gender=g, age_group=a)
     mock = json.loads((MOCK_DIR / 'fairness.json').read_text(encoding='utf-8'))
-    assert set(mock) <= set(report)
+    assert set(mock) - SAVED_KEYS <= set(report)
+    assert report['n'] == len(y)
     assert set(report['by_attribute']) == {'gender', 'age_group'}
     assert report['by_attribute']['gender']['protected_group'] == 'female'
 
@@ -96,6 +98,10 @@ def test_threshold_adjustment_brings_di_into_range():
     mock = json.loads((MOCK_DIR / 'fairness_mitigation.json').read_text(encoding='utf-8'))
     for side in ('before', 'after'):
         assert set(mock[side]) <= set(report[side])
+        assert {'auc', 'ks', 'approval_rate'} <= set(report[side])
+    # 기준값만 바꾸고 모델은 그대로라 AUC·KS는 같다
+    assert report['after']['auc'] == report['before']['auc']
+    assert report['after']['ks'] == report['before']['ks']
     assert '| DI Ratio |' in mt.comparison_table(report)
 
 
