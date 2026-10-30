@@ -1,0 +1,120 @@
+/* API 호출 실패 안내 카드 */
+.ae-box {
+  --ae-accent: #dc2626;
+  --ae-accent-bg: #fee2e2;
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-left: 4px solid var(--ae-accent);
+  border-radius: 12px;
+  padding: 16px 20px;
+  font-family: var(--font-sans);
+  min-width: 0;
+}
+.ae-box.offline { --ae-accent: #64748b; --ae-accent-bg: #f1f5f9; }
+.ae-box.slow,
+.ae-box.warn { --ae-accent: #d97706; --ae-accent-bg: #fef3c7; }
+
+/* page: 페이지 내용 전체가 실패 → 남는 높이를 채우고 가운데에 크게
+   inline: 다른 카드 안 (카드가 이미 테두리를 가짐) */
+[data-testid="stElementContainer"]:has(.ae-box.page),
+[data-testid="stElementContainer"]:has(.ae-box.page) > [data-testid="stHtml"] {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+}
+.ae-box.page,
+.ae-box.inline {
+  flex: 1 1 auto;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  border-left: 1px solid #e5e7eb;
+  padding: 40px 24px;
+}
+.ae-box.inline {
+  border: none;
+  background: transparent;
+  padding: 20px 0 4px;
+}
+.ae-box.page .ae-icon { width: 48px; height: 48px; font-size: 22px; }
+.ae-box:is(.page, .inline) .ae-head { justify-content: center; font-size: 16px; }
+.ae-box:is(.page, .inline) .ae-hint { align-items: center; }
+.ae-box:is(.page, .inline) .ae-detail pre { text-align: left; }
+
+.ae-icon {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--ae-accent-bg);
+  color: var(--ae-accent);
+  font-size: 16px;
+  font-weight: 700;
+}
+.ae-body {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+.ae-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+}
+.ae-endpoint {
+  background: #f3f4f6;
+  color: #4b5563;
+  border-radius: 999px;
+  padding: 1px 8px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 400;
+}
+.ae-message {
+  color: #4b5563;
+  font-size: 13px;
+}
+.ae-hint {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  margin-top: 4px;
+  color: #6b7280;
+  font-size: 12.5px;
+}
+.ae-hint code {
+  background: #0f172a;
+  color: #e2e8f0;
+  border-radius: 6px;
+  padding: 6px 10px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  user-select: all;  /* 한 번 클릭으로 명령 전체 선택 */
+}
+.ae-hint ul { margin: 0; padding-left: 18px; }
+.ae-detail {
+  margin-top: 6px;
+  color: #9ca3af;
+  font-size: 11.5px;
+}
+.ae-detail summary { cursor: pointer; }
+.ae-detail pre {
+  margin: 6px 0 0;
+  max-width: 640px;
+  white-space: pre-wrap;
+  word-break: break-all;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: #6b7280;
+}
