@@ -13,8 +13,9 @@ CSS_PATH = Path(__file__).with_suffix(".css")
 def render_page_header(title, subtitle):
     try:
         model_version = api_client.health()["model_version"]
-        auc = api_client.metrics()["auc"]
-        model_badge, badge_cls = f"모델 {escape(model_version)} · AUC {auc:.3f}", "blue"
+        metrics = api_client.metrics()  # 평가 결과가 아직 없으면 None → AUC 없이 모델 이름만
+        model_badge = f"모델 {escape(model_version)}" + (f' · AUC {metrics["auc"]:.3f}' if metrics else "")
+        badge_cls = "blue"
     except Exception:
         model_badge, badge_cls = "모델 정보 없음 · API 연결 확인", "gray"
 

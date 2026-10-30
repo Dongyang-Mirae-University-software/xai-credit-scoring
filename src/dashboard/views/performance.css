@@ -184,6 +184,7 @@
   grid-template-columns: 1.6fr 1fr;
   gap: 12px;
 }
+.pf-row2.single { grid-template-columns: 1fr; }
 .pf-table {
   width: 100%;
   margin-top: 14px;

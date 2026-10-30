@@ -6,6 +6,7 @@ import streamlit as st
 
 import api_client
 from components.api_error import api_error_html, render_api_error
+from components.empty_state import no_report_html, render_no_report
 from components.page_header import render_page_header
 
 CSS_PATH = Path(__file__).with_suffix(".css")
@@ -222,6 +223,8 @@ render_page_header("공정성", "성별·연령대별 승인율과 DI Ratio · E
 
 try:
     fair = api_client.fairness()
+    if fair is None:
+        render_no_report("fairness")
 except Exception as e:
     fair = None
     render_api_error("GET /fairness", e, "page")
@@ -231,11 +234,14 @@ if fair is not None:
     _metric_cards(fair, criteria)
 
     try:
-        targets = api_client.metrics().get("targets", {})
+        targets = (api_client.metrics() or {}).get("targets", {})
     except Exception:
         targets = {}
     try:
-        mitigation = _mitigation_card(api_client.fairness_mitigation(), targets)
+        data = api_client.fairness_mitigation()
+        mitigation = _mitigation_card(data, targets) if data else (
+            '<div class="fa-card"><div class="fa-title">Bias Mitigation 전 / 후 비교</div>'
+            f'{no_report_html("fairness_mitigation", "inline")}</div>')
     except Exception as e:
         mitigation = (f'<div class="fa-card"><div class="fa-title">Bias Mitigation 전 / 후 비교</div>'
                       f'{api_error_html("GET /fairness/mitigation", e, "inline")}</div>')

@@ -6,6 +6,7 @@ import streamlit as st
 
 import api_client
 from components.api_error import render_api_error
+from components.empty_state import render_no_report
 from components.page_header import render_page_header
 
 CSS_PATH = Path(__file__).with_suffix(".css")
@@ -191,6 +192,8 @@ render_page_header("통계 검증", "ANOVA 2종과 Tukey HSD 로 대안 데이�
 
 try:
     anova = api_client.anova()
+    if anova is None:
+        render_no_report("anova")
 except Exception as e:
     anova = None
     render_api_error("GET /anova", e, "page")

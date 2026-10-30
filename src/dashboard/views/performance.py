@@ -7,6 +7,7 @@ import streamlit as st
 
 import api_client
 from components.api_error import api_error_html, render_api_error
+from components.empty_state import render_no_report
 from components.page_header import render_page_header
 
 CSS_PATH = Path(__file__).with_suffix(".css")
@@ -152,7 +153,7 @@ def _model_grid_card(runs_data, m, stage):
             for dtype, _ in DATA_TYPES)
         integrated = base_run(algo, "integrated")
         ks = f'{integrated["cv_test_mean"]["cv_test_ks_mean"]:.2f}' if integrated else "—"
-        psi = f'{m["psi"]:.3f}' if selected and m.get("psi") is not None else "—"  # PSI 는 최종 모델만 계산됨
+        psi = f'{m["psi"]:.3f}' if selected and m and m.get("psi") is not None else "—"  # PSI 는 최종 모델만 계산됨
         rows.append(f'<tr><th class="{"pf-sel" if selected else ""}">{label}</th>{cells}<td>{ks}</td><td>{psi}</td></tr>')
 
     pick = f"최종 선택: {escape(algorithm)} · {DATA_TYPE_LABELS.get(data_type, data_type)}"
@@ -205,14 +206,18 @@ st.html(f"<style>{CSS_PATH.read_text(encoding='utf-8')}</style>")
 render_page_header("모델 성능", "ROC · PR 곡선과 혼동행렬, AUC · KS · PSI 지표로 최종 모델을 검증합니다")
 
 try:
-    metrics = api_client.metrics()
+    metrics, metrics_error = api_client.metrics(), None
 except Exception as e:
-    metrics = None
-    render_api_error("GET /metrics", e, "page")
+    metrics, metrics_error = None, e
 
-if metrics is not None:  # 실패해도 st.stop() 하지 않아야 하단 면책 조항(app.py)이 그려진다
-    _metric_cards(metrics)
-    st.html(f'<div class="pf-row3">{_roc_card(metrics)}{_pr_card(metrics)}{_confusion_card(metrics)}</div>')
+if metrics_error is not None:  # 실패해도 st.stop() 하지 않아야 사이드바 하단 면책 조항이 그려진다
+    render_api_error("GET /metrics", metrics_error, "page")
+else:
+    if metrics is not None:
+        _metric_cards(metrics)
+        st.html(f'<div class="pf-row3">{_roc_card(metrics)}{_pr_card(metrics)}{_confusion_card(metrics)}</div>')
+    else:
+        render_no_report("metrics")  # 격자 비교는 model_metadata.json 에서 오므로 평가 결과가 없어도 보인다
 
     try:
         runs_data = api_client.model_comparison()
@@ -220,4 +225,7 @@ if metrics is not None:  # 실패해도 st.stop() 하지 않아야 하단 면책
         grid = _model_grid_card(runs_data, metrics, stage)
     except Exception as e:
         grid = f'<div class="pf-card"><div class="pf-title">모델 격자 비교</div>{api_error_html("GET /metrics/comparison", e, "inline")}</div>'
-    st.html(f'<div class="pf-row2">{grid}{_thin_filer_card(metrics)}</div>')
+    if metrics is not None:
+        st.html(f'<div class="pf-row2">{grid}{_thin_filer_card(metrics)}</div>')
+    else:
+        st.html(f'<div class="pf-row2 single">{grid}</div>')

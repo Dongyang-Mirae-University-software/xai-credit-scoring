@@ -9,6 +9,7 @@ import streamlit as st
 import api_client
 import config
 from components.api_error import api_error_html, render_api_error
+from components.empty_state import no_report_html
 from components.page_header import render_page_header
 
 CSS_PATH = Path(__file__).with_suffix(".css")
@@ -96,24 +97,6 @@ def _sigmoid(x):
 def _init_state():
     st.session_state.setdefault("customers", {})
     st.session_state.setdefault("xai_explain", {})
-    if not st.session_state.get("xai_samples_added"):
-        _add_sample_customers()
-        st.session_state.xai_samples_added = True
-
-
-def _add_sample_customers():
-    """mock 모드: 고객 심사를 거치지 않아도 승인·거절 예시 고객을 고를 수 있게 넣어 둔다."""
-    try:
-        samples = {
-            payload["customer_id"]: {"payload": payload, "result": api_client.predict(payload)}
-            for payload in api_client.sample_customers()
-        }
-    except Exception as e:
-        render_api_error("예시 고객 /predict", e)
-        return
-    # 예시 고객은 가장 오래된 쪽에 두어, 고객 심사에서 직접 심사한 고객이 목록 위에 오게 한다
-    samples.update(st.session_state.customers)
-    st.session_state.customers = samples
 
 
 def _customer_ids():
@@ -190,6 +173,10 @@ def _summary_card():
     except Exception as e:
         st.html('<div class="xai-card-title">SHAP Summary · 전역 중요도</div>'
                 + api_error_html("GET /explain/summary", e, "inline"))
+        return
+    if summary is None:
+        st.html('<div class="xai-card-title">SHAP Summary · 전역 중요도</div>'
+                + no_report_html("shap_summary", "inline"))
         return
 
     features = sorted(summary.get("features", []), key=lambda x: x["mean_abs_shap"], reverse=True)
