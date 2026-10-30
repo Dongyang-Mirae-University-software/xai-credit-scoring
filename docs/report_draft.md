@@ -5,7 +5,7 @@
 > 과제 노션 요구 내용: 「문제 정의, EDA, 모델 비교, XAI 분석, 공정성 검증, ANOVA 통계 검증, 결론」
 > 표시: ✅ 본문 작성 · 🟡 재료 있음 · ⏳ 최종 숫자로 교체 필요 · ✍️ 아직 없음
 > 진행: 이슈 #44 · 작성 남궁명진 · 주 1회 반영 (중간 PR은 `Refs #44`, PDF 완성 PR만 `Closes #44`)
-> 마지막 반영: 2026-10-16 (develop b0d5fc5) · 1~9장 본문, 8장 Fairlearn 교차 확인·9장 해석 보강, 11장 초안. 10장은 API(#80)·대시보드(#48) 이후
+> 마지막 반영: 2026-10-30 (develop f912646) · 10장 시스템 구성 본문(API #80 · #94, compose #95, 대시보드 #96 · #97). 1~9 · 11장 숫자는 #26 재학습 뒤 교체
 > 그림: 1~5번 `notebooks/figures/` (EDA 노트북), 6~9번 `docs/figures/` (최종 모델 결과)
 
 본 시스템은 교육 목적으로 개발되었으며, 실제 금융 의사결정에 사용할 수 없습니다.
@@ -25,8 +25,8 @@
 | 7 | XAI 분석 (SHAP, 거절 사유) | 3 | - | ✅ |
 | 8 | 공정성 검증과 Bias Mitigation | 3 | - | ✅ |
 | 9 | ANOVA 통계 검증 | 2 | - | ✅ |
-| 10 | 시스템 구성 (API · 대시보드 · Docker) | 1.5 | API 목록·실행 방법 (이하늘), 화면 캡처 (이윤아) | ✍️ |
-| 11 | 한계와 결론 | 1.5 | - | 🟡 (API 기준 2개는 #80 이후) |
+| 10 | 시스템 구성 (API · 대시보드 · Docker) | 1.5 | 화면 캡처 5장 (이윤아, 공정성 · 통계 검증 페이지 완성 후) | 🟡 본문 작성, 캡처 남음 |
+| 11 | 한계와 결론 | 1.5 | - | 🟡 (숫자는 #26 뒤 교체) |
 | 부록 | 팀 결정 기록, 재현 방법 | 1 | - | ✅ |
 
 ---
@@ -602,12 +602,100 @@ Tukey HSD:
 - 검증 1의 큰 차이는 대안 변수가 정답으로 만들어진 영향도 함께 들어 있다 (6.6).
 - 피처 그룹과 알고리즘을 함께 보는 Two-way ANOVA(보너스)는 하지 않았다.
 
-## 10. 시스템 구성 (1.5쪽) ✍️
+## 10. 시스템 구성 (1.5쪽) 🟡
 
-- FastAPI 7개 엔드포인트, Pydantic 스키마, Swagger (`localhost:8000/docs`), `/predict` 2초 이내
-- Streamlit 대시보드 5페이지, API만 호출(MSA), 위험도 색
-- `docker-compose up` 한 번으로 API · 대시보드 · MLflow 실행
-- ✍️ 쓸 것: 구성 그림, 화면 캡처
+> 코드: `src/api/`(FastAPI), `src/dashboard/`(Streamlit), `docker-compose.yml`. PR #80 · #94 · #95 · #96 · #97 (10/29 병합).
+
+### 10.1 전체 구성
+
+과제 노션 제약 「Streamlit 코드에서 모델 파일(.pkl)을 직접 로드하는 것을 금지한다」에 따라, 모델을 쓰는 곳은 API 하나로 모으고 대시보드는 API만 부르는 구조(MSA)로 만들었다.
+
+```
+[학습 · 검증 파이프라인]                    [서비스]
+main_step1~2 ──▶ models/ (최종 모델 · 스케일러) ──▶ FastAPI :8000 ◀── HTTP ── Streamlit :8501
+main_step3~5 ──▶ outputs/ (검증 결과 JSON)    ──▶   (/predict · /explain 즉시 계산,
+      │                                              나머지는 결과 JSON 반환)
+      └──────▶ MLflow :5000 (실험 기록 · Model Registry)
+```
+
+- **API**는 `/predict` · `/explain`을 최종 모델로 바로 계산하고, 성능 · 공정성 · ANOVA처럼 미리 계산한 결과는 `main_step3~5`가 만든 JSON을 그대로 돌려준다. 그래서 검증 결과가 바뀌어도 API 코드는 고치지 않는다.
+- **대시보드**는 `api_client.py`로 HTTP 요청만 보낸다. 모델 파일을 읽는 코드가 없다.
+- 세 서비스는 `docker compose up` 한 번으로 함께 뜬다 (10.4).
+
+### 10.2 API (FastAPI)
+
+과제 노션 「다음 7개 엔드포인트가 구현되어 있다」의 7개에, 대시보드 화면에 필요한 2개를 더해 9개를 만들었다. Swagger(`localhost:8000/docs`)에서는 대시보드 화면 순서대로 태그를 묶어, 어느 화면이 어느 엔드포인트를 쓰는지 바로 보이게 했다.
+
+| 화면 | 엔드포인트 | 응답 | 데이터 출처 |
+|---|---|---|---|
+| 공통 | `GET /health` | 상태, 모델 버전 · 단계(Staging), Test AUC, 결과 JSON 출처 | 모델 파일 |
+| 고객 심사 | `POST /predict` | 신용점수, 등급, 승인 여부, 부도 확률, 씬파일러 여부 | 최종 모델 즉시 계산 |
+| XAI 분석 | `POST /explain` | 거절 사유 Top 5(문장 포함), 칸별 SHAP 값 | SHAP 즉시 계산 |
+| XAI 분석 | `GET /explain/summary` ➕ | 전역 중요도 상위 칸 | `shap_summary.json` |
+| 공정성 | `GET /fairness` | DI Ratio, TPR · FPR 차이, 집단별 승인율 | `fairness.json` |
+| 공정성 | `GET /fairness/mitigation` | 완화 전 · 후 비교 | `fairness_mitigation.json` |
+| 모델 성능 | `GET /metrics` | AUC, KS, Precision, Recall, F1, 혼동행렬, ROC · PR 곡선 | `metrics_<모델>.json` |
+| 모델 성능 | `GET /metrics/comparison` ➕ | 후보 모델 18개의 5-Fold 결과 | `model_metadata.json` |
+| 통계 검증 | `GET /anova` | 검증 1 · 2의 F, p, η², Tukey HSD | `anova.json` |
+
+➕ 과제 노션 7개 외에 추가한 것.
+
+**입력과 계산 규칙**
+
+- 모든 엔드포인트에 Pydantic 요청 · 응답 스키마를 두고, 값의 범위를 검사한다(예: 나이 18~120, 납부율 0~100). 과제 노션 「모든 엔드포인트에 Pydantic Request/Response Schema가 정의되어 있다」.
+- 입력은 고객 15칸(금융 10 + 대안 5)이다. 성별 · 연령대 같은 보호 속성은 받지 않는다 (8.1).
+- 부채비율 · 통신비 정상납부율 · 공과금 납부율은 화면에서 이해하기 쉽게 **%로 받고**, 서버가 100으로 나눠 모델 단위로 바꾼다 (#70, PR #94).
+- 받은 값은 학습 때 저장한 StandardScaler로 똑같이 변환한 뒤 모델에 넣는다 (5장). 이 스케일러는 Train으로만 계산한 기준이다 (#82).
+- **신용점수** = (1 − 부도 확률) × 1000을 반올림한 0~1000점. **등급**은 300 · 500 · 650 · 800점을 경계로 E · D · C · B · A, **승인**은 부도 확률이 0.5(`APPROVAL_THRESHOLD`) 미만일 때다.
+- 모든 응답에 면책 조항(`disclaimer`)이 들어 있다.
+
+**확인 결과** (10/29, 남궁명진 PC)
+
+| 확인 | 결과 |
+|---|---|
+| 9개 엔드포인트 호출 | 모두 200 ✅ |
+| `/predict` 응답 시간 | 첫 호출 0.92초(모델 불러오기 포함), 이후 0.1초 이하. 과제 노션 「`/predict` API 응답 시간이 2초 이내이다」 ✅ |
+| Swagger 예시 고객 | 627점 · C등급 · 부도 확률 37% · 승인 ⏳ (#26 뒤 바뀜) |
+| API 테스트 (`tests/test_api.py`) | 통과 (전체 pytest 106 통과 · 7 건너뜀) |
+
+### 10.3 대시보드 (Streamlit)
+
+과제 노션 「대시보드에 다음 5개 탭(또는 페이지)이 존재한다」에 맞춰 5페이지를 만들었다.
+
+| 페이지 | 과제 노션 「필수 구성 요소」 | 구현 | 쓰는 API |
+|---|---|---|---|
+| 고객 심사 | 입력 폼(나이, 소득, 부채비율 등), 승인/거절 결과, 신용 점수, 리스크 등급 | 입력 15칸, 승인/거절, 점수 막대와 등급 눈금, 씬파일러 표시 ✅ | `/predict` |
+| XAI 분석 | SHAP Summary Plot 이미지, 개별 고객 Waterfall Plot, 거절 사유 Top 5 텍스트 | 전역 중요도(금융 · 대안 색 구분), 심사한 고객의 Waterfall과 가법성 검증, 거절 사유 카드 5개 ✅ | `/explain`, `/explain/summary` |
+| 공정성 | 집단별 승인율 막대 차트, DI Ratio 수치, Mitigation 전/후 비교 차트 | ✍️ 작업 중 (#48) | `/fairness`, `/fairness/mitigation` |
+| 모델 성능 | ROC Curve, Precision-Recall Curve, 혼동행렬 히트맵 | 지표 카드(AUC · KS · PSI 통과 표시), ROC · PR 곡선, 혼동행렬, 후보 모델 비교, 씬파일러 AUC 향상 ✅ | `/metrics`, `/metrics/comparison` |
+| 통계 검증 | ANOVA 검증 결과 테이블 (F값, p값, η²), Tukey HSD 결과 | ✍️ 작업 중 (#48) | `/anova` |
+
+- **위험도 색**: A · B 저위험(초록), C 중위험(노랑), D · E 고위험(빨강). 과제 노션 「위험도에 따라 색상이 구분된다」.
+- **가법성 검증**: Waterfall의 기준값 + SHAP 값 합을 확률로 바꾼 값이 `/predict`의 부도 확률과 같은지(오차 0.005 이내) 화면에 표시해, 설명이 실제 예측과 맞는지 보여 준다.
+- **면책 조항**: 모든 페이지 사이드바 아래에 원문 그대로 표시한다 (#97). 과제 노션 「모든 결과물에 다음 면책 조항(Disclaimer)을 명시해야 한다」.
+- **API가 꺼졌을 때**: 화면이 멈추지 않고 오류 안내를 보여 준다. API 없이 화면만 볼 때는 `USE_MOCK=true`로 예시 응답을 쓴다.
+- ✍️ 화면 캡처: 공정성 · 통계 검증 페이지 완성 후 5페이지를 한 장씩 넣는다 (`docs/figures/10_*.png`).
+
+### 10.4 Docker Compose
+
+과제 노션 「`docker-compose up` 명령 한 번으로 다음 3개 서비스가 동시에 실행된다」.
+
+| 서비스 | 주소 | 내용 |
+|---|---|---|
+| api | `localhost:8000` | `uvicorn src.api.main:app` |
+| dashboard | `localhost:8501` | `streamlit run src/dashboard/app.py`, 컨테이너 안에서는 `API_BASE_URL=http://api:8000`으로 API를 찾는다 |
+| mlflow | `localhost:5000` | MLflow 2.22.0 공식 이미지, 기록은 `./mlruns` |
+
+- `.env` 없이도 뜨고, 포트는 `API_PORT` · `DASHBOARD_PORT` · `MLFLOW_PORT`로 바꾼다. 과제 노션 「설정값(포트, 경로, 임계값)은 환경 변수 또는 config 파일로 분리한다」.
+- 최종 모델과 스케일러는 저장소에 들어 있어 clone 직후 `/predict` · `/explain`이 동작한다.
+
+### 10.5 한계
+
+- **clone 직후의 결과 값**: 검증 결과 JSON(`outputs/`)이 저장소에 없어, clone한 그대로는 `/metrics` · `/fairness` · `/anova`가 내장 예시 숫자를 돌려주고 거절 사유의 "동일 연령대 평균"이 빈다. 최종 결과 JSON을 저장소에 넣는다 (#103).
+- **clone 직후의 MLflow**: compose의 MLflow는 그 PC의 `./mlruns`만 보여 줘서, clone 직후에는 실험 기록이 없다. 팀 기록은 팀 MLflow 서버에 있다 (#102).
+- **신용점수 식**: 부도 확률을 1000점으로 바꾼 단순한 식이라, 실제 신용평가사의 점수 체계(로그 오즈 기반 스코어카드)와 다르다.
+- **입력 단위**: 월소득은 학습 데이터(GMSC, 미국 달러 기준)와 화면 입력(원)의 단위를 아직 맞추지 않았다 (#70).
+- **첫 호출 시간**: PC가 바쁠 때 API를 켠 뒤 첫 `/predict`가 6.2초 걸려 대시보드 대기 시간(5초)을 넘은 적이 있다. 두 번째부터는 0.1초다.
 
 ## 11. 한계와 결론 (1.5쪽) 🟡
 
@@ -622,7 +710,7 @@ Tukey HSD:
 | DI Ratio | 0.8 ~ 1.25 | 성별 1.012, 연령대 1.093 ✅ | 8.2 |
 | Equalized Odds | ≤ 0.10 | TPR 차이 0.031, FPR 차이 0.042 ✅ | 8.2 |
 | ANOVA | 1개 이상 p < 0.05 | 두 검증 모두 p < 0.001 ✅ | 9.2 |
-| API 응답 시간 | `/predict` 2초 이내 | ⏳ API(#80) 반영 후 측정 | 10 |
+| API 응답 시간 | `/predict` 2초 이내 | 첫 호출 0.92초, 이후 0.1초 이하 ✅ | 10.2 |
 
 ### 11.2 한계
 
