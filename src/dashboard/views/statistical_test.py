@@ -6,7 +6,7 @@ import streamlit as st
 
 import api_client
 from components.api_error import render_api_error
-from components.empty_state import render_no_report
+from components.empty_state import ghost_card, render_no_report
 from components.page_header import render_page_header
 
 CSS_PATH = Path(__file__).with_suffix(".css")
@@ -25,14 +25,14 @@ ETA_LEVELS = [("small", "0.01 – 0.06"), ("medium", "0.06 – 0.14"), ("large",
 TESTS = [
     {
         "key": "test_1",
-        "title": "검증 1 · 피처 그룹별 One-way ANOVA",
-        "h0": "전통 / 대안 / 통합 피처 그룹의 평균 AUC가 같다",
+        "title": "검증 1 · 피처 그룹별 ANOVA",
+        "h0": "전통 / 대안 / 통합 피처의 평균 AUC 비교",
         "group_col": "피처 그룹",
     },
     {
         "key": "test_2",
-        "title": "검증 2 · 알고리즘별 One-way ANOVA",
-        "h0": "LR / XGBoost / LightGBM의 평균 AUC가 같다",
+        "title": "검증 2 · 알고리즘별 ANOVA",
+        "h0": "LR / XGBoost / LightGBM의 평균 AUC 비교",
         "group_col": "알고리즘",
     },
 ]
@@ -71,7 +71,7 @@ def _anova_card(spec, t, data):
     alpha = t.get("alpha", 0.05)
     sizes = t.get("group_sizes") or {}
     n_values = set(sizes.values())
-    caption = f"H₀: {spec['h0']}"
+    caption = spec["h0"]
     if spec["key"] == "test_2":
         data_type = (data.get("source") or {}).get("test_2_data_type")
         if data_type:
@@ -122,7 +122,7 @@ def _anova_card(spec, t, data):
 
 def _tukey_card(spec, t):
     alpha = t.get("alpha", 0.05)
-    title = f"Tukey HSD · {spec['title'].split(' · ')[0]} 사후검정"
+    title = f"Tukey HSD · {spec['title'].split(' · ')[0]}"
     tukey = t.get("post_hoc_tukey") or []
     if not t["is_significant"] or not tukey:
         return f"""
@@ -134,9 +134,9 @@ def _tukey_card(spec, t):
     same = [r["comparison"] for r in tukey if not r["significant"]]
     if spec["key"] == "test_2" and same:
         a, b = (_comparison_label(x) for x in same[0].split(" vs "))
-        caption = f"{escape(a)}와 {escape(b)}은 통계적으로 구분되지 않음 → 선택 근거는 응답시간·SHAP 호환성"
+        caption = f"{escape(a)}와 {escape(b)}은 차이가 유의하지 않음"
     else:
-        caption = f"p &lt; {alpha:.2f} 이므로 필수 · 어느 그룹 쌍이 다른지 확인"
+        caption = "어느 그룹끼리 차이가 나는지 확인"
 
     rows = "".join(
         f'<tr><th>{escape(_comparison_label(r["comparison"]))}</th>'
@@ -157,14 +157,8 @@ def _tukey_card(spec, t):
     </div>"""
 
 
-def _footer_cards(data):
+def _footer_cards():
     chips = "".join(f'<span class="st-chip {level}">{rng}&nbsp; {level}</span>' for level, rng in ETA_LEVELS)
-    source = data.get("source") or {}
-    detail = []
-    if source.get("metric"):
-        detail.append(f'MLflow {escape(source["metric"])} 메트릭 히스토리에서 계산')
-    if source.get("runs_used"):
-        detail.append(f'<span class="st-nowrap">런 {source["runs_used"]}개</span>')
     return f"""
     <div class="st-row3">
       <div class="st-card">
@@ -172,14 +166,9 @@ def _footer_cards(data):
         <div class="st-chips st-eta">{chips}</div>
       </div>
       <div class="st-card">
-        <div class="st-subtitle warn">⚠ 독립성 가정의 한계 (리포트 명시)</div>
-        <div class="st-caption">폴드 AUC는 같은 데이터를 재분할해 얻은 값이라 완전히 독립이 아니다.
-          시드를 바꿔 반복해도 p-value 는 실제보다 작게 나올 수 있다.</div>
-      </div>
-      <div class="st-card">
-        <div class="st-subtitle">데이터 출처</div>
-        <div class="st-chips"><span class="st-chip blue">GET /anova → {{test_1, test_2}}</span></div>
-        <div class="st-caption">{" · ".join(detail) or "MLflow 폴드별 AUC"}</div>
+        <div class="st-subtitle warn">⚠ 독립성 가정의 한계</div>
+        <div class="st-caption">폴드 AUC는 같은 데이터를 재분할해 얻은 값이라 완전히 독립이 아니어서,
+          p-value 가 실제보다 작게 나올 수 있습니다.</div>
       </div>
     </div>"""
 
@@ -188,12 +177,14 @@ def _footer_cards(data):
 # 페이지
 # ---------------------------------------------------------------------------
 st.html(f"<style>{CSS_PATH.read_text(encoding='utf-8')}</style>")
-render_page_header("통계 검증", "ANOVA 2종과 Tukey HSD 로 대안 데이터의 효용과 알고리즘 선택을 통계적으로 정당화합니다")
+render_page_header("통계 검증", "대안 데이터와 알고리즘 선택이 통계적으로 의미 있는지 확인합니다")
 
 try:
     anova = api_client.anova()
-    if anova is None:
+    if anova is None:  # 결과가 없으면 안내 한 줄 + 카드 자리만 보여 준다
         render_no_report("anova")
+        for titles in [[spec["title"] for spec in TESTS], [f"Tukey HSD · 검증 {i}" for i in (1, 2)]]:
+            st.html('<div class="st-row2">' + "".join(ghost_card(t, "st-card", "st-title") for t in titles) + "</div>")
 except Exception as e:
     anova = None
     render_api_error("GET /anova", e, "page")
@@ -203,4 +194,4 @@ if anova is not None:
             + "".join(_anova_card(spec, anova[spec["key"]], anova) for spec in TESTS) + "</div>")
     st.html('<div class="st-row2 st-tukey">'
             + "".join(_tukey_card(spec, anova[spec["key"]]) for spec in TESTS) + "</div>")
-    st.html(_footer_cards(anova))
+    st.html(_footer_cards())

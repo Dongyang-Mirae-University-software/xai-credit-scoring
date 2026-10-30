@@ -6,7 +6,7 @@ import streamlit as st
 
 import api_client
 from components.api_error import api_error_html, render_api_error
-from components.empty_state import no_report_html, render_no_report
+from components.empty_state import ghost_card, ghost_metric, no_report_html, render_no_report
 from components.page_header import render_page_header
 
 CSS_PATH = Path(__file__).with_suffix(".css")
@@ -103,13 +103,13 @@ def _approval_card(f, criteria):
     note = "DI Ratio = 보호집단 승인율 ÷ 기준집단 승인율. " + (
         " · ".join(notes) + ", Bias Mitigation 대상" if notes else "모든 속성이 기준 안에 있습니다.")
 
-    n = f'{DATASET_LABEL} {f["n"]:,}건 · ' if f.get("n") else ""
+    n = f'{DATASET_LABEL} {f["n"]:,}건 기준' if f.get("n") else f"{DATASET_LABEL} 기준"
     return f"""
     <div class="fa-card">
       <div class="fa-card-head">
         <div>
           <div class="fa-title">집단별 승인율</div>
-          <div class="fa-caption">GET /fairness · {n}임계값 p &lt; {f["threshold"]:.2f}</div>
+          <div class="fa-caption">{n}</div>
         </div>
         <div class="fa-legend">
           <span class="fa-legend-chip gender"><i></i>성별</span>
@@ -177,17 +177,16 @@ def _mitigation_card(m, targets):
         for label, b, a, change, change_cls, verdict, verdict_cls, bold, b_cls in _mitigation_rows(m, targets)
     )
     method = {
-        "threshold_adjustment": "Threshold Adjustment (집단별 임계값 조정, 재학습 없음)",
-        "reweighting": "Reweighting (샘플 가중치 재학습)",
+        "threshold_adjustment": "집단별 승인 기준 조정 (재학습 없음)",
+        "reweighting": "샘플 가중치 재학습",
     }.get(m.get("method"), escape(str(m.get("method", "—"))))
     return f"""
     <div class="fa-card">
       <div class="fa-card-head">
         <div>
           <div class="fa-title">Bias Mitigation 전 / 후 비교</div>
-          <div class="fa-caption">GET /fairness/mitigation · 기법: {method}</div>
+          <div class="fa-caption">{method}</div>
         </div>
-        <span class="fa-chip amber">공정성 + 성능 동시 표기</span>
       </div>
       <table class="fa-table">
         <thead><tr><th>지표</th><th>완화 전</th><th>완화 후</th><th>변화</th><th>판정</th></tr></thead>
@@ -203,7 +202,7 @@ def _protected_card(f):
     chips = []
     if "gender" in by_attr:
         groups = " / ".join(_ordered_groups("gender", by_attr["gender"]["approval_rates"]))
-        chips.append(f"성별 {escape(groups)} — 시뮬레이터가 인위 부여 (GMSC에 성별 컬럼 없음)")
+        chips.append(f"성별 {escape(groups)} (시뮬레이션 생성)")
     if "age_group" in by_attr:
         groups = " / ".join(_group_label(g) for g in by_attr["age_group"]["approval_rates"])
         chips.append(f"연령대 {escape(groups)}")
@@ -219,12 +218,16 @@ def _protected_card(f):
 # 페이지
 # ---------------------------------------------------------------------------
 st.html(f"<style>{CSS_PATH.read_text(encoding='utf-8')}</style>")
-render_page_header("공정성", "성별·연령대별 승인율과 DI Ratio · Equalized Odds 를 측정하고 Bias Mitigation 전후를 비교합니다")
+render_page_header("공정성", "성별·연령대에 따라 심사 결과가 치우치지 않는지 확인합니다")
 
 try:
     fair = api_client.fairness()
-    if fair is None:
+    if fair is None:  # 결과가 없으면 안내 한 줄 + 카드 자리만 보여 준다
         render_no_report("fairness")
+        st.html('<div class="fa-metrics">' + "".join(ghost_metric(label, "fa-card fa-metric") for label in [
+            "DI Ratio · 성별", "DI Ratio · 연령대", "Equalized Odds · TPR 차이", "Equalized Odds · FPR 차이"]) + "</div>")
+        st.html('<div class="fa-row2">' + ghost_card("집단별 승인율", "fa-card", "fa-title")
+                + ghost_card("Bias Mitigation 전 / 후 비교", "fa-card", "fa-title") + "</div>")
 except Exception as e:
     fair = None
     render_api_error("GET /fairness", e, "page")

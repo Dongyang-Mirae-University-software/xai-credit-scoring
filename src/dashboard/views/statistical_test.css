@@ -43,18 +43,18 @@
   gap: 12px;
 }
 .st-title {
-  font-size: 15px;
+  font-size: 17px;
   font-weight: 700;
 }
 .st-subtitle {
-  font-size: 13px;
+  font-size: 14.5px;
   font-weight: 700;
 }
 .st-subtitle.warn { color: var(--st-amber); }
 .st-nowrap { white-space: nowrap; }
 .st-caption {
   color: var(--st-muted);
-  font-size: 11.5px;
+  font-size: 13px;
   margin-top: 2px;
   line-height: 1.5;
   word-break: keep-all;
@@ -62,7 +62,7 @@
 .st-pill {
   border-radius: 999px;
   padding: 2px 9px;
-  font-size: 11.5px;
+  font-size: 13px;
   font-weight: 500;
   white-space: nowrap;
 }
@@ -80,10 +80,10 @@
   border-radius: 999px;
   padding: 3px 10px;
   font-family: var(--font-mono);
-  font-size: 11.5px;
+  font-size: 13px;
   white-space: nowrap;
 }
-.st-eta .st-chip { padding: 3px 9px; font-family: var(--font-sans); font-size: 11.5px; }
+.st-eta .st-chip { padding: 3px 9px; font-family: var(--font-sans); font-size: 13px; }
 .st-chip.medium { background: var(--st-amber-bg); color: var(--st-amber-text); }
 .st-chip.large { background: var(--st-ok-bg); color: var(--st-ok); }
 .st-chip.blue { background: var(--st-blue-bg); color: var(--st-blue-text); }
@@ -96,7 +96,7 @@
 }
 .st-row3 {
   display: grid;
-  grid-template-columns: 1.1fr 1.1fr 0.9fr;
+  grid-template-columns: 1fr 1fr;
   gap: 12px;
 }
 .st-row3 .st-card { padding: 14px 22px; }
@@ -118,7 +118,7 @@
 }
 .st-stat span {
   color: var(--st-muted);
-  font-size: 12px;
+  font-size: 13.5px;
 }
 .st-stat b {
   font-family: var(--font-mono);
@@ -138,12 +138,12 @@
   border-collapse: separate;
   border-spacing: 0;
   overflow: hidden;
-  font-size: 13px;
+  font-size: 14.5px;
   flex: 1 1 auto;
 }
 .st-table th,
 .st-table td {
-  padding: 8px 12px;
+  padding: 8px 10px;
   text-align: left;
   border-bottom: 1px solid var(--st-border);
   white-space: nowrap;
@@ -154,11 +154,12 @@
   background: var(--st-head-bg);
   color: var(--st-muted);
   font-weight: 400;
-  font-size: 12px;
+  font-size: 13.5px;
 }
 .st-anova .st-table tbody th { font-weight: 700; }
 .st-tukey .st-table tbody th { font-weight: 400; }
-.st-table td { font-family: var(--font-mono); }
+.st-table td { font-family: var(--font-mono); font-size: 13.5px; }
+.st-tukey .st-table :is(th, td) { padding: 8px 8px; }
 .st-table .st-best th,
 .st-table .st-best .st-mean { color: var(--st-blue); font-weight: 700; }
 .st-table .ok { color: var(--st-ok); }

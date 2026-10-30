@@ -7,7 +7,7 @@ import streamlit as st
 
 import api_client
 from components.api_error import api_error_html, render_api_error
-from components.empty_state import render_no_report
+from components.empty_state import ghost_card, ghost_metric, render_no_report
 from components.page_header import render_page_header
 
 CSS_PATH = Path(__file__).with_suffix(".css")
@@ -64,9 +64,9 @@ def _metric_cards(m):
                 else f'<span class="pf-pill ng">{ng_label}</span>')
 
     cards = [
-        ("AUC", m["auc"], 3, badge("auc", "통과", "미달"), f'기준 ≥ {targets.get("auc", 0.78):.2f} · {DATASET_LABEL}'),
-        ("KS", m["ks"], 2, badge("ks", "통과", "미달"), f'기준 ≥ {targets.get("ks", 0.28):.2f} · 누적분포 최대차'),
-        ("PSI", m.get("psi"), 3, badge("psi", "안정", "불안정"), f'기준 &lt; {targets.get("psi", 0.1):.2f} · train vs test'),
+        ("AUC", m["auc"], 3, badge("auc", "통과", "미달"), f'기준 ≥ {targets.get("auc", 0.78):.2f}'),
+        ("KS", m["ks"], 2, badge("ks", "통과", "미달"), f'기준 ≥ {targets.get("ks", 0.28):.2f}'),
+        ("PSI", m.get("psi"), 3, badge("psi", "안정", "불안정"), f'기준 &lt; {targets.get("psi", 0.1):.2f}'),
         ("Precision", m["precision"], 2, badge(None, "", ""), f"임계값 {threshold:.2f}"),
         ("Recall", m["recall"], 2, badge(None, "", ""), f"임계값 {threshold:.2f}"),
         ("F1", m["f1"], 2, badge(None, "", ""), f"임계값 {threshold:.2f}"),
@@ -86,7 +86,7 @@ def _roc_card(m):
     return f"""
     <div class="pf-card">
       <div class="pf-title">ROC Curve</div>
-      <div class="pf-caption">GET /metrics · AUC = {m["auc"]:.3f} · 점선 = 무작위 (0.5)</div>
+      <div class="pf-caption">AUC {m["auc"]:.3f} · 점선은 무작위 분류</div>
       {_chart(_polyline(roc["fpr"], roc["tpr"]), "roc", "0,100 100,0")}
       <div class="pf-axis"><span>FPR →</span><span>TPR ↑</span></div>
     </div>"""
@@ -98,7 +98,7 @@ def _pr_card(m):
     return f"""
     <div class="pf-card">
       <div class="pf-title">Precision-Recall Curve</div>
-      <div class="pf-caption">양성 비율 {base:.2%} · 점선 = 기준선 ({base:.3f})</div>
+      <div class="pf-caption">부도 비율 {base:.1%} · 점선은 기준선</div>
       {_chart(_polyline(pr["recall"], pr["precision"]), "pr", f"0,{(1 - base) * 100:.2f} 100,{(1 - base) * 100:.2f}")}
       <div class="pf-axis"><span>Recall →</span><span>Precision ↑</span></div>
     </div>"""
@@ -109,7 +109,7 @@ def _confusion_card(m):
     return f"""
     <div class="pf-card">
       <div class="pf-title">혼동행렬</div>
-      <div class="pf-caption">{DATASET_LABEL} {m["n"]:,}건 · 임계값 {cm["threshold"]:.2f} · 양성 = 부도</div>
+      <div class="pf-caption">{DATASET_LABEL} {m["n"]:,}건</div>
       <div class="pf-cm">
         <span></span><span class="pf-cm-col">예측: 정상</span><span class="pf-cm-col">예측: 부도</span>
         <span class="pf-cm-row">실제: 정상</span>
@@ -120,13 +120,13 @@ def _confusion_card(m):
         <div class="pf-cm-cell tp"><b>TP</b>{cm["tp"]:,}</div>
       </div>
       <div class="pf-chips">
-        <span class="pf-chip">Recall {cm["recall"]:.2f} = TP/(TP+FN)</span>
-        <span class="pf-chip">Precision {cm["precision"]:.2f} = TP/(TP+FP)</span>
+        <span class="pf-chip">Recall {cm["recall"]:.2f}</span>
+        <span class="pf-chip">Precision {cm["precision"]:.2f}</span>
       </div>
     </div>"""
 
 
-def _model_grid_card(runs_data, m, stage):
+def _model_grid_card(runs_data, m):
     """runs_data: GET /metrics/comparison 응답 (selected_model, cv_runs = 후보별 5-Fold CV 평균)."""
     runs = list(runs_data.get("cv_runs", {}).values())
     data_type, algorithm, _ = (runs_data["selected_model"].split("/") + ["", "", ""])[:3]
@@ -157,15 +157,13 @@ def _model_grid_card(runs_data, m, stage):
         rows.append(f'<tr><th class="{"pf-sel" if selected else ""}">{label}</th>{cells}<td>{ks}</td><td>{psi}</td></tr>')
 
     pick = f"최종 선택: {escape(algorithm)} · {DATA_TYPE_LABELS.get(data_type, data_type)}"
-    if stage:
-        pick += f" · Registry {escape(stage)}"
     head = "".join(f"<th>{label}</th>" for _, label in DATA_TYPES)
     return f"""
     <div class="pf-card">
       <div class="pf-card-head">
         <div>
-          <div class="pf-title">모델 격자 비교 · AUC (mean ± sd, 5-Fold)</div>
-          <div class="pf-caption">MLflow 실험 {len(runs)}조합 · 불균형 기법: class_weight 계열(SMOTE 제외) 기준 표기</div>
+          <div class="pf-title">후보 모델 비교 · AUC</div>
+          <div class="pf-caption">5-Fold 교차검증 평균</div>
         </div>
         <span class="pf-chip blue">{pick}</span>
       </div>
@@ -190,7 +188,7 @@ def _thin_filer_card(m):
     return f"""
     <div class="pf-card">
       <div class="pf-title">씬파일러 세그먼트</div>
-      <div class="pf-caption">대안 데이터 유 / 무 · 씬파일러 {t["n_thin_filer"]:,}명 ({DATASET_LABEL})</div>
+      <div class="pf-caption">씬파일러 {t["n_thin_filer"]:,}명</div>
       <div class="pf-thin">
         <div class="pf-thin-row"><span>대안 데이터 포함</span><b class="ok">AUC {t["auc_with_alt"]:.2f}</b></div>
         <div class="pf-thin-row"><span>전통 데이터만</span><b>AUC {t["auc_without_alt"]:.2f}</b></div>
@@ -203,7 +201,7 @@ def _thin_filer_card(m):
 # 페이지
 # ---------------------------------------------------------------------------
 st.html(f"<style>{CSS_PATH.read_text(encoding='utf-8')}</style>")
-render_page_header("모델 성능", "ROC · PR 곡선과 혼동행렬, AUC · KS · PSI 지표로 최종 모델을 검증합니다")
+render_page_header("모델 성능", "최종 모델이 부도를 얼마나 잘 가려내는지 보여 줍니다")
 
 try:
     metrics, metrics_error = api_client.metrics(), None
@@ -217,15 +215,19 @@ else:
         _metric_cards(metrics)
         st.html(f'<div class="pf-row3">{_roc_card(metrics)}{_pr_card(metrics)}{_confusion_card(metrics)}</div>')
     else:
-        render_no_report("metrics")  # 격자 비교는 model_metadata.json 에서 오므로 평가 결과가 없어도 보인다
+        # 결과가 없으면 안내 한 줄 + 카드 자리만 보여 준다 (격자 비교는 model_metadata.json 이라 그대로 표시)
+        render_no_report("metrics")
+        st.html('<div class="pf-metrics">' + "".join(
+            ghost_metric(name, "pf-card pf-metric") for name in ["AUC", "KS", "PSI", "Precision", "Recall", "F1"]) + "</div>")
+        st.html('<div class="pf-row3">' + "".join(
+            ghost_card(title, "pf-card", "pf-title") for title in ["ROC Curve", "Precision-Recall Curve", "혼동행렬"]) + "</div>")
 
     try:
         runs_data = api_client.model_comparison()
-        stage = api_client.health().get("model_stage")
-        grid = _model_grid_card(runs_data, metrics, stage)
+        grid = _model_grid_card(runs_data, metrics)
     except Exception as e:
-        grid = f'<div class="pf-card"><div class="pf-title">모델 격자 비교</div>{api_error_html("GET /metrics/comparison", e, "inline")}</div>'
+        grid = f'<div class="pf-card"><div class="pf-title">후보 모델 비교</div>{api_error_html("GET /metrics/comparison", e, "inline")}</div>'
     if metrics is not None:
         st.html(f'<div class="pf-row2">{grid}{_thin_filer_card(metrics)}</div>')
     else:
-        st.html(f'<div class="pf-row2 single">{grid}</div>')
+        st.html(f'<div class="pf-row2">{grid}{ghost_card("씬파일러 세그먼트", "pf-card", "pf-title")}</div>')
