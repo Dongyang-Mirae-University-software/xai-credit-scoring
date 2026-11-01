@@ -59,7 +59,7 @@ MIN_THIN_FILER_POSITIVES = 30    # Test(15%) 기준 부도 표본이 이보다 �
 
 # ===== 대안 변수 생성 상수 (이슈 #26: 잠재 상환 성실도 요인 모델) =====
 ALT_TARGET_CORR = 0.32           # 생성된 각 대안 변수와 정답의 상관 절댓값 (조건 0.30~0.50, 분할 표본 오차 여유)
-LATENT_TARGET_WEIGHT = 0.4       # w: 상환 성실도에서 정답 신호 비중 (나머지는 금융 위험 지표)
+LATENT_TARGET_WEIGHT = 0.3       # w: 상환 성실도에서 정답 신호 비중 (나머지는 금융 위험 지표)
 COMMON_FACTOR_SHARE = 0.8        # rho: 다섯 변수가 함께 갖는 공통 성향 비중
 FICO_PAYMENT_WEIGHT = 0.35       # 금융 위험 지표: 납부 이력 비중 (FICO 공개 구성비)
 FICO_AMOUNTS_WEIGHT = 0.30       # 금융 위험 지표: 부채 사용 비중 (FICO 공개 구성비)
