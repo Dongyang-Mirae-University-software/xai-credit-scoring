@@ -1,0 +1,176 @@
+{
+  "test_1": {
+    "test_name": "피처 그룹별 AUC 비교 (One-way ANOVA)",
+    "groups": [
+      "전통모델",
+      "대안모델",
+      "통합모델"
+    ],
+    "group_means": {
+      "전통모델": 0.8276926251715184,
+      "대안모델": 0.8379488355050398,
+      "통합모델": 0.8733936307860424
+    },
+    "group_sizes": {
+      "전통모델": 30,
+      "대안모델": 30,
+      "통합모델": 30
+    },
+    "group_std": {
+      "전통모델": 0.03263888622475159,
+      "대안모델": 0.004647943864827054,
+      "통합모델": 0.015270037148048962
+    },
+    "group_ci95": {
+      "전통모델": [
+        0.8155050647582468,
+        0.83988018558479
+      ],
+      "대안모델": [
+        0.8362132647426063,
+        0.8396844062674734
+      ],
+      "통합모델": [
+        0.8676917052064367,
+        0.8790955563656478
+      ]
+    },
+    "f_statistic": 39.20353478460563,
+    "p_value": 7.277555911005689e-13,
+    "effect_size_eta_squared": 0.47402489974228923,
+    "effect_size_interpretation": "Large",
+    "alpha": 0.05,
+    "is_significant": true,
+    "post_hoc_tukey": [
+      {
+        "comparison": "전통 vs 대안",
+        "mean_diff": -0.01025621033352142,
+        "p_adj": 0.14661205559917423,
+        "ci95": [
+          -0.02317097633437197,
+          0.0026585556673291294
+        ],
+        "significant": false
+      },
+      {
+        "comparison": "전통 vs 통합",
+        "mean_diff": -0.04570100561452395,
+        "p_adj": 1.933231352779785e-12,
+        "ci95": [
+          -0.05861577161537439,
+          -0.03278623961367329
+        ],
+        "significant": true
+      },
+      {
+        "comparison": "대안 vs 통합",
+        "mean_diff": -0.03544479528100253,
+        "p_adj": 1.1919287112860388e-08,
+        "ci95": [
+          -0.04835956128185297,
+          -0.022530029280151867
+        ],
+        "significant": true
+      }
+    ]
+  },
+  "test_2": {
+    "test_name": "알고리즘별 AUC 비교 (One-way ANOVA)",
+    "groups": [
+      "LogisticRegression",
+      "XGBoost",
+      "LightGBM"
+    ],
+    "group_means": {
+      "LogisticRegression": 0.8545223488018694,
+      "XGBoost": 0.8821274874847118,
+      "LightGBM": 0.8835310560715458
+    },
+    "group_sizes": {
+      "LogisticRegression": 10,
+      "XGBoost": 10,
+      "LightGBM": 10
+    },
+    "group_std": {
+      "LogisticRegression": 0.003217165106781415,
+      "XGBoost": 0.008159259068238082,
+      "LightGBM": 0.008931870415020894
+    },
+    "group_ci95": {
+      "LogisticRegression": [
+        0.8522209275250855,
+        0.8568237700786533
+      ],
+      "XGBoost": [
+        0.8762907051626437,
+        0.8879642698067794
+      ],
+      "LightGBM": [
+        0.8771415808869256,
+        0.8899205312561662
+      ]
+    },
+    "f_statistic": 51.228417690263605,
+    "p_value": 6.452432956842602e-10,
+    "effect_size_eta_squared": 0.7914362735607157,
+    "effect_size_interpretation": "Large",
+    "alpha": 0.05,
+    "is_significant": true,
+    "post_hoc_tukey": [
+      {
+        "comparison": "LogisticRegression vs XGBoost",
+        "mean_diff": -0.027605138682842423,
+        "p_adj": 1.1044396730497397e-08,
+        "ci95": [
+          -0.03561899022100404,
+          -0.01959128714468036
+        ],
+        "significant": true
+      },
+      {
+        "comparison": "LogisticRegression vs LightGBM",
+        "mean_diff": -0.029008707269676415,
+        "p_adj": 4.0589225314136e-09,
+        "ci95": [
+          -0.03702255880783836,
+          -0.020994855731514685
+        ],
+        "significant": true
+      },
+      {
+        "comparison": "XGBoost vs LightGBM",
+        "mean_diff": -0.001403568586833992,
+        "p_adj": 0.9016536278780649,
+        "ci95": [
+          -0.009417420124996165,
+          0.006610282951327515
+        ],
+        "significant": false
+      }
+    ]
+  },
+  "source": {
+    "metric": "fold_k_roc_auc",
+    "runs_used": 18,
+    "test_2_data_type": "integrated"
+  },
+  "disclaimer": "본 시스템은 교육 목적으로 개발되었으며, 실제 금융 의사결정에 사용할 수 없습니다.",
+  "interpretation": {
+    "test_1": [
+      "피처 그룹별 AUC 비교 (One-way ANOVA): 전통모델(M=0.828), 대안모델(M=0.838), 통합모델(M=0.873).",
+      "F = 39.20, p = 7.28e-13, η² = 0.474 (Large).",
+      "p < 0.05 이므로 집단 간 평균 AUC 차이가 통계적으로 유의하여 Tukey HSD 사후 검정을 수행했다.",
+      "전통과 대안 간에는 유의한 차이가 없었다 (p_adj=0.147).",
+      "통합이 전통보다 유의하게 높은 AUC를 보였다 (차이 0.046, p_adj=1.93e-12).",
+      "통합이 대안보다 유의하게 높은 AUC를 보였다 (차이 0.035, p_adj=1.19e-08)."
+    ],
+    "test_2": [
+      "알고리즘별 AUC 비교 (One-way ANOVA): LogisticRegression(M=0.855), XGBoost(M=0.882), LightGBM(M=0.884).",
+      "F = 51.23, p = 6.45e-10, η² = 0.791 (Large).",
+      "p < 0.05 이므로 집단 간 평균 AUC 차이가 통계적으로 유의하여 Tukey HSD 사후 검정을 수행했다.",
+      "XGBoost가 LogisticRegression보다 유의하게 높은 AUC를 보였다 (차이 0.028, p_adj=1.1e-08).",
+      "LightGBM이 LogisticRegression보다 유의하게 높은 AUC를 보였다 (차이 0.029, p_adj=4.06e-09).",
+      "XGBoost와 LightGBM 간에는 유의한 차이가 없었다 (p_adj=0.902)."
+    ]
+  }
+}
