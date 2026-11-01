@@ -4,6 +4,7 @@ Step 3: 성능 비교 · SHAP 설명 (남궁명진 담당)
 학습된 모델과 Test 데이터로
   1) 성능 비교: AUC, KS, PSI(점수·특성별), 혼동행렬, ROC·PR 곡선 → outputs/evaluation/metrics_<모델>.json
      --baseline-model(금융만 쓴 모델)을 주면 씬파일러 AUC 향상과 신뢰구간도 계산한다 (#27)
+     main_step2가 model_metadata.json에 남긴 Train+Val 교차검증 향상(#26)도 함께 담고, 향상 판정은 교차검증 값으로 한다
   2) SHAP: Summary Plot(상위 15개), Dependence Plot 2개, Waterfall 1개 → outputs/evaluation/shap/
   3) 거절 사유 Top 5 예시 → outputs/evaluation/explain_example.json
      (+ API 재료: shap_summary.json, reference_values.json)
@@ -60,6 +61,24 @@ def model_features(model, columns):
     return [c for c in columns if c not in NON_FEATURE_COLS]
 
 
+def cv_uplift_from_metadata(model_path):
+    """
+    main_step2가 model_metadata.json에 남긴 Train+Val 교차검증 씬파일러 향상 (#26).
+    Test 씬파일러 부도는 40명 안팎이라 Test 1회 향상은 흔들리므로, 판정은 이 값으로 한다.
+    메타데이터의 최종 모델이 이 모델 파일과 다르면(다른 모델을 평가할 때) None.
+    """
+    meta_path = Path(model_path).parent / 'model_metadata.json'
+    if not meta_path.exists():
+        return None
+    selection = json.loads(meta_path.read_text(encoding='utf-8')).get('selection', {})
+    uplift = selection.get('thin_filer_uplift_cv')
+    selected = selection.get('selected_model', '')   # 예: integrated/LightGBM/is_unbalance
+    stem = Path(model_path).stem.lower().replace('_', '')
+    if not uplift or not selected or not all(p.lower().replace('_', '') in stem for p in selected.split('/')):
+        return None
+    return uplift
+
+
 def main():
     import joblib
     import pandas as pd
@@ -100,6 +119,13 @@ def main():
         result['pass']['thin_filer_uplift'] = uplift['pass']
         logger.info(f"씬파일러 AUC 향상 {uplift['uplift']:+.4f} [{uplift['ci_low']:+.4f} ~ {uplift['ci_high']:+.4f}] "
                     f"(씬파일러 {uplift['n_thin_filer']}명, 부도 {uplift['n_thin_filer_default']}명)")
+    uplift_cv = cv_uplift_from_metadata(model_path)
+    if uplift_cv:
+        result['thin_filer_uplift_cv'] = uplift_cv
+        result['pass']['thin_filer_uplift'] = uplift_cv['pass']
+        logger.info(f"씬파일러 AUC 향상 (Train+Val 교차검증, 판정 기준) {uplift_cv['uplift']:+.4f} "
+                    f"[{uplift_cv['ci_low']:+.4f} ~ {uplift_cv['ci_high']:+.4f}] "
+                    f"(씬파일러 {uplift_cv['n_thin_filer']}명, 부도 {uplift_cv['n_thin_filer_default']}명)")
     path = perf.save_json(result, out / f"metrics_{model_path.stem}.json")
     fp = result['feature_psi']
     logger.info(f"AUC {result['auc']:.4f} / KS {result['ks']:.4f} / PSI {result.get('psi', float('nan')):.4f} "

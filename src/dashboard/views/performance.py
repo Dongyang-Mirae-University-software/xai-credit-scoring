@@ -175,7 +175,9 @@ def _model_grid_card(runs_data, m, stage):
 
 
 def _thin_filer_card(m):
-    t = m.get("thin_filer_uplift")
+    test = m.get("thin_filer_uplift")
+    cv = m.get("thin_filer_uplift_cv")   # 판정 기준: Train+Val 교차검증 (#26). 없으면 Test 1회 값
+    t = cv or test
     if not t:
         return """
         <div class="pf-card">
@@ -185,15 +187,19 @@ def _thin_filer_card(m):
     note = ("대안 데이터가 씬파일러 판별력을 높임" if t["pass"]
             else f"목표(+{t.get('target', 0.03):.2f}) 미달")
     ci = f' · 95% CI [{t["ci_low"]:+.2f}, {t["ci_high"]:+.2f}]' if "ci_low" in t else ""
+    label = "Train+Val 5-Fold 교차검증" if cv else DATASET_LABEL
+    test_note = (f'<div class="pf-caption">{DATASET_LABEL} 1회: {test["uplift"]:+.3f} AUC '
+                 f'(씬파일러 {test["n_thin_filer"]:,}명, 표본이 작아 참고값)</div>') if cv and test else ""
     return f"""
     <div class="pf-card">
       <div class="pf-title">씬파일러 세그먼트</div>
-      <div class="pf-caption">대안 데이터 유 / 무 · 씬파일러 {t["n_thin_filer"]:,}명 ({DATASET_LABEL})</div>
+      <div class="pf-caption">대안 데이터 유 / 무 · 씬파일러 {t["n_thin_filer"]:,}명 ({label})</div>
       <div class="pf-thin">
         <div class="pf-thin-row"><span>대안 데이터 포함</span><b class="ok">AUC {t["auc_with_alt"]:.2f}</b></div>
         <div class="pf-thin-row"><span>전통 데이터만</span><b>AUC {t["auc_without_alt"]:.2f}</b></div>
       </div>
       <span class="pf-pill {"ok" if t["pass"] else "ng"} wide">{t["uplift"]:+.2f} AUC · {note}{ci}</span>
+      {test_note}
     </div>"""
 
 
