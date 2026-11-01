@@ -3,11 +3,17 @@
 telecom_payment_rate, utility_payment_rate, spending_consistency,
 regular_payment_count, app_login_frequency 5개 변수를 생성한다.
 
-방법 1: 공분산 행렬 기반 생성
-- 공분산 행렬로 정의된 상관관계를 유지
-- 공식: Y = -r*X + sqrt(1-r^2)*Z (연체자일수록 낮게)
-  (r: 목표 상관계수, X: 정규화된 Target, Z: 독립적인 노이즈)
-- 결과: 생성된 대안 변수와 실제 Target 간 상관계수 -0.35~-0.45 (절댓값 0.30~0.50)
+방법 1: 공분산 행렬 기반 생성 - 잠재 상환 성실도 요인 모델 (이슈 #26)
+- 다섯 변수가 보이지 않는 하나의 요인 "상환 성실도" L에서 나온다고 본다 (공통 요인 모델)
+    L   = z(w*X + (1-w)*S)
+    A_i = -k*L + sqrt(1-k^2) * (sqrt(rho)*F + sqrt(1-rho)*Z_i)   (연체자일수록 낮게)
+  X: 정규화된 Target, S: 정답 없이 금융 칸으로만 만든 위험 지표 (납부 이력 35 : 부채 사용 30, FICO 공개 구성비)
+  F: 다섯 변수가 함께 갖는 공통 성향, Z_i: 변수별 노이즈
+  w: 성실도에서 정답 신호 비중, rho: 공통 성향 비중, k: 최종 값의 상관이 목표가 되도록 이분법으로 맞춤
+- 이전 방식(각 변수가 정답에서 따로 신호를 받음)은 변수를 합치면 노이즈가 상쇄되어
+  대안 정보만으로 AUC가 0.9를 넘었다. 공통 성향과 금융 정보 연결로 이 과장을 줄인다.
+- 결과: 생성된 대안 변수와 실제 Target 간 상관계수 약 -0.32 (과제 조건: 절댓값 0.30~0.50)
+- w, rho는 이론값이 아니라 보정값이다. 근거와 민감도는 docs/alt_data_simulation.md 참고
 
 thin_filer_ratio: 씬파일러 비율 조정 파라미터 (None 권장 - 기준대로만 판정)
 bias_ratio: 성별/연령대별 승인율 편향 조정 파라미터
@@ -51,6 +57,15 @@ MAX_REAL_ESTATE_LOANS = 0        # 부동산 담보대출 건수 상한
 # 씬파일러 집단이 평가에 쓸 수 있을 만큼 큰지 확인하는 경고 기준
 MIN_THIN_FILER_POSITIVES = 30    # Test(15%) 기준 부도 표본이 이보다 적으면 경고
 
+# ===== 대안 변수 생성 상수 (이슈 #26: 잠재 상환 성실도 요인 모델) =====
+ALT_TARGET_CORR = 0.32           # 생성된 각 대안 변수와 정답의 상관 절댓값 (조건 0.30~0.50, 분할 표본 오차 여유)
+LATENT_TARGET_WEIGHT = 0.3       # w: 상환 성실도에서 정답 신호 비중 (나머지는 금융 위험 지표)
+COMMON_FACTOR_SHARE = 0.8        # rho: 다섯 변수가 함께 갖는 공통 성향 비중
+FICO_PAYMENT_WEIGHT = 0.35       # 금융 위험 지표: 납부 이력 비중 (FICO 공개 구성비)
+FICO_AMOUNTS_WEIGHT = 0.30       # 금융 위험 지표: 부채 사용 비중 (FICO 공개 구성비)
+DELINQUENCY_COUNT_CAP = 20       # 연체 횟수의 96·98 같은 특수 코드가 지표를 끌고 가지 않게 자르는 상한
+UTILIZATION_CAP = 2              # 한도 이용률 극단값 상한
+
 
 def _setup_logger():
     """로깅 설정"""
@@ -64,18 +79,83 @@ def _setup_logger():
         logger.setLevel(logging.INFO)
 
 
+def _z(values):
+    """평균 0, 표준편차 1로 바꾼다 (값이 모두 같으면 0)."""
+    values = np.asarray(values, dtype=float)
+    std = values.std()
+    return (values - values.mean()) / std if std > 0 else np.zeros_like(values)
+
+
+def _minmax(values):
+    return (values - values.min()) / (values.max() - values.min() + 1e-8)
+
+
+def financial_risk_index(df):
+    """
+    정답을 쓰지 않고 금융 칸으로만 만든 위험 지표 S (표준화, 클수록 위험).
+    신용평가의 두 큰 요소인 납부 이력과 부채 사용을 FICO 공개 구성비(35:30)로 더한다.
+    필요한 칸이 없으면 None을 돌려준다.
+    """
+    if not all(col in df.columns for col in DELINQUENCY_COLS + [REVOLVING_COL]):
+        return None
+    past_due = df[DELINQUENCY_COLS].fillna(0).clip(upper=DELINQUENCY_COUNT_CAP).sum(axis=1)
+    utilization = df[REVOLVING_COL].fillna(0).clip(upper=UTILIZATION_CAP).rank(pct=True)
+    score = (FICO_PAYMENT_WEIGHT * _z(np.log1p(past_due.values))
+             + FICO_AMOUNTS_WEIGHT * _z(utilization.values))
+    return _z(score)
+
+
+# 대안 변수별 값 범위로 바꾸는 방법 (Y는 평균 0, 표준편차 1인 성실도 점수, 클수록 성실)
+ALT_TRANSFORMS = {
+    'telecom_payment_rate': lambda y: np.clip(0.90 + 0.06 * y, 0, 1),                     # 0~1
+    'utility_payment_rate': lambda y: np.clip(0.85 + 0.08 * y, 0, 1),                     # 0~1
+    'spending_consistency': lambda y: np.clip(75 + 25 * _minmax(y), 0, 100),              # 0~100
+    'regular_payment_count': lambda y: np.maximum(0, np.round(8 + 6 * _minmax(y))).astype(int),   # 0~20
+    'app_login_frequency': lambda y: np.maximum(0, np.round(15 + 10 * _minmax(y))).astype(int),   # 0~30
+}
+
+
+def _calibrated_variable(latent, noise, target, transform, target_corr, iterations=40):
+    """
+    최종 값(범위 변환 후)과 정답의 상관이 -target_corr가 되도록 k를 이분법으로 찾는다.
+    잘라내기·반올림을 거치면 상관이 줄어들기 때문에, 변환 전이 아니라 변환 후 값으로 맞춘다.
+    """
+    def build(k):
+        return transform(-k * latent + np.sqrt(1 - k ** 2) * noise)
+
+    def corr_of(k):
+        return -np.corrcoef(build(k), target)[0, 1]
+
+    if corr_of(1.0) < target_corr:
+        raise ValueError(
+            f"성실도와 정답의 상관이 너무 약해 목표 상관 {target_corr:.2f}를 만들 수 없습니다. "
+            f"latent_weight를 높이세요."
+        )
+    low, high = 0.0, 1.0
+    for _ in range(iterations):
+        mid = (low + high) / 2
+        if corr_of(mid) < target_corr:
+            low = mid
+        else:
+            high = mid
+    return build(high), high
+
+
 def generate_alternative_data(df, target_col="SeriousDlqin2yrs",
                                thin_filer_ratio: float = None,
                                bias_ratio: float = 0,
-                               random_seed: int = None):
+                               random_seed: int = None,
+                               latent_weight: float = LATENT_TARGET_WEIGHT,
+                               common_factor: float = COMMON_FACTOR_SHARE,
+                               target_corr: float = ALT_TARGET_CORR):
     """
-    5개 대안 변수 생성 (Target과의 상관계수: 0.30~0.50 범위)
+    5개 대안 변수 생성 (Target과의 상관계수 절댓값 target_corr, 조건 0.30~0.50)
 
-    방법: 공분산 행렬 기반 생성
-    - 공식: Y = -r*X + sqrt(1-r^2)*Z (연체자일수록 낮게)
-    - X: 정규화된 실제 Target
-    - Z: 독립적인 표준정규분포
-    - r: 공분산 행렬에 정의된 목표 상관계수
+    방법: 잠재 상환 성실도 요인 모델 (공분산 행렬 기반, 이슈 #26)
+    - 성실도 L = z(w*X + (1-w)*S): X는 정규화된 Target, S는 금융 위험 지표 (정답 미사용)
+    - 대안 변수 A_i = -k*L + sqrt(1-k^2)*(sqrt(rho)*F + sqrt(1-rho)*Z_i) (연체자일수록 낮게)
+    - F는 다섯 변수의 공통 성향, Z_i는 변수별 노이즈, k는 상관이 목표가 되도록 맞춘 값
+    - 금융 칸(연체 3칸, 한도 이용률)이 없으면 S 없이 X만 쓴다
 
     Args:
         df: 기존 데이터프레임
@@ -84,6 +164,9 @@ def generate_alternative_data(df, target_col="SeriousDlqin2yrs",
                           None(기본값)이면 판정 기준대로만 분류한다 (권장).
         bias_ratio: 편향 강도 (0: 편향 없음, 1: 최대 편향)
         random_seed: 무작위 생성 시드. 같은 시드면 같은 결과가 나온다 (None이면 매번 다름)
+        latent_weight: w. 성실도에서 정답 신호 비중 (0~1). 높을수록 대안 정보가 금융 정보에 없는 신호를 더 가진다
+        common_factor: rho. 다섯 변수의 공통 성향 비중 (0~1). 높을수록 변수끼리 비슷하게 움직인다
+        target_corr: 생성된 각 변수와 Target의 상관 절댓값
 
     Returns:
         대안 변수가 추가된 데이터프레임
@@ -96,106 +179,30 @@ def generate_alternative_data(df, target_col="SeriousDlqin2yrs",
 
     logger.info(f"대안 데이터 시뮬레이터 실행 중...")
     logger.info(f"   샘플 크기: {n:,}")
-    logger.info(f"   목표 상관계수 범위: 0.30~0.50")
-    logger.info(f"   생성 방법: 공분산 행렬 기반 + 실제 Target 연결")
+    logger.info(f"   생성 방법: 잠재 상환 성실도 요인 모델 (이슈 #26)")
+    logger.info(f"   목표 상관계수: -{target_corr:.2f}, w(정답 비중)={latent_weight}, rho(공통 성향)={common_factor}")
 
     # ===== 단계 1: 실제 Target 표준화 (평균 0, 표준편차 1) =====
     target = df_new[target_col].values.astype(float)
-    target_standardized = (target - target.mean()) / (target.std() + 1e-8)
+    target_standardized = _z(target)
 
-    # ===== 단계 2: 공분산 행렬 정의 =====
-    # Target과의 상관계수 설정 (0.30~0.50 범위)
-    target_correlations = {
-        'telecom_payment_rate': rng.uniform(0.35, 0.45),
-        'utility_payment_rate': rng.uniform(0.35, 0.45),
-        'spending_consistency': rng.uniform(0.35, 0.45),
-        'regular_payment_count': rng.uniform(0.35, 0.45),
-        'app_login_frequency': rng.uniform(0.35, 0.45)
-    }
+    # ===== 단계 2: 상환 성실도 L = 정답 신호 + 금융 위험 지표 =====
+    risk_index = financial_risk_index(df_new)
+    if risk_index is None:
+        logger.info("   금융 칸이 없어 정답 신호만으로 성실도를 만듭니다")
+        latent = target_standardized
+    else:
+        latent = _z(latent_weight * target_standardized + (1 - latent_weight) * risk_index)
+        logger.info(f"   금융 위험 지표와 정답의 상관: {np.corrcoef(risk_index, target)[0, 1]:.3f} (정답 미사용으로 계산)")
+    logger.info(f"   성실도와 정답의 상관: {np.corrcoef(latent, target)[0, 1]:.3f}")
 
-    logger.info(f"\n   설정된 목표 상관계수:")
-    for var, corr in target_correlations.items():
-        logger.info(f"      {var}: {corr:.4f}")
-
-    # 공분산 행렬 구성 (6x6: target + 5개 변수)
-    cov_matrix = np.eye(6)
-
-    # 타겟과의 상관관계 정의
-    for idx, corr in enumerate(target_correlations.values(), start=1):
-        cov_matrix[0, idx] = corr
-        cov_matrix[idx, 0] = corr
-
-    # 변수 간 상관관계 (0.20~0.40)
-    for i in range(1, 6):
-        for j in range(i+1, 6):
-            cov_matrix[i, j] = rng.uniform(0.20, 0.40)
-            cov_matrix[j, i] = cov_matrix[i, j]
-
-    # ===== 단계 3: 공분산 행렬에서 5개 변수만 샘플링 =====
-    # 5x5 부분 공분산 행렬 (변수 간만)
-    cov_alt = cov_matrix[1:, 1:]
-
-    # 표준편차 설정
-    std_devs = np.array([0.15, 0.15, 12, 4, 6])
-    scaled_cov_alt = np.diag(std_devs) @ cov_alt @ np.diag(std_devs)
-
-    try:
-        # 5개 변수의 기본값
-        mean_alt = np.array([0.85, 0.80, 75, 8, 15])
-        samples_alt = rng.multivariate_normal(mean_alt, scaled_cov_alt, n)
-        logger.info(f"   공분산 행렬 기반 샘플링 성공")
-    except np.linalg.LinAlgError:
-        logger.warning("공분산 행렬이 양정부호가 아닙니다. 표준 정규분포 사용")
-        samples_alt = rng.standard_normal((n, 5)) * std_devs + np.array([0.85, 0.80, 75, 8, 15])
-
-    # ===== 단계 4: 공식으로 실제 Target과 상관관계 유지 =====
-    # Y = r*X + sqrt(1-r^2)*Z
-    # X: 정규화된 Target (0~1)
-    # Z: 독립적인 샘플 (정규화됨)
-    # r: 목표 상관계수
-
-    logger.info(f"   공식 적용: Y = r*X + sqrt(1-r^2)*Z")
-
-    # 각 변수별로 공식 적용
-    var_names = list(target_correlations.keys())
-    r_values = list(target_correlations.values())
-
-    # 1. telecom_payment_rate (0~1)
-    r = r_values[0]
-    Z = (samples_alt[:, 0] - samples_alt[:, 0].mean()) / (samples_alt[:, 0].std() + 1e-8)
-    Y = -r * target_standardized + np.sqrt(1 - r**2) * Z
-    df_new['telecom_payment_rate'] = np.clip(0.90 + 0.06 * Y, 0, 1)
-
-    # 2. utility_payment_rate (0~1)
-    r = r_values[1]
-    Z = (samples_alt[:, 1] - samples_alt[:, 1].mean()) / (samples_alt[:, 1].std() + 1e-8)
-    Y = -r * target_standardized + np.sqrt(1 - r**2) * Z
-    df_new['utility_payment_rate'] = np.clip(0.85 + 0.08 * Y, 0, 1)
-
-    # 3. spending_consistency (0~100)
-    r = r_values[2]
-    Z = (samples_alt[:, 2] - samples_alt[:, 2].mean()) / (samples_alt[:, 2].std() + 1e-8)
-    Y = -r * target_standardized + np.sqrt(1 - r**2) * Z
-    df_new['spending_consistency'] = np.clip(
-        75 + 25 * ((Y - Y.min()) / (Y.max() - Y.min() + 1e-8)),
-        0, 100
-    )
-
-    # 4. regular_payment_count (0~20)
-    r = r_values[3]
-    Z = (samples_alt[:, 3] - samples_alt[:, 3].mean()) / (samples_alt[:, 3].std() + 1e-8)
-    Y = -r * target_standardized + np.sqrt(1 - r**2) * Z
-    df_new['regular_payment_count'] = np.maximum(
-        0, np.round(8 + 6 * ((Y - Y.min()) / (Y.max() - Y.min() + 1e-8))).astype(int)
-    )
-
-    # 5. app_login_frequency (0~30)
-    r = r_values[4]
-    Z = (samples_alt[:, 4] - samples_alt[:, 4].mean()) / (samples_alt[:, 4].std() + 1e-8)
-    Y = -r * target_standardized + np.sqrt(1 - r**2) * Z
-    df_new['app_login_frequency'] = np.maximum(
-        0, np.round(15 + 10 * ((Y - Y.min()) / (Y.max() - Y.min() + 1e-8))).astype(int)
-    )
+    # ===== 단계 3: 공통 성향 F와 변수별 노이즈로 다섯 변수 생성 =====
+    common = rng.standard_normal(n)
+    for name, transform in ALT_TRANSFORMS.items():
+        noise = np.sqrt(common_factor) * common + np.sqrt(1 - common_factor) * rng.standard_normal(n)
+        values, k = _calibrated_variable(latent, noise, target, transform, target_corr)
+        df_new[name] = values
+        logger.info(f"      {name}: k={k:.4f}")
 
     # ===== 단계 5: 인구통계 변수 추가 =====
     df_new = add_demographic_features(df_new, bias_ratio, rng=rng)

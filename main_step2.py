@@ -3,6 +3,8 @@ Step 2: 모델 학습 및 최종 모델 평가
 step1이 만든 분할 파일(data/splits)로 9개 모델을 학습하고,
 Val AUC로 최종 모델을 고른 뒤 Test에서 1회만 평가한다.
 같은 자리에서 PSI(#28)와 씬파일러 AUC 향상·신뢰구간(#27)도 MLflow와 model_metadata.json에 기록한다.
+씬파일러 향상은 Test 1회 값과 함께, Test 부도 표본이 작아 흔들리는 문제를 보완하려고
+Train+Val 5-Fold 교차검증(out-of-fold) 값도 기록한다 (#26).
 """
 
 import json
@@ -38,8 +40,8 @@ def main():
     metadata = json.loads((DATA_SPLITS / 'metadata.json').read_text(encoding='utf-8'))
     data_params = metadata.get('data_params', {})
 
-    X_train, y_train, _ = load_split('train')
-    X_val, y_val, _ = load_split('val')
+    X_train, y_train, thin_train = load_split('train')
+    X_val, y_val, thin_val = load_split('val')
     X_test, y_test, thin_test = load_split('test')
     logger.info(f"분할 로드: train {len(X_train):,} / val {len(X_val):,} / test {len(X_test):,}")
 
@@ -49,6 +51,7 @@ def main():
     select_and_test_once(
         results, X_val, y_val, X_test, y_test, models_dir=str(MODELS_DIR), version='1.0',
         data_params=data_params, X_train=X_train, thin_mask=thin_test,
+        y_train=y_train, thin_mask_train=thin_train, thin_mask_val=thin_val,
     )
     # 전처리 기준(중앙값)을 모델 설명 파일에도 남긴다 (API가 같은 기준으로 입력을 바꾸기 위함)
     model_meta_path = MODELS_DIR / 'model_metadata.json'
