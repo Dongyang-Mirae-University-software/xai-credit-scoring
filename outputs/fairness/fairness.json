@@ -1,0 +1,41 @@
+{
+  "di_ratio": 1.2535269841675416,
+  "equalized_odds_tpr_diff": 0.1482071092292193,
+  "equalized_odds_fpr_diff": 0.17629116117850951,
+  "threshold": 0.5,
+  "n": 22500,
+  "criteria": {
+    "di_min": 0.8,
+    "di_max": 1.25,
+    "eo_max": 0.1
+  },
+  "by_attribute": {
+    "gender": {
+      "protected_group": "female",
+      "approval_rates": {
+        "female": 0.7937739719917938,
+        "male": 0.7968819204535389
+      },
+      "di_ratio": 0.9960998632520408,
+      "di_passed": true,
+      "equalized_odds_tpr_diff": 0.004145314184552218,
+      "equalized_odds_fpr_diff": 0.005529464830587166,
+      "equalized_odds_passed": true
+    },
+    "age_group": {
+      "protected_group": "55+",
+      "approval_rates": {
+        "20-34": 0.6399293286219081,
+        "35-54": 0.7380590203833283,
+        "55+": 0.8977469670710572
+      },
+      "di_ratio": 1.2535269841675416,
+      "di_passed": false,
+      "equalized_odds_tpr_diff": 0.1482071092292193,
+      "equalized_odds_fpr_diff": 0.17629116117850951,
+      "equalized_odds_passed": false
+    }
+  },
+  "model": "lightgbm_is_unbalance_integrated_v1.0.joblib",
+  "disclaimer": "본 시스템은 교육 목적으로 개발되었으며, 실제 금융 의사결정에 사용할 수 없습니다."
+}
