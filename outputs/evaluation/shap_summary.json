@@ -1,0 +1,83 @@
+{
+  "model": "lightgbm_is_unbalance_integrated_v1.0.joblib",
+  "n_samples": 2000,
+  "shap_space": "log-odds",
+  "features": [
+    {
+      "feature": "RevolvingUtilizationOfUnsecuredLines",
+      "mean_abs_shap": 0.49463481301562234,
+      "group": "financial"
+    },
+    {
+      "feature": "spending_consistency",
+      "mean_abs_shap": 0.28537635679785833,
+      "group": "alternative"
+    },
+    {
+      "feature": "regular_payment_count",
+      "mean_abs_shap": 0.2838123087211965,
+      "group": "alternative"
+    },
+    {
+      "feature": "app_login_frequency",
+      "mean_abs_shap": 0.2599556832985016,
+      "group": "alternative"
+    },
+    {
+      "feature": "age",
+      "mean_abs_shap": 0.25971056743385157,
+      "group": "financial"
+    },
+    {
+      "feature": "utility_payment_rate",
+      "mean_abs_shap": 0.1789070501391291,
+      "group": "alternative"
+    },
+    {
+      "feature": "DebtRatio",
+      "mean_abs_shap": 0.1706423452845855,
+      "group": "financial"
+    },
+    {
+      "feature": "telecom_payment_rate",
+      "mean_abs_shap": 0.15304814155657018,
+      "group": "alternative"
+    },
+    {
+      "feature": "NumberOfTimes90DaysLate",
+      "mean_abs_shap": 0.14794741883481358,
+      "group": "financial"
+    },
+    {
+      "feature": "NumberOfOpenCreditLinesAndLoans",
+      "mean_abs_shap": 0.14651733324578473,
+      "group": "financial"
+    },
+    {
+      "feature": "NumberOfTime30-59DaysPastDueNotWorse",
+      "mean_abs_shap": 0.14288126917034488,
+      "group": "financial"
+    },
+    {
+      "feature": "MonthlyIncome",
+      "mean_abs_shap": 0.13615411887018344,
+      "group": "financial"
+    },
+    {
+      "feature": "NumberRealEstateLoansOrLines",
+      "mean_abs_shap": 0.0968468157853593,
+      "group": "financial"
+    },
+    {
+      "feature": "NumberOfTime60-89DaysPastDueNotWorse",
+      "mean_abs_shap": 0.07697298791715049,
+      "group": "financial"
+    },
+    {
+      "feature": "NumberOfDependents",
+      "mean_abs_shap": 0.02295397609773291,
+      "group": "financial"
+    }
+  ],
+  "disclaimer": "본 시스템은 교육 목적으로 개발되었으며, 실제 금융 의사결정에 사용할 수 없습니다."
+}

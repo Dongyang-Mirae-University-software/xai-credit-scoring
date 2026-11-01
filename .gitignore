@@ -21,3 +21,13 @@ models/*.pkl
 models/val_selection_table.csv
 !models/lightgbm_is_unbalance_integrated_v1.0.joblib
 !models/preprocess_scaler_v1.0.joblib
+
+# 검증 결과 (이슈 #103): API가 읽는 결과 JSON 6개만 저장소에 둔다. 그림·나머지 산출물은 제외
+outputs/**
+!outputs/*/
+!outputs/evaluation/metrics_lightgbm_is_unbalance_integrated_v1.0.json
+!outputs/evaluation/shap_summary.json
+!outputs/evaluation/reference_values.json
+!outputs/fairness/fairness.json
+!outputs/fairness/fairness_mitigation.json
+!outputs/statistics/anova.json
