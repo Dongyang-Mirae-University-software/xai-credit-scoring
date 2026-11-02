@@ -45,7 +45,7 @@ def _p(p):
 def _eta_level(t):
     level = t.get("effect_size_interpretation")
     if level:
-        return level
+        return level.lower()  # 실제 결과는 'Large' 처럼 첫 글자가 대문자
     eta = t["effect_size_eta_squared"]
     return "large" if eta >= 0.14 else "medium" if eta >= 0.06 else "small"
 
@@ -79,9 +79,10 @@ def _anova_card(spec, t, data):
     if len(n_values) == 1:
         caption += f" · <span class=\"st-nowrap\">그룹당 n = {n_values.pop()}</span>"
 
-    texts = (data.get("interpretation") or {}).get(spec["key"]) or [
-        "귀무가설 기각" if t["is_significant"] else "귀무가설 유지"]
-    verdict = f'<span class="st-pill {"ok" if t["is_significant"] else "warn"}">{escape(texts[0])}</span>'
+    # 배지는 짧게, API의 해석 문장(여러 줄)은 마우스를 올리면 보이게
+    texts = (data.get("interpretation") or {}).get(spec["key"]) or []
+    verdict = (f'<span class="st-pill {"ok" if t["is_significant"] else "warn"}" title="{escape(" ".join(texts))}">'
+               f'{"귀무가설 기각" if t["is_significant"] else "귀무가설 유지"}</span>')
 
     level = _eta_level(t)
     level_cls = {"large": "ok", "medium": "warn"}.get(level, "")
