@@ -41,6 +41,19 @@ def _reference_group(info):
 # ---------------------------------------------------------------------------
 # 화면 조각
 # ---------------------------------------------------------------------------
+def _di_text(value, criteria):
+    """DI 값. 둘째 자리로 반올림하면 기준선과 같아 보일 때(예: 1.2535 → 1.25)만 셋째 자리까지 보인다."""
+    text = f"{value:.2f}"
+    return f"{value:.3f}" if float(text) in (criteria["di_min"], criteria["di_max"]) else text
+
+
+def _change(diff, digits=2, suffix=""):
+    """변화량. 반올림해서 0 이면 '-0.00' 대신 부호 없이 0 으로."""
+    if round(diff, digits) == 0:
+        return f"{0:.{digits}f}{suffix}"
+    return f"{diff:+.{digits}f}{suffix}"
+
+
 def _pill(ok, ok_label="양호", ng_label="WARNING"):
     return f'<span class="fa-pill {"ok" if ok else "ng"}">{ok_label if ok else ng_label}</span>'
 
@@ -55,17 +68,17 @@ def _metric_cards(f, criteria):
             continue
         ref = _reference_group(info)
         caption = f'{di_range} · {_group_label(info["protected_group"])} / {_group_label(ref)} 승인율'
-        cards.append((f"DI Ratio · {label}", info["di_ratio"], info["di_passed"], caption))
+        cards.append((f"DI Ratio · {label}", _di_text(info["di_ratio"], criteria), info["di_passed"], caption))
     eo_max = criteria["eo_max"]
     for key, label, desc in [("equalized_odds_tpr_diff", "TPR", "진양성률"),
                              ("equalized_odds_fpr_diff", "FPR", "위양성률")]:
-        cards.append((f"Equalized Odds · {label} 차이", f[key], f[key] <= eo_max,
+        cards.append((f"{label} 차이", f"{f[key]:.2f}", f[key] <= eo_max,
                       f"기준 ≤ {eo_max:.2f} · 집단 간 {desc} 차이"))
 
     html = "".join(
         f'<div class="fa-card fa-metric">'
         f'<div class="fa-metric-head"><span>{name}</span>{_pill(ok)}</div>'
-        f'<div class="fa-metric-value {"ok" if ok else "ng"}">{value:.2f}</div>'
+        f'<div class="fa-metric-value {"ok" if ok else "ng"}">{value}</div>'
         f'<div class="fa-caption">{caption}</div></div>'
         for name, value, ok, caption in cards
     )
@@ -98,7 +111,7 @@ def _approval_card(f, criteria):
         if info and not info["di_passed"]:
             bound = "하한" if info["di_ratio"] < criteria["di_min"] else "상한"
             limit = criteria["di_min"] if bound == "하한" else criteria["di_max"]
-            notes.append(f'{label} {info["di_ratio"]:.2f} → {bound} {limit:.2f} '
+            notes.append(f'{label} {_di_text(info["di_ratio"], criteria)} → {bound} {limit:.2f} '
                          f'{"미달" if bound == "하한" else "초과"}로 WARNING')
     note = "DI Ratio = 보호집단 승인율 ÷ 기준집단 승인율. " + (
         " · ".join(notes) + ", Bias Mitigation 대상" if notes else "모든 속성이 기준 안에 있습니다.")
@@ -121,7 +134,7 @@ def _approval_card(f, criteria):
     </div>"""
 
 
-def _mitigation_rows(m, targets):
+def _mitigation_rows(m, targets, criteria):
     before, after = m["before"], m["after"]
     rows = []
 
@@ -133,48 +146,55 @@ def _mitigation_rows(m, targets):
         b, a = before["by_attribute"].get(attr), after["by_attribute"].get(attr)
         if not (b and a):
             continue
+        diff = a["di_ratio"] - b["di_ratio"]
         better = abs(1 - a["di_ratio"]) <= abs(1 - b["di_ratio"])
         if not b["di_passed"] and a["di_passed"]:
             verdict, cls = "경고 해소", "ok"
+        elif round(diff, 2) == 0:  # 보이는 자리수에서 그대로면 '유지'
+            verdict, cls = "유지", "muted"
         else:
             verdict, cls = ("개선", "ok") if better else ("악화", "ng")
-        add(f"DI Ratio ({label})", f'{b["di_ratio"]:.2f}', f'{a["di_ratio"]:.2f}',
-            f'{a["di_ratio"] - b["di_ratio"]:+.2f}', "ok" if better else "ng", verdict, cls,
+        add(f"DI Ratio ({label})", _di_text(b["di_ratio"], criteria), _di_text(a["di_ratio"], criteria),
+            _change(diff), cls if cls == "muted" else ("ok" if better else "ng"), verdict, cls,
             bold=True, b_cls="" if b["di_passed"] else "ng")
 
     # Equalized Odds: 차이가 작을수록 개선
     for key, label in [("equalized_odds_tpr_diff", "TPR 차이"), ("equalized_odds_fpr_diff", "FPR 차이")]:
-        better = after[key] <= before[key]
-        add(label, f"{before[key]:.2f}", f"{after[key]:.2f}", f"{after[key] - before[key]:+.2f}",
-            "ok" if better else "ng", "개선" if better else "악화", "ok" if better else "ng")
+        diff = after[key] - before[key]
+        if round(diff, 2) == 0:
+            verdict, cls = "유지", "muted"
+        else:
+            verdict, cls = ("개선", "ok") if diff < 0 else ("악화", "ng")
+        add(label, f"{before[key]:.2f}", f"{after[key]:.2f}", _change(diff), cls, verdict, cls)
 
     # 성능: 떨어져도 기준 이상이면 허용 (공정성과의 트레이드오프)
     for key, label, digits in [("auc", "AUC", 3), ("ks", "KS", 2)]:
         if before.get(key) is None or after.get(key) is None:
             continue
         diff, target = after[key] - before[key], targets.get(key, DEFAULT_TARGETS[key])
-        if diff >= 0:
+        if round(diff, digits) >= 0:
             verdict, cls = "유지", "ok"
         elif after[key] >= target:
             verdict, cls = f"허용 (≥ {target:.2f})", "warn"
         else:
             verdict, cls = f"미달 (≥ {target:.2f})", "ng"
-        add(label, f"{before[key]:.{digits}f}", f"{after[key]:.{digits}f}", f"{diff:+.{digits}f}",
-            "ok" if diff >= 0 else cls, verdict, cls, bold=key == "auc")
+        add(label, f"{before[key]:.{digits}f}", f"{after[key]:.{digits}f}", _change(diff, digits),
+            "ok" if round(diff, digits) >= 0 else cls, verdict, cls, bold=key == "auc")
 
     if before.get("approval_rate") is not None and after.get("approval_rate") is not None:
         b, a = before["approval_rate"], after["approval_rate"]
-        add("전체 승인율", f"{b:.1%}", f"{a:.1%}", f"{(a - b) * 100:+.1f}%p", "warn" if a < b else "ok", "—", "muted")
+        add("전체 승인율", f"{b:.1%}", f"{a:.1%}", _change((a - b) * 100, 1, "%p"),
+            "warn" if round((a - b) * 100, 1) < 0 else "muted", "—", "muted")
     return rows
 
 
-def _mitigation_card(m, targets):
+def _mitigation_card(m, targets, criteria):
     rows = "".join(
         f'<tr><th class="{"bold" if bold else ""}">{label}</th>'
         f'<td class="{b_cls}">{b}</td><td>{a}</td>'
         f'<td class="{change_cls}">{change}</td>'
         f'<td class="fa-verdict {verdict_cls}">{verdict}</td></tr>'
-        for label, b, a, change, change_cls, verdict, verdict_cls, bold, b_cls in _mitigation_rows(m, targets)
+        for label, b, a, change, change_cls, verdict, verdict_cls, bold, b_cls in _mitigation_rows(m, targets, criteria)
     )
     method = {
         "threshold_adjustment": "집단별 승인 기준 조정 (재학습 없음)",
@@ -225,7 +245,7 @@ try:
     if fair is None:  # 결과가 없으면 안내 한 줄 + 카드 자리만 보여 준다
         render_no_report("fairness")
         st.html('<div class="fa-metrics">' + "".join(ghost_metric(label, "fa-card fa-metric") for label in [
-            "DI Ratio · 성별", "DI Ratio · 연령대", "Equalized Odds · TPR 차이", "Equalized Odds · FPR 차이"]) + "</div>")
+            "DI Ratio · 성별", "DI Ratio · 연령대", "TPR 차이", "FPR 차이"]) + "</div>")
         st.html('<div class="fa-row2">' + ghost_card("집단별 승인율", "fa-card", "fa-title")
                 + ghost_card("Bias Mitigation 전 / 후 비교", "fa-card", "fa-title") + "</div>")
 except Exception as e:
@@ -241,7 +261,7 @@ if fair is not None:
     try:
         data = api_client.fairness_mitigation()
         if data:
-            mitigation = _mitigation_card(data, targets)
+            mitigation = _mitigation_card(data, targets, criteria)
         else:  # 공정성 결과만 있고 완화 결과가 없으면: 위에 안내 한 줄, 표 자리는 비워 둔다
             render_no_report("fairness_mitigation")
             mitigation = ghost_card("Bias Mitigation 전 / 후 비교", "fa-card", "fa-title")
