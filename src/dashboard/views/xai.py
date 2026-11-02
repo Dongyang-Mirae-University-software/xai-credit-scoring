@@ -13,7 +13,7 @@ from components.empty_state import render_no_report
 from components.page_header import render_page_header
 
 CSS_PATH = Path(__file__).with_suffix(".css")
-SUMMARY_MAX_DISPLAY = 15
+SUMMARY_MAX_DISPLAY = 12  # 1440×900 에서 거절 사유 카드까지 한 화면에 들어오는 줄 수
 
 # 대안 데이터 5개 (미션 문서 정의) — /explain/summary 응답에 group 이 없을 때만 쓰는 대비용
 ALTERNATIVE_FEATURES = {
