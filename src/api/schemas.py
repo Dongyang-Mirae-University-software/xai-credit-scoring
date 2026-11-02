@@ -245,6 +245,8 @@ class MetricsResponse(BaseModel):
     pass_: dict[str, bool] = Field(alias='pass', description='기준 통과 여부 (auc/ks/psi/thin_filer_uplift)')
     targets: dict[str, float]
     thin_filer_uplift: Optional[ThinFilerUplift] = Field(None, description='씬파일러 세그먼트 대안 데이터 유/무 AUC')
+    thin_filer_uplift_cv: Optional[ThinFilerUplift] = Field(
+        None, description='같은 비교를 Train+Val 5-Fold 교차검증으로 잰 값 (Test 미사용). 있으면 향상 판정 기준')
 
 
 class ModelCandidate(BaseModel):

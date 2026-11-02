@@ -55,7 +55,8 @@ docker compose up --build     # .env 없이도 뜬다. 처음 한 번은 이미�
 | MLflow UI | http://localhost:5000 | 이 PC의 `./mlruns` 기록 (팀 서버 기록이 아님) |
 
 - 최종 모델·스케일러는 `models/`에 들어 있어서 clone 직후 바로 `/predict`·`/explain`이 동작합니다.
-- `/metrics`·`/fairness`·`/anova`·`/explain/summary`는 아래 파이프라인이 만든 `outputs/` 결과를 돌려줍니다. `outputs/`가 없으면 내장 예시(`src/api/examples/`)를 돌려주며, `GET /health`의 `reports`에서 어느 쪽인지 확인할 수 있습니다.
+- `/metrics`·`/fairness`·`/anova`·`/explain/summary`는 `outputs/`의 검증 결과 JSON을 돌려줍니다. 최종 모델로 만든 결과 JSON 6개가 저장소에 들어 있어서 clone 직후에도 실제 숫자가 나옵니다. 파일이 없으면 내장 예시(`src/api/examples/`)를 돌려주며, `GET /health`의 `reports`에서 어느 쪽인지 확인할 수 있습니다.
+- 모델을 다시 학습했다면 결과 JSON도 아래 `main_step3~5`로 다시 만들어 함께 커밋합니다.
 
 ### 2. 로컬 실행 (Python 3.10 권장, Docker 이미지와 같은 버전)
 
@@ -113,7 +114,7 @@ xai-credit-scoring/
 │   ├── api/                 # FastAPI: main.py · routers/ · schemas.py · model.py · reports.py · examples/
 │   └── dashboard/           # Streamlit: app.py · views/(5개 페이지) · components/ · api_client.py · config.py
 ├── models/                  # 최종 모델 · 스케일러 · model_metadata.json (변경 이력은 models/README.md)
-├── outputs/                 # step3~6 결과 JSON·그림 (실행하면 생김, 저장소에는 없음)
+├── outputs/                 # step3~6 결과 (API가 읽는 JSON 6개만 저장소에 있음, 그림·나머지는 실행하면 생김)
 ├── notebooks/01_eda.ipynb   # 탐색적 데이터 분석
 ├── docs/                    # report_draft.md(실험 리포트 초안) · column_spec.md(칸 이름·단위)
 ├── tests/                   # pytest 단위 테스트

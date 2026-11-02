@@ -171,6 +171,7 @@ def threshold_optimizer_report(fit_y, fit_p, fit_gender, fit_age_group,
         'library': 'fairlearn', 'library_version': version,
         'constraints': constraints, 'objective': objective, 'groups': 'gender|age_group',
         'threshold': t, 'threshold_fit_on': 'validation', 'random_state': random_state,
-        'before': mt._summary(before), 'after': mt._summary(after),
+        'before': mt._summary(before, mt._performance(y_true, p_default, before_approved)),
+        'after': mt._summary(after, mt._performance(y_true, p_default, approved)),
         'overall': {'before': overall(before_approved), 'after': overall(approved)},
     }

@@ -1,0 +1,85 @@
+{
+  "method": "threshold_adjustment",
+  "threshold": 0.5,
+  "before": {
+    "di_ratio": 1.2535269841675416,
+    "equalized_odds_tpr_diff": 0.1482071092292193,
+    "equalized_odds_fpr_diff": 0.17629116117850951,
+    "by_attribute": {
+      "gender": {
+        "protected_group": "female",
+        "approval_rates": {
+          "female": 0.7937739719917938,
+          "male": 0.7968819204535389
+        },
+        "di_ratio": 0.9960998632520408,
+        "di_passed": true,
+        "equalized_odds_tpr_diff": 0.004145314184552218,
+        "equalized_odds_fpr_diff": 0.005529464830587166,
+        "equalized_odds_passed": true
+      },
+      "age_group": {
+        "protected_group": "55+",
+        "approval_rates": {
+          "20-34": 0.6399293286219081,
+          "35-54": 0.7380590203833283,
+          "55+": 0.8977469670710572
+        },
+        "di_ratio": 1.2535269841675416,
+        "di_passed": false,
+        "equalized_odds_tpr_diff": 0.1482071092292193,
+        "equalized_odds_fpr_diff": 0.17629116117850951,
+        "equalized_odds_passed": false
+      }
+    },
+    "auc": 0.8894458556949044,
+    "ks": 0.6128883971820367,
+    "approval_rate": 0.7953333333333333
+  },
+  "threshold_fit_on": "validation",
+  "after": {
+    "di_ratio": 0.9875409922960134,
+    "equalized_odds_tpr_diff": 0.04145694941988698,
+    "equalized_odds_fpr_diff": 0.06429809358752164,
+    "by_attribute": {
+      "gender": {
+        "protected_group": "female",
+        "approval_rates": {
+          "female": 0.7898492551957899,
+          "male": 0.7945787935158118
+        },
+        "di_ratio": 0.9940477415724941,
+        "di_passed": true,
+        "equalized_odds_tpr_diff": 0.004075300691438688,
+        "equalized_odds_fpr_diff": 0.02995215226370207,
+        "equalized_odds_passed": true
+      },
+      "age_group": {
+        "protected_group": "55+",
+        "approval_rates": {
+          "20-34": 0.7946996466431095,
+          "35-54": 0.7970794037115911,
+          "55+": 0.78662452849424
+        },
+        "di_ratio": 0.9875409922960134,
+        "di_passed": true,
+        "equalized_odds_tpr_diff": 0.04145694941988698,
+        "equalized_odds_fpr_diff": 0.06429809358752164,
+        "equalized_odds_passed": true
+      }
+    },
+    "auc": 0.8894458556949044,
+    "ks": 0.6128883971820367,
+    "approval_rate": 0.7922222222222223
+  },
+  "group_thresholds": {
+    "male|35-54": 0.6013311036580148,
+    "male|55+": 0.2870400550639389,
+    "female|55+": 0.28764847440627467,
+    "female|35-54": 0.5784907371381858,
+    "male|20-34": 0.7015079126394114,
+    "female|20-34": 0.6872726879397244
+  },
+  "target_approval_rate": 0.7926222222222222,
+  "disclaimer": "본 시스템은 교육 목적으로 개발되었으며, 실제 금융 의사결정에 사용할 수 없습니다."
+}

@@ -67,3 +67,29 @@ def test_select_and_test_once_records_psi_and_uplift(tmp_path, monkeypatch):
     assert u['ci_low'] <= u['uplift'] <= u['ci_high']
     meta = json.loads((tmp_path / 'model_metadata.json').read_text(encoding='utf-8'))
     assert 'psi' in meta['selection'] and 'thin_filer_uplift' in meta['selection']
+
+
+def test_select_and_test_once_records_cv_uplift(tmp_path, monkeypatch):
+    # Train+Val 교차검증 씬파일러 향상 (#26): Test를 쓰지 않고 Train+Val의 씬파일러 전체로 계산한다
+    monkeypatch.setenv('MLFLOW_TRACKING_URI', tmp_path.joinpath('mlruns').as_uri())
+    monkeypatch.setenv('UPLIFT_BOOTSTRAP', '100')
+    X_tr, y_tr = _data(seed=1)
+    X_v, y_v = _data(seed=2)
+    X_te, y_te = _data(seed=3)
+    thin_tr = pd.Series([1] * 200 + [0] * 400)
+    thin_v = pd.Series([1] * 100 + [0] * 500)
+    results = {}
+    for data_type in ('financial_only', 'alternative_only', 'integrated'):
+        cols = tr.get_features_by_type(X_tr, data_type).columns
+        model = LogisticRegression(max_iter=500).fit(X_tr[cols], y_tr)
+        results[data_type] = {'LogisticRegression': {'class_weight': model}}
+    out = tr.select_and_test_once(results, X_v, y_v, X_te, y_te, models_dir=str(tmp_path),
+                                  X_train=X_tr, thin_mask=pd.Series([1] * 300 + [0] * 300),
+                                  y_train=y_tr, thin_mask_train=thin_tr, thin_mask_val=thin_v)
+    u = out['thin_filer_uplift_cv']
+    assert u['n_thin_filer'] == 300                      # Train 200 + Val 100, Test는 포함하지 않음
+    assert u['model_with_alt'].startswith('integrated/')
+    assert u['ci_low'] <= u['uplift'] <= u['ci_high']
+    assert u['uplift'] > 0                               # 대안 변수가 정답과 관련 있도록 만든 데이터
+    meta = json.loads((tmp_path / 'model_metadata.json').read_text(encoding='utf-8'))
+    assert 'thin_filer_uplift_cv' in meta['selection']

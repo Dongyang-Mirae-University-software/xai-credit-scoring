@@ -180,6 +180,7 @@ def fairness_report(y_true, p_default, gender=None, age_group=None, threshold=No
         'equalized_odds_tpr_diff': max(r['equalized_odds_tpr_diff'] for r in by_attr.values()),
         'equalized_odds_fpr_diff': max(r['equalized_odds_fpr_diff'] for r in by_attr.values()),
         'threshold': t,
+        'n': len(approved),
         'criteria': {'di_min': DI_MIN, 'di_max': DI_MAX, 'eo_max': EO_MAX},
         'by_attribute': by_attr,
     }

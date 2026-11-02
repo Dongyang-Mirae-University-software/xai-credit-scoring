@@ -80,10 +80,19 @@ def approvals_with_thresholds(p_default, groups, thresholds, default=None):
     return [1 if pi < thresholds.get(gi, t) else 0 for pi, gi in zip(_list(p_default), _list(groups))]
 
 
-def _summary(report):
+def _performance(y_true, p_default, approved):
+    """전/후 표에 공정성과 함께 보일 성능: AUC·KS(부도 확률 기준)와 전체 승인율."""
+    from src.explainer.performance import ks_statistic, roc_auc
+    approved = _list(approved)
+    return {'auc': roc_auc(y_true, p_default), 'ks': ks_statistic(y_true, p_default),
+            'approval_rate': sum(approved) / len(approved)}
+
+
+def _summary(report, performance=None):
     keys = ('di_ratio', 'equalized_odds_tpr_diff', 'equalized_odds_fpr_diff')
     out = {k: report[k] for k in keys}
     out['by_attribute'] = report['by_attribute']
+    out.update(performance or {})
     return out
 
 
@@ -105,7 +114,8 @@ def mitigation_report(y_true, p_before, gender=None, age_group=None,
     method='reweighting': 가중치로 다시 학습한 모델의 확률 p_after 를 함께 넘긴다."""
     t = default_threshold() if threshold is None else threshold
     before = fairness_report(y_true, p_before, gender=gender, age_group=age_group, threshold=t)
-    result = {'method': method, 'threshold': t, 'before': _summary(before)}
+    result = {'method': method, 'threshold': t,
+              'before': _summary(before, _performance(y_true, p_before, approvals(p_before, t)))}
     if method == 'threshold_adjustment':
         groups = combine_groups(gender, age_group)
         if fit_p_default is not None:
@@ -118,13 +128,16 @@ def mitigation_report(y_true, p_before, gender=None, age_group=None,
             thresholds, target = group_thresholds(p_before, groups, t)
             result['threshold_fit_on'] = 'evaluation_data'
         approved = approvals_with_thresholds(p_before, groups, thresholds, default=t)
-        result['after'] = _summary(_report_from_approved(y_true, approved, gender, age_group))
+        # 모델은 그대로라 AUC·KS는 적용 전과 같고, 승인율만 바뀐다
+        result['after'] = _summary(_report_from_approved(y_true, approved, gender, age_group),
+                                   _performance(y_true, p_before, approved))
         result['group_thresholds'] = thresholds
         result['target_approval_rate'] = target
     elif method == 'reweighting':
         if p_after is None:
             raise ValueError("reweighting 은 가중치로 다시 학습한 모델의 확률 p_after 가 필요합니다")
-        result['after'] = _summary(fairness_report(y_true, p_after, gender=gender, age_group=age_group, threshold=t))
+        result['after'] = _summary(fairness_report(y_true, p_after, gender=gender, age_group=age_group, threshold=t),
+                                   _performance(y_true, p_after, approvals(p_after, t)))
     else:
         raise ValueError(f"알 수 없는 방법: {method}")
     return result

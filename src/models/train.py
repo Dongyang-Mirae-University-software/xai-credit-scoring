@@ -13,6 +13,7 @@ import mlflow
 from mlflow import log_metric, log_param, log_artifact
 
 from sklearn.linear_model import LogisticRegression
+from sklearn.base import clone
 from sklearn.model_selection import StratifiedKFold, cross_validate
 from sklearn.metrics import (
     roc_auc_score, precision_score, recall_score, f1_score,
@@ -606,8 +607,40 @@ def _thin_filer_uplift(results, candidates, X_test, y_test, thin_mask):
     return uplift
 
 
+def _thin_filer_uplift_cv(results, candidates, X_dev, y_dev, thin_mask_dev, n_splits=5):
+    """
+    씬파일러 AUC 향상을 학습+검증 데이터의 5-Fold 교차검증(out-of-fold)으로 잰다 (#26).
+    Test의 씬파일러 부도는 40명 안팎이라 한 번의 분할로는 값이 크게 흔들린다.
+    여기서는 Test를 쓰지 않고, 각 고객을 그 고객이 학습에 쓰이지 않은 모델로 예측해
+    학습+검증의 씬파일러 전체(부도 약 250명)로 향상을 계산한다.
+    비교 모델은 Test 기준 향상(_thin_filer_uplift)과 같은 후보(데이터 종류별 Val AUC 최고)를 같은 설정으로 다시 학습한다.
+    """
+    y_dev = np.asarray(y_dev)
+    skf = StratifiedKFold(n_splits=n_splits, shuffle=True, random_state=42)
+    oof, names = {}, {}
+    for data_type in ('financial_only', 'integrated'):
+        rows = candidates[candidates['data_type'] == data_type]
+        if rows.empty:
+            logger.warning(f"{data_type} 모델이 없어 교차검증 씬파일러 AUC 향상을 계산하지 않았습니다.")
+            return None
+        best = rows.loc[rows['val_auc'].idxmax()]
+        template = results[data_type][best['algorithm']][best['method']]
+        X_d = get_features_by_type(X_dev, data_type)
+        pred = np.zeros(len(y_dev))
+        for tr_idx, te_idx in skf.split(X_d, y_dev):
+            model = clone(template).fit(X_d.iloc[tr_idx], y_dev[tr_idx])
+            pred[te_idx] = model.predict_proba(X_d.iloc[te_idx])[:, 1]
+        oof[data_type] = pred
+        names[data_type] = f"{data_type}/{best['algorithm']}/{best['method']}"
+    uplift = perf.thin_filer_uplift_ci(y_dev, oof['financial_only'], oof['integrated'], thin_mask_dev)
+    uplift['model_without_alt'] = names['financial_only']
+    uplift['model_with_alt'] = names['integrated']
+    uplift['method'] = f'{n_splits}-fold out-of-fold (Train+Val, Test 미사용)'
+    return uplift
+
+
 def select_and_test_once(results, X_val, y_val, X_test, y_test, models_dir='models', version='1.0', data_params=None,
-                         X_train=None, thin_mask=None):
+                         X_train=None, thin_mask=None, y_train=None, thin_mask_train=None, thin_mask_val=None):
     """
     Val AUC로 최종 모델을 고르고, 선택된 모델 1개만 Test에서 1회 평가한다.
 
@@ -616,6 +649,7 @@ def select_and_test_once(results, X_val, y_val, X_test, y_test, models_dir='mode
     3) 최종 모델만 Test로 평가한다. 이 함수는 파이프라인에서 한 번만 호출한다.
     4) X_train을 주면 PSI(최종 모델 점수 Train vs Test, 특성별 Train vs Test)를 기록한다 (#28)
     5) thin_mask(Test의 is_thin_filer)를 주면 씬파일러 AUC 향상과 신뢰구간을 기록한다 (#27)
+    6) y_train, thin_mask_train, thin_mask_val도 주면 Train+Val 교차검증 씬파일러 향상을 함께 기록한다 (#26)
     """
     import json
 
@@ -649,6 +683,12 @@ def select_and_test_once(results, X_val, y_val, X_test, y_test, models_dir='mode
                     'feature_psi': perf.feature_psi(X_tr, X_t, list(X_t.columns))}
         psi_info['pass'] = psi_info['score_psi'] < perf.TARGETS['psi']
     uplift = _thin_filer_uplift(results, candidates, X_test, y_test, thin_mask) if thin_mask is not None else None
+    uplift_cv = None
+    if X_train is not None and y_train is not None and thin_mask_train is not None and thin_mask_val is not None:
+        X_dev = pd.concat([X_train, X_val], ignore_index=True)
+        y_dev = np.concatenate([np.asarray(y_train), np.asarray(y_val)])
+        thin_dev = np.concatenate([np.asarray(thin_mask_train), np.asarray(thin_mask_val)])
+        uplift_cv = _thin_filer_uplift_cv(results, candidates, X_dev, y_dev, thin_dev)
 
     models_path = Path(models_dir)
     models_path.mkdir(parents=True, exist_ok=True)
@@ -679,6 +719,11 @@ def select_and_test_once(results, X_val, y_val, X_test, y_test, models_dir='mode
                 mlflow.log_metric(f'thin_{key}', float(uplift[key]))
             mlflow.log_metric('thin_n', uplift['n_thin_filer'])
             mlflow.log_metric('thin_n_default', uplift['n_thin_filer_default'])
+        if uplift_cv:
+            for key in ('uplift', 'ci_low', 'ci_high', 'auc_without_alt', 'auc_with_alt'):
+                mlflow.log_metric(f'thin_cv_{key}', float(uplift_cv[key]))
+            mlflow.log_metric('thin_cv_n', uplift_cv['n_thin_filer'])
+            mlflow.log_metric('thin_cv_n_default', uplift_cv['n_thin_filer_default'])
 
     meta_path = models_path / 'model_metadata.json'
     metadata = json.loads(meta_path.read_text(encoding='utf-8')) if meta_path.exists() else {}
@@ -694,6 +739,8 @@ def select_and_test_once(results, X_val, y_val, X_test, y_test, models_dir='mode
         metadata['selection']['psi'] = psi_info
     if uplift:
         metadata['selection']['thin_filer_uplift'] = uplift
+    if uplift_cv:
+        metadata['selection']['thin_filer_uplift_cv'] = uplift_cv
     meta_path.write_text(json.dumps(metadata, ensure_ascii=False, indent=2), encoding='utf-8')
 
     logger.info(f"최종 모델: {final_name} (Val AUC {final['val_auc']:.4f}) → Test AUC {test_auc:.4f}, KS {test_ks:.4f}")
@@ -704,10 +751,16 @@ def select_and_test_once(results, X_val, y_val, X_test, y_test, models_dir='mode
         logger.info(f"씬파일러 AUC 향상: {uplift['uplift']:+.4f} "
                     f"[{uplift['ci_level']:.0%} 구간 {uplift['ci_low']:+.4f} ~ {uplift['ci_high']:+.4f}] "
                     f"(씬파일러 {uplift['n_thin_filer']}명, 부도 {uplift['n_thin_filer_default']}명, 목표 +{uplift['target']})")
+    if uplift_cv:
+        logger.info(f"씬파일러 AUC 향상 (Train+Val 교차검증): {uplift_cv['uplift']:+.4f} "
+                    f"[{uplift_cv['ci_level']:.0%} 구간 {uplift_cv['ci_low']:+.4f} ~ {uplift_cv['ci_high']:+.4f}] "
+                    f"(씬파일러 {uplift_cv['n_thin_filer']}명, 부도 {uplift_cv['n_thin_filer_default']}명, 목표 +{uplift_cv['target']})")
     out = {'selected_model': final_name, 'val_auc': float(final['val_auc']),
            'test_auc': float(test_auc), 'test_ks': float(test_ks)}
     if psi_info:
         out['psi'] = psi_info
     if uplift:
         out['thin_filer_uplift'] = uplift
+    if uplift_cv:
+        out['thin_filer_uplift_cv'] = uplift_cv
     return out
