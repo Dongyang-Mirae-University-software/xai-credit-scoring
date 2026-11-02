@@ -20,7 +20,7 @@
 }
 
 /* ---- 화면 채우기 ----
-   남는 높이는 위 두 카드(전체 변수 중요도·개별 고객 기여도)가 가져가고, 막대 줄 사이가 함께 넓어진다.
+   남는 높이는 위 두 카드(전체 변수 중요도·개별 고객 기여도)가 가져간다 (막대 줄 사이가 넓어지는 건 개별 고객 기여도만).
    요인 Top 5 카드는 내용 높이만 쓴다. 페이지 높이·블록 간격 공통 규칙은 app.css */
 [data-testid="stLayoutWrapper"]:has(> [data-testid="stHorizontalBlock"] .st-key-xai-summary) {
   flex: 1 1 auto;
@@ -33,7 +33,11 @@
   display: flex;
   flex-direction: column;
 }
-.xai-sum,
+/* 전체 변수 중요도는 막대 간격(줄 높이 20px)을 고정: 고객 선택 여부·화면 높이와 상관없이 같은 간격 */
+.xai-sum {
+  display: flex;
+  flex-direction: column;
+}
 .xai-wf {
   flex: 1 1 auto;
   display: flex;
