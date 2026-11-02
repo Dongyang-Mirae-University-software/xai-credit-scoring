@@ -45,25 +45,25 @@
   gap: 12px;
 }
 .pf-title {
-  font-size: 15px;
+  font-size: 17px;
   font-weight: 700;
 }
 .pf-caption {
   color: var(--pf-muted);
-  font-size: 11.5px;
+  font-size: 13px;
   margin-top: 2px;
   word-break: keep-all;
 }
 .pf-empty {
   color: var(--pf-muted);
-  font-size: 13px;
+  font-size: 14.5px;
   padding: 12px 0;
 }
 .pf-pill {
   display: inline-block;
   border-radius: 999px;
   padding: 2px 9px;
-  font-size: 12px;
+  font-size: 13.5px;
   font-weight: 500;
   white-space: nowrap;
 }
@@ -89,7 +89,7 @@
   color: var(--pf-label);
   border-radius: 999px;
   padding: 4px 10px;
-  font-size: 11.5px;
+  font-size: 13px;
   white-space: nowrap;
 }
 .pf-chip.blue { background: var(--pf-blue-bg); color: var(--pf-blue-text); }
@@ -102,18 +102,18 @@
 }
 .pf-metric { padding: 16px 18px; }
 .pf-metric .pf-caption {
-  font-size: 11px;  /* 좁은 화면에서는 두 줄로 줄바꿈 (6개 카드 높이는 같게 유지) */
+  font-size: 12.5px;  /* 좁은 화면에서는 두 줄로 줄바꿈 (6개 카드 높이는 같게 유지) */
 }
 .pf-metric-head {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-size: 13px;
+  font-size: 14.5px;
   color: var(--pf-label);
 }
 .pf-metric-value {
   font-family: var(--font-mono);
-  font-size: 26px;
+  font-size: 28px;
   font-weight: 700;
   margin: 6px 0 4px;
 }
@@ -140,7 +140,7 @@
   display: flex;
   justify-content: space-between;
   color: var(--pf-muted);
-  font-size: 11.5px;
+  font-size: 13px;
   margin-top: 8px;
 }
 .pf-cm {
@@ -155,11 +155,11 @@
 .pf-cm-col {
   text-align: center;
   color: var(--pf-label);
-  font-size: 12px;
+  font-size: 13.5px;
 }
 .pf-cm-row {
   color: var(--pf-label);
-  font-size: 12px;
+  font-size: 13.5px;
 }
 .pf-cm-cell {
   height: 100%;
@@ -170,7 +170,7 @@
   justify-content: center;
   gap: 10px;
   font-family: var(--font-mono);
-  font-size: 15px;
+  font-size: 17px;
 }
 .pf-cm-cell b { font-weight: 700; }
 .pf-cm-cell.tn { background: var(--pf-blue-bg); color: var(--pf-blue-text); }
@@ -192,7 +192,7 @@
   border-collapse: separate;
   border-spacing: 0;
   overflow: hidden;
-  font-size: 13px;
+  font-size: 14.5px;
 }
 .pf-table th,
 .pf-table td {
@@ -206,7 +206,7 @@
 .pf-table thead th {
   color: var(--pf-muted);
   font-weight: 400;
-  font-size: 12px;
+  font-size: 13.5px;
 }
 .pf-table tbody th { font-weight: 700; }
 .pf-table td { font-family: var(--font-mono); }
@@ -224,11 +224,11 @@
   background: var(--pf-plot-bg);
   border-radius: 8px;
   padding: 10px 14px;
-  font-size: 13px;
+  font-size: 14.5px;
 }
 .pf-thin-row b {
   font-family: var(--font-mono);
-  font-size: 17px;
+  font-size: 19px;
   color: var(--pf-label);
 }
 .pf-thin-row b.ok { color: var(--pf-ok); }

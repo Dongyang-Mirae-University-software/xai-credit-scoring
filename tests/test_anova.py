@@ -6,7 +6,8 @@ import pytest
 
 from src.statistics import anova
 
-MOCK = Path(__file__).resolve().parent.parent / 'src' / 'dashboard' / 'mock' / 'statistical_test' / 'anova.json'
+# 대시보드 mock 은 없어졌고(#48), 같은 형식의 API 응답 예시를 기준으로 비교한다
+MOCK = Path(__file__).resolve().parent.parent / 'src' / 'api' / 'examples' / 'anova.json'
 
 
 def test_eta_squared_interpretation_follows_original_table():

@@ -2,43 +2,18 @@
 API 서버 HTTP 클라이언트.
 MSA 제약: 대시보드는 모델 파일을 직접 로드하지 않고 이 모듈을 통해서만 데이터를 받는다.
 
-config.USE_MOCK이 true면 mock/<페이지>/ 폴더의 JSON을 반환한다.
-mock JSON의 키 이름은 미션 문서의 API 응답 형식과 동일하므로,
-백엔드가 완성되면 USE_MOCK=false로만 바꾸면 된다.
+리포트형 API(/metrics, /explain/summary, /fairness, /fairness/mitigation, /anova)는 파이프라인 산출물(outputs/)이
+없으면 서버가 예시(src/api/examples/) 값을 대신 돌려준다. 예시 값을 실제 결과처럼 보여 주지 않도록,
+/health 의 reports 에서 'example' / 'missing' 이면 호출하지 않고 None 을 돌려준다 → 화면은 '데이터 없음' 안내.
 """
-import copy
-import json
-from functools import lru_cache
-from pathlib import Path
+import time
 
 import requests
 
 import config
 
-MOCK_DIR = Path(__file__).parent / "mock"
-
-
-@lru_cache(maxsize=None)
-def _load_mock(page, name):
-    return json.loads((MOCK_DIR / page / f"{name}.json").read_text(encoding="utf-8"))
-
-
-def _mock(page, name):
-    return copy.deepcopy(_load_mock(page, name))
-
-
-def _is_rejected(customer):
-    """mock 전용: 입력값에 따라 승인/거절 예시 중 하나를 고른다."""
-    return (
-        customer.get("NumberOfTimes90DaysLate", 0) > 0
-        or customer.get("telecom_payment_rate", 100) < 70  # % 단위 (실제 API와 같음)
-    )
-
-
-def _mock_for_customer(page, prefix, customer):
-    data = _mock(page, f"{prefix}_rejected" if _is_rejected(customer) else f"{prefix}_approved")
-    data["customer_id"] = customer.get("customer_id", data["customer_id"])
-    return data
+NO_DATA = {"example", "missing"}
+_health_cache = {"at": 0.0, "data": None}
 
 
 def _get(path):
@@ -53,55 +28,61 @@ def _post(path, payload):
     return r.json()
 
 
-def sample_customers():
-    """
-    mock 모드에서 화면에 미리 넣어 둘 예시 고객 (/predict 요청 형식). 실제 API 모드에서는 빈 목록.
-    승인 → 거절 순서라, 최근 순으로 보여주는 화면에서는 거절 고객이 먼저 나온다.
-    """
-    if not config.USE_MOCK:
-        return []
-    return [_mock("screening", "customer_approved"), _mock("screening", "customer_rejected")]
-
-
 def health():
-    return _mock("sidebar", "health") if config.USE_MOCK else _get("/health")
+    # 한 화면에서 리포트마다 확인하므로 잠깐 재사용한다 (사이드바와 같은 TTL)
+    if _health_cache["data"] is None or time.monotonic() - _health_cache["at"] > config.HEALTH_CACHE_TTL:
+        _health_cache["data"] = _get("/health")
+        _health_cache["at"] = time.monotonic()
+    return _health_cache["data"]
+
+
+def report_status(name):
+    """/health 의 reports[name]: 산출물 파일 경로, 'example' 또는 'missing'. 서버가 알려 주지 않으면 None."""
+    return health().get("reports", {}).get(name)
+
+
+def _report(name, path):
+    """파이프라인 산출물이 있을 때만 받아 온다. 없으면 None."""
+    if report_status(name) in NO_DATA:
+        return None
+    return _get(path)
 
 
 def predict(customer):
-    return _mock_for_customer("screening", "predict", customer) if config.USE_MOCK else _post("/predict", customer)
+    return _post("/predict", customer)
 
 
 def explain(customer):
-    return _mock_for_customer("xai", "explain", customer) if config.USE_MOCK else _post("/explain", customer)
+    return _post("/explain", customer)
 
 
 def shap_summary():
     """
-    전역 중요도 (GET /explain/summary).
+    전역 중요도 (GET /explain/summary). 산출물이 없으면 None.
     형식: {"model": str, "n_samples": int, "shap_space": str, "features": [{feature, mean_abs_shap, group}]}
     """
-    return _mock("xai", "shap_summary") if config.USE_MOCK else _get("/explain/summary")
+    return _report("shap_summary", "/explain/summary")
 
 
 def fairness():
-    return _mock("fairness", "fairness") if config.USE_MOCK else _get("/fairness")
+    return _report("fairness", "/fairness")
 
 
 def fairness_mitigation():
-    return _mock("fairness", "fairness_mitigation") if config.USE_MOCK else _get("/fairness/mitigation")
+    return _report("fairness_mitigation", "/fairness/mitigation")
 
 
 def metrics():
-    return _mock("performance", "metrics") if config.USE_MOCK else _get("/metrics")
+    return _report("metrics", "/metrics")
 
 
 def model_comparison():
     """
-    후보 모델 격자 비교 (GET /metrics/comparison). selected_model, val_table, cv_runs(5-Fold 평균) 등.
+    후보 모델 격자 비교 (GET /metrics/comparison). models/model_metadata.json 에서 오므로 항상 실제 값.
     '± 표준편차' 표기용 cv_runs[*].cv_test_std 는 백엔드에 아직 없어, 없으면 평균만 표시한다.
     """
-    return _mock("performance", "model_comparison") if config.USE_MOCK else _get("/metrics/comparison")
+    return _get("/metrics/comparison")
 
 
 def anova():
-    return _mock("statistical_test", "anova") if config.USE_MOCK else _get("/anova")
+    return _report("anova", "/anova")

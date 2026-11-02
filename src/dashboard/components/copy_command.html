@@ -1,0 +1,107 @@
+<!-- 명령어 상자 + 복사 버튼 (empty_state.copy_command 가 {{...}} 를 채워 iframe 으로 그린다) -->
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  html, body { margin: 0; background: transparent; }
+  .cmd {
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    height: 40px;
+    padding: 0 6px 0 14px;
+    background: #0f172a;
+    border-radius: 8px;
+  }
+  code {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: #e2e8f0;
+    font: 12.5px 'JetBrains Mono', monospace;
+  }
+  button {
+    flex: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    border: none;
+    border-radius: 6px;
+    background: transparent;
+    color: #94a3b8;
+    cursor: pointer;
+    transition: background-color 0.15s, color 0.15s;
+  }
+  button:hover { background: #1e293b; color: #f8fafc; }
+  button.done { color: #4ade80; }
+  svg { width: 16px; height: 16px; }
+</style>
+<div class="cmd">
+  <code title="{{COMMAND_HTML}}">{{COMMAND_HTML}}</code>
+  <button type="button" title="복사" aria-label="명령어 복사">
+    <svg class="icon-copy" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="9" y="9" width="13" height="13" rx="2"></rect>
+      <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+    </svg>
+    <svg class="icon-done" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="display:none">
+      <polyline points="20 6 9 17 4 12"></polyline>
+    </svg>
+  </button>
+</div>
+<script>
+  const COMMAND = {{COMMAND_JSON}};
+  const button = document.querySelector("button");
+
+  function fallbackCopy() {
+    const area = document.createElement("textarea");
+    area.value = COMMAND;
+    document.body.appendChild(area);
+    area.select();
+    const ok = document.execCommand("copy");
+    area.remove();
+    return ok ? Promise.resolve() : Promise.reject();
+  }
+
+  // 토스트는 iframe 밖(대시보드 화면)에 띄운다. 같은 출처라 부모 문서에 접근할 수 있다.
+  function toast(message, ok) {
+    let doc;
+    try { doc = window.parent.document; } catch (e) { return; }
+    let el = doc.getElementById("copy-toast");
+    if (!el) {
+      el = doc.createElement("div");
+      el.id = "copy-toast";
+      el.style.cssText = [
+        "position:fixed", "right:24px", "bottom:24px", "z-index:100000",
+        "display:flex", "align-items:center", "gap:8px", "padding:12px 18px",
+        "border-radius:10px", "background:#0f172a", "color:#f8fafc",
+        "font:500 14px 'Noto Sans KR',sans-serif", "box-shadow:0 8px 24px rgba(15,23,42,.2)",
+        "opacity:0", "transform:translateY(8px)", "transition:opacity .2s,transform .2s", "pointer-events:none",
+      ].join(";");
+      doc.body.appendChild(el);
+    }
+    el.innerHTML = '<span style="color:' + (ok ? "#4ade80" : "#f87171") + '">' + (ok ? "✓" : "!") + "</span>";
+    el.appendChild(doc.createTextNode(message));
+    el.style.opacity = "1";
+    el.style.transform = "translateY(0)";
+    clearTimeout(el._timer);
+    el._timer = setTimeout(() => { el.style.opacity = "0"; el.style.transform = "translateY(8px)"; }, 2000);
+  }
+
+  button.addEventListener("click", () => {
+    const copy = navigator.clipboard ? navigator.clipboard.writeText(COMMAND).catch(fallbackCopy) : fallbackCopy();
+    copy.then(() => {
+      toast("명령어를 복사했어요", true);
+      button.classList.add("done");
+      button.querySelector(".icon-copy").style.display = "none";
+      button.querySelector(".icon-done").style.display = "";
+      setTimeout(() => {
+        button.classList.remove("done");
+        button.querySelector(".icon-copy").style.display = "";
+        button.querySelector(".icon-done").style.display = "none";
+      }, 1500);
+    }).catch(() => toast("복사하지 못했어요. 직접 선택해 복사해 주세요", false));
+  });
+</script>
