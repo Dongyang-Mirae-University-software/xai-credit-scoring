@@ -311,11 +311,14 @@ with right:
             _waterfall_card(customer_id, explain, st.session_state.customers[customer_id])
         else:
             st.html('<div class="xai-card-title">개별 고객 기여도</div>'
-                    '<div class="xai-empty">고객을 선택하면 개별 기여도가 표시됩니다.</div>')
+                    '<div class="xai-ghost">고객을 선택하면 개별 기여도가 표시됩니다</div>')
 
 with st.container(key="xai-reasons"):
     if explain:
         _reasons_card(explain)
     else:
-        st.html('<div class="xai-card-title">거절 사유 Top 5</div>'
-                '<div class="xai-empty">고객을 선택하면 거절 사유가 표시됩니다.</div>')
+        # 고객이 없어도 거절 사유 카드 5칸의 자리는 데이터가 있을 때와 같은 크기로 보여 준다
+        slots = "".join(f'<div class="xai-ghost"><span>#{i}</span></div>' for i in range(1, 6))
+        st.html('<div class="xai-card-head"><div><div class="xai-card-title">거절 사유 Top 5</div>'
+                '<div class="xai-card-caption">고객을 선택하면 거절 사유가 표시됩니다</div></div></div>'
+                f'<div class="xai-ghost-slots">{slots}</div>')
