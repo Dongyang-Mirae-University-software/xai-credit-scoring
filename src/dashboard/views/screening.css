@@ -540,9 +540,7 @@ div[role="dialog"] input { font-size: 15.5px; }
 .scr-act b { font-size: 17px; }
 .scr-act span { color: var(--scr-label); font-size: 14.5px; }
 .scr-act i { font-size: 26px; color: var(--scr-label); }
-.scr-act.done { background: var(--scr-ok-band); border-color: transparent; }
-.scr-act.done :is(b, i) { color: var(--scr-low-strong); }
-[class*="st-key-scr-act-"]:not([class*="st-key-scr-act-btn"]):hover .scr-act:not(.done) { border-color: var(--scr-blue); }
+[class*="st-key-scr-act-"]:not([class*="st-key-scr-act-btn"]):hover .scr-act { border-color: var(--scr-blue); }
 [class*="st-key-scr-act-"] [data-testid="stElementContainer"]:has([class*="st-key-scr-act-btn"]),
 [class*="st-key-scr-act-"] [data-testid="stElementContainer"][class*="st-key-scr-act-btn"] {
   position: absolute;
@@ -555,4 +553,3 @@ div[role="dialog"] input { font-size: 15.5px; }
   opacity: 0;
   cursor: pointer;
 }
-[class*="st-key-scr-act-btn"] button:disabled { cursor: default; }

@@ -7,6 +7,8 @@ from datetime import datetime
 from html import escape
 from pathlib import Path
 
+import json
+
 import streamlit as st
 
 import api_client
@@ -81,8 +83,8 @@ RISK_LABELS = {"low": "저위험", "mid": "중위험", "high": "고위험"}
 # ---------------------------------------------------------------------------
 def _init_state():
     st.session_state.setdefault("scr_seq", 1)
-    st.session_state.setdefault("scr_current", None)   # 지금 보고 있는 심사 결과 {profile, result, saved}
-    st.session_state.setdefault("scr_history", [])     # '심사 결과 저장' 으로 남긴 이력
+    st.session_state.setdefault("scr_current", None)   # 지금 보고 있는 심사 결과 {profile, result}
+    st.session_state.setdefault("scr_history", [])     # 심사할 때마다 자동으로 쌓이는 이력 (세션 안에서만 유지)
     st.session_state.setdefault("scr_error", None)     # 샘플 바로 심사 실패
     st.session_state.setdefault("customers", {})       # XAI 분석 페이지가 고객 목록으로 쓴다 {id: {payload, result, profile}}
 
@@ -114,7 +116,10 @@ def _run_predict(profile):
     customer_id = profile["customer_id"]
     st.session_state.customers.pop(customer_id, None)  # 다시 심사하면 XAI 고객 목록 맨 앞으로
     st.session_state.customers[customer_id] = {"payload": payload, "result": result, "profile": profile}
-    st.session_state.scr_current = {"profile": profile, "result": result, "saved": False}
+    st.session_state.scr_current = {"profile": profile, "result": result}
+    # 같은 고객을 다시 심사하면 이전 줄은 지우고 맨 위에 새로 남긴다
+    history = [h for h in st.session_state.scr_history if h["result"]["customer_id"] != customer_id]
+    st.session_state.scr_history = ([{"result": result, "at": datetime.now()}] + history)[:HISTORY_LIMIT]
     if customer_id == _new_id():
         st.session_state.scr_seq += 1
 
@@ -275,15 +280,15 @@ def _history_table():
     today = datetime.now().date()
     rows = []
     for h in st.session_state.scr_history:
-        r, saved_at = h["result"], h["saved_at"]
+        r, at = h["result"], h["at"]
         approved = r["approval_status"] == "APPROVED"
         tone = ("mid" if GRADE_RISK.get(r["risk_grade"]) == "mid" else "low") if approved else "high"
-        when = ("오늘 " if saved_at.date() == today else saved_at.strftime("%m.%d ")) + saved_at.strftime("%H:%M")
+        when = ("오늘 " if at.date() == today else at.strftime("%m.%d ")) + at.strftime("%H:%M")
         rows.append(f'<tr><th>{escape(r["customer_id"])}</th>'
                     f'<td><span class="scr-pill {tone}">{"승인" if approved else "거절"}</span></td>'
                     f'<td>{escape(r["risk_grade"])}</td><td>{r["credit_score"]}</td>'
                     f'<td class="scr-time">{when}</td></tr>')
-    body = "".join(rows) or '<tr><td colspan="5" class="scr-history-empty">아직 저장한 심사가 없어요. 심사 결과 화면에서 저장하면 여기에 남아요.</td></tr>'
+    body = "".join(rows) or '<tr><td colspan="5" class="scr-history-empty">아직 심사한 고객이 없어요. 심사를 실행하면 여기에 쌓여요.</td></tr>'
     return f"""
     <div class="scr-card-title">최근 심사</div>
     <table class="scr-history">
@@ -334,12 +339,9 @@ def _new_screening():
     st.session_state.scr_error = None
 
 
-def _save_current():
-    current = st.session_state.scr_current
-    current["saved"] = True
-    st.session_state.scr_history = (
-        [{"result": current["result"], "saved_at": datetime.now()}] + st.session_state.scr_history
-    )[:HISTORY_LIMIT]
+def _result_file(profile, result):
+    """'심사 결과 저장' 으로 내려받는 파일: 입력값(성별 포함)과 /predict 응답."""
+    return json.dumps({"input": profile, "result": result}, ensure_ascii=False, indent=2)
 
 
 def _to_xai():
@@ -417,13 +419,16 @@ def _decision_html(result):
     </div>"""
 
 
-def _action_card(key, title, caption, done=False):
-    """카드 전체가 눌리는 버튼 (보이는 내용은 HTML, 위에 투명 버튼을 덮는다)."""
+def _action_card(key, title, caption, icon="chevron_right", download=None):
+    """카드 전체가 눌리는 버튼 (보이는 내용은 HTML, 위에 투명 버튼을 덮는다).
+    download=(파일 이름, 내용) 이면 누를 때 파일을 내려받는다."""
     with st.container(key=f"scr-act-{key}"):
-        icon = "check" if done else "chevron_right"
-        st.html(f'<div class="scr-act {"done" if done else ""}"><div><b>{title}</b><span>{caption}</span></div>'
-                f'<i>{icon}</i></div>')
-        return st.button(title, key=f"scr-act-btn-{key}", disabled=done)
+        st.html(f'<div class="scr-act"><div><b>{title}</b><span>{caption}</span></div><i>{icon}</i></div>')
+        if download:
+            name, data = download
+            return st.download_button(title, data, file_name=name, mime="application/json",
+                                      key=f"scr-act-btn-{key}", on_click="ignore")
+        return st.button(title, key=f"scr-act-btn-{key}")
 
 
 def _result_view():
@@ -446,11 +451,8 @@ def _result_view():
             _to_xai()
             st.switch_page("views/xai.py")
     with right:
-        if current["saved"]:
-            _action_card("save", "심사 이력에 저장했어요", "새 심사를 시작하면 첫 화면의 최근 심사에서 볼 수 있어요", done=True)
-        elif _action_card("save", "심사 결과 저장", "입력값과 결과를 심사 이력에 기록"):
-            _save_current()
-            st.rerun()
+        _action_card("save", "심사 결과 저장", "입력값과 결과를 파일(JSON)로 내려받기", icon="download",
+                     download=(f'심사결과_{result["customer_id"]}.json', _result_file(profile, result)))
 
 
 # ---------------------------------------------------------------------------
