@@ -9,7 +9,7 @@ from pathlib import Path
 import streamlit as st
 
 import api_client
-from components import ui
+from components import customer_form, ui
 
 CSS_PATH = Path(__file__).with_suffix(".css")
 SCREENING_PAGE = "views/screening.py"
@@ -25,14 +25,27 @@ def _data_badge():
 
 
 def _on_search():
-    value = (st.session_state.get("hdr_search") or "").strip().upper()
-    st.session_state.hdr_search = ""
-    if value:
-        st.session_state.scr_lookup = value  # 고객 심사 화면이 받아서 불러오기 창을 연다
-        st.session_state.hdr_go = True
+    """고객 ID 검색 (Enter): 심사한 고객이면 그 결과 화면으로, 아니면 오류 안내. (디자인 프로토타입 동작)"""
+    ss = st.session_state
+    value = (ss.get("hdr_search") or "").strip().upper()
+    ss.hdr_search = ""
+    if not value:
+        return
+    if customer_form.show_result(value):
+        ss.hdr_toast = (f"{value} 고객의 심사 결과를 열었어요", False)
+        ss.hdr_go = True
+    else:
+        ss.hdr_toast = (f"{value} 고객을 찾을 수 없어요. 고객 ID를 다시 확인해 주세요.", True)
+
+
+def _on_home():
+    """로고: 고객 심사 첫 화면으로."""
+    st.session_state.scr_current = None
+    st.session_state.hdr_go = True
 
 
 def render_header(current_page):
+    customer_form.init_state()
     with st.sidebar:
         st.html(f"""
         <style>{CSS_PATH.read_text(encoding='utf-8')}</style>
@@ -48,8 +61,14 @@ def render_header(current_page):
           </div>
         </header>
         """)
+        st.button("처음 화면으로", key="hdr-home", on_click=_on_home)
         with st.container(key="hdr-search"):
             st.text_input("고객 ID 검색", key="hdr_search", placeholder="고객 ID 검색",
                           label_visibility="collapsed", on_change=_on_search)
+    toast = st.session_state.pop("hdr_toast", None)
     if st.session_state.pop("hdr_go", False) and current_page.url_path != "":
+        if toast:
+            st.session_state.scr_toast = toast  # 페이지를 바꾸면 토스트가 사라지므로 고객 심사 화면이 띄운다
         st.switch_page(SCREENING_PAGE)
+    if toast:
+        st.toast(toast[0], icon=":material/error:" if toast[1] else ":material/check_circle:")

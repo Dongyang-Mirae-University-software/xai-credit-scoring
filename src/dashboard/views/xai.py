@@ -15,6 +15,7 @@ import streamlit as st
 import api_client
 import config
 import features as F
+from components import customer_form as CF
 from components import ui
 from components.api_error import api_error_html, render_api_error
 from components.empty_state import render_no_report
@@ -62,7 +63,8 @@ def _option_label(customer_id):
 
 
 def _rescreen():
-    st.session_state.scr_edit_request = st.session_state.xai_customer
+    """조건 바꿔 재심사: 이 화면 위에 그 고객 값이 채워진 입력 창을 연다. 심사 실행 → 고객 심사 결과 화면."""
+    CF.open_form(st.session_state.customers[st.session_state.xai_customer]["profile"], loaded=True)
 
 
 def _head(ids):
@@ -77,8 +79,7 @@ def _head(ids):
             st.html('<span class="xai-pick-label">분석 대상</span>')
             customer_id = st.selectbox("분석 대상", ids, key="xai_customer", format_func=_option_label,
                                        label_visibility="collapsed")
-            if st.button("조건 바꿔 재심사", key="xai-rescreen", on_click=_rescreen):
-                st.switch_page("views/screening.py")
+            st.button("조건 바꿔 재심사", key="xai-rescreen", on_click=_rescreen)
     return customer_id
 
 
@@ -360,7 +361,7 @@ def _detail(explain, entry):
 # ---------------------------------------------------------------------------
 # 페이지
 # ---------------------------------------------------------------------------
-st.html(f"<style>{CSS_PATH.read_text(encoding='utf-8')}</style>")
+st.html(f"<style>{CSS_PATH.read_text(encoding='utf-8')}{CF.CSS}</style>")
 _init_state()
 ids = list(reversed(st.session_state.customers.keys()))  # 최근에 심사한 고객이 먼저
 customer_id = _head(ids)
@@ -383,3 +384,5 @@ else:
         st.html(_summary_html(explain, entry["result"]))
         _reasons(explain, entry["result"])
         _detail(explain, entry)
+
+CF.render(on_screening=False)

@@ -62,7 +62,8 @@ section[data-testid="stSidebar"] .stElementContainer:has(.sb-status) { position:
 
 /* 헤더(고정 배치) 조각은 사이드바 흐름에서 빼서 메뉴 위에 간격이 생기지 않게 */
 section[data-testid="stSidebar"] .stElementContainer:has(.hdr),
-section[data-testid="stSidebar"] [data-testid="stLayoutWrapper"]:has(.st-key-hdr-search) { position: absolute; }
+section[data-testid="stSidebar"] [data-testid="stLayoutWrapper"]:has(.st-key-hdr-search),
+section[data-testid="stSidebar"] .stElementContainer.st-key-hdr-home { position: absolute; }
 /* page_link 의 기본 위아래 음수 여백·높이 제거 → 메뉴 한 칸 44px, 칸 사이 4px */
 section[data-testid="stSidebar"] .stElementContainer:has(> .stPageLink),
 section[data-testid="stSidebar"] .stPageLink { margin: 0 !important; height: 44px; }
