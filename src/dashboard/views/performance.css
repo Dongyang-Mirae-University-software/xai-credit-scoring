@@ -128,8 +128,8 @@
   display: block;
   box-sizing: border-box;
   width: 100%;
-  flex: 1 1 210px;
-  min-height: 210px;
+  flex: 1 1 180px;
+  min-height: 180px;
   object-fit: fill;
   margin-top: 14px;
   background: var(--pf-plot-bg);

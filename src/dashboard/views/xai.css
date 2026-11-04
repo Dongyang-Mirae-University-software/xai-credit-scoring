@@ -55,7 +55,7 @@
   border-radius: 12px;
   padding: 18px 22px;
 }
-.st-key-xai-toolbar { padding: 10px 22px; }
+.st-key-xai-toolbar { padding: 8px 22px; }
 .st-key-xai-reasons .xai-card-title { font-size: 20px; }
 .st-key-xai-summary,
 .st-key-xai-waterfall { height: 100%; gap: 14px; }
@@ -236,7 +236,7 @@
   grid-template-columns: 190px 1fr 40px;
   align-items: center;
   gap: 12px;
-  height: 20px;
+  height: 19px;
 }
 .xai-sum-track { height: 10px; }
 .xai-sum-bar {
@@ -259,7 +259,7 @@
   grid-template-columns: 215px 1fr 52px;
   align-items: center;
   gap: 12px;
-  height: 22px;
+  height: 20px;
 }
 .xai-wf-track {
   position: relative;
