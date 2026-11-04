@@ -100,7 +100,7 @@ pytest
 xai-credit-scoring/
 ├── main_step1.py ~ main_step6.py   # 파이프라인 단계별 실행 스크립트 (위 "파이프라인" 참고)
 ├── data/
-│   ├── raw/                 # GMSC 원본 (cs-training.csv, cs-test.csv, Data Dictionary.xls)
+│   ├── raw/                 # GMSC 원본 (cs-training.csv, Data Dictionary.xls)
 │   ├── intermediate/        # step1 중간 결과 (01_loaded.csv, 02_simulated.csv) - git 미포함
 │   └── splits/              # Train/Validation/Test 분할 CSV - git 미포함
 ├── src/
