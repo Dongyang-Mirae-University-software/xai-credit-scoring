@@ -89,3 +89,16 @@ def section_head(title, sub=None, right=""):
 def term(main, tech):
     """은행원 용어 + 작은 기술 용어. 예: term('부도 고객 적발률 차이', 'Equalized Odds, TPR 차이')"""
     return f'{escape(main)}<small class="ui-term">{escape(tech)}</small>'
+
+
+def copy_button(label, text, height=36):
+    """누르면 text 를 클립보드에 복사하는 버튼. st.html 은 스크립트를 지우므로 components.html(iframe)로 그린다."""
+    import json
+    from pathlib import Path
+
+    import streamlit.components.v1 as components
+
+    template = Path(__file__).with_name("copy_button.html").read_text(encoding="utf-8")
+    html = (template.replace("{{LABEL_HTML}}", escape(label)).replace("{{LABEL_JSON}}", json.dumps(label))
+            .replace("{{TEXT_JSON}}", json.dumps(text)))
+    components.html(html, height=height)

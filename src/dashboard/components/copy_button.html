@@ -1,0 +1,47 @@
+<!-- 글 복사 버튼 (ui_copy.copy_button 이 {{...}} 를 채워 iframe 으로 그린다). 복사하면 바깥 화면에 토스트 -->
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  html, body { margin: 0; background: transparent; overflow: hidden; }
+  body { display: flex; justify-content: flex-end; }
+  button {
+    box-sizing: border-box; height: 36px; padding: 0 12px;
+    border: 1px solid #CDD5E0; border-radius: 8px; background: #FFFFFF;
+    color: #3A4456; font: 400 13px 'Noto Sans KR', system-ui, sans-serif;
+    white-space: nowrap; cursor: pointer;
+  }
+  button:hover { background: #F5F7FA; }
+  button.done { color: #0B5E44; border-color: #0E7C5A; }
+</style>
+<button type="button">{{LABEL_HTML}}</button>
+<script>
+  const TEXT = {{TEXT_JSON}};
+  const LABEL = {{LABEL_JSON}};
+  const button = document.querySelector("button");
+  function fallbackCopy() {
+    const area = document.createElement("textarea");
+    area.value = TEXT; document.body.appendChild(area); area.select();
+    const ok = document.execCommand("copy"); area.remove();
+    return ok ? Promise.resolve() : Promise.reject();
+  }
+  function toast(message, ok) {
+    let doc;
+    try { doc = window.parent.document; } catch (e) { return; }
+    let el = doc.getElementById("copy-toast");
+    if (!el) {
+      el = doc.createElement("div"); el.id = "copy-toast";
+      el.style.cssText = ["position:fixed", "right:24px", "bottom:24px", "z-index:100000", "padding:12px 18px",
+        "border-radius:10px", "background:#0F1B2D", "color:#FFFFFF", "font:500 14px 'Noto Sans KR',sans-serif",
+        "box-shadow:0 8px 24px rgba(15,27,45,.2)", "opacity:0", "transition:opacity .2s", "pointer-events:none"].join(";");
+      doc.body.appendChild(el);
+    }
+    el.textContent = message; el.style.opacity = "1";
+    clearTimeout(el._timer); el._timer = setTimeout(() => { el.style.opacity = "0"; }, 2000);
+  }
+  button.addEventListener("click", () => {
+    const copy = navigator.clipboard ? navigator.clipboard.writeText(TEXT).catch(fallbackCopy) : fallbackCopy();
+    copy.then(() => {
+      toast("안내문을 복사했어요", true); button.classList.add("done"); button.textContent = "복사됨";
+      setTimeout(() => { button.classList.remove("done"); button.textContent = LABEL; }, 1500);
+    }).catch(() => toast("복사하지 못했어요", false));
+  });
+</script>
