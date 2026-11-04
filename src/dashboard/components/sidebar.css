@@ -1,30 +1,12 @@
-@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Noto+Sans+KR:wght@400;500;700&display=swap');
-
-:root {
-  --sb-width: 240px;
-  --sb-bg: #ffffff;
-  --sb-border: #e5e7eb;
-  --sb-card: #f3f6fa;
-  --sb-active-bg: #eef3fe;
-  --sb-active: #2563eb;
-  --sb-text: #374151;
-  --sb-text-strong: #111827;
-  --sb-icon: #6b7280;
-  --sb-muted: #6b7280;
-  --sb-group: #4b5563;
-  --sb-ok: #16a34a;
-  --sb-err: #dc2626;
-}
-
-/* 사이드바 컨테이너: 폭 고정, 접기/펼치기·크기 조절 비활성화 */
+/* 사이드바 240px: 접기·크기 조절 끔. 위쪽은 헤더(64px) 아래에서 시작 */
 section[data-testid="stSidebar"] {
-  background: var(--sb-bg);
-  border-right: 1px solid var(--sb-border);
-  width: var(--sb-width) !important;
-  min-width: var(--sb-width) !important;
-  max-width: var(--sb-width) !important;
+  background: #FFFFFF;
+  border-right: 1px solid var(--border);
+  width: var(--sb-w) !important;
+  min-width: var(--sb-w) !important;
+  max-width: var(--sb-w) !important;
   transform: none !important;
-  font-family: 'Noto Sans KR', sans-serif;
+  font-family: var(--font);
 }
 section[data-testid="stSidebar"] > div:not([data-testid]),
 [data-testid="stSidebarHeader"],
@@ -33,139 +15,55 @@ section[data-testid="stSidebar"] > div:not([data-testid]),
 [data-testid="stSidebarCollapsedControl"] {
   display: none !important;
 }
-section[data-testid="stSidebar"] [data-testid="stSidebarContent"] {
-  padding: 0;
-  scrollbar-gutter: auto;
-}
+section[data-testid="stSidebar"] [data-testid="stSidebarContent"] { padding: 0; scrollbar-gutter: auto; }
 section[data-testid="stSidebar"] [data-testid="stSidebarUserContent"] {
-  padding: calc(var(--tb-height, 0px) + 20px) 14px 220px;  /* 위: 상단 바 높이만큼 내림 */
+  padding: calc(var(--hdr-h) + 24px) 14px 210px;
 }
-section[data-testid="stSidebar"] [data-testid="stVerticalBlock"] {
-  gap: 4px;
-}
+section[data-testid="stSidebar"] [data-testid="stSidebarUserContent"] > div > [data-testid="stVerticalBlock"] { gap: 24px; }
+section[data-testid="stSidebar"] [class*="st-key-nav-group-"] { gap: 4px; }
 
-/* 묶음 이름 (심사 업무 / 모델 검증) */
-.sb-group {
-  color: var(--sb-group);
-  font-size: 12.5px;
-  font-weight: 500;
-  padding: 0 10px 4px;
-}
-section[data-testid="stSidebar"] .stElementContainer:has(.sb-group) ~ .stElementContainer:has(.sb-group) {
-  margin-top: 22px;
-}
+.sb-group { display: block; padding: 0 12px 6px; font-size: 12px; font-weight: 700; color: var(--ink-3); }
 
-/* 페이지 링크 */
+/* 메뉴 링크 */
 section[data-testid="stSidebar"] a[data-testid="stPageLink-NavLink"] {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  height: 40px;
-  padding: 0 12px;
-  border-radius: 8px;
-  background: transparent;
+  display: flex; align-items: center; gap: 12px;
+  height: 44px; padding: 0 12px; margin: 0;
+  border-radius: 8px; background: transparent;
+  color: var(--ink-2); text-decoration: none;
 }
-section[data-testid="stSidebar"] a[data-testid="stPageLink-NavLink"]:hover {
-  background: #f3f4f6;
-}
+section[data-testid="stSidebar"] a[data-testid="stPageLink-NavLink"]:hover { background: var(--page); }
 section[data-testid="stSidebar"] a[data-testid="stPageLink-NavLink"] p,
-section[data-testid="stSidebar"] a[data-testid="stPageLink-NavLink"] span:not([data-testid="stIconMaterial"]) {
-  color: var(--sb-text);
-  font-family: 'Noto Sans KR', sans-serif;
-  font-size: 15px;
-  font-weight: 500;
+section[data-testid="stSidebar"] a[data-testid="stPageLink-NavLink"] span {
+  color: inherit !important; font-size: 15px; font-weight: 400; line-height: 1.4;
 }
-section[data-testid="stSidebar"] a[data-testid="stPageLink-NavLink"] [data-testid="stIconMaterial"] {
-  color: var(--sb-icon);
-  font-size: 20px;
-  font-variation-settings: 'wght' 300;
+section[data-testid="stSidebar"] [class*="-active"] a[data-testid="stPageLink-NavLink"] {
+  background: var(--accent-bg); color: var(--accent);
 }
+section[data-testid="stSidebar"] [class*="-active"] a[data-testid="stPageLink-NavLink"] p,
+section[data-testid="stSidebar"] [class*="-active"] a[data-testid="stPageLink-NavLink"] span { font-weight: 700; }
 
-/* 현재 페이지 */
-section[data-testid="stSidebar"] [class*="st-key-nav-active"] a[data-testid="stPageLink-NavLink"] {
-  background: var(--sb-active-bg);
-}
-section[data-testid="stSidebar"] [class*="st-key-nav-active"] a[data-testid="stPageLink-NavLink"] p,
-section[data-testid="stSidebar"] [class*="st-key-nav-active"] a[data-testid="stPageLink-NavLink"] span {
-  color: var(--sb-active) !important;
-  font-weight: 700;
-}
-
-/* 하단 묶음(면책 조항 + 상태 카드): 사이드바(stSidebarContent) 기준으로 바닥에 고정 */
-section[data-testid="stSidebar"] .stElementContainer:has(.sb-bottom) {
-  position: static;
-}
-.sb-bottom {
-  position: absolute;
-  left: 14px;
-  right: 14px;
-  bottom: 18px;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-.sb-disclaimer {
-  color: var(--sb-muted);
-  font-size: 11.5px;
-  line-height: 1.5;
-  word-break: keep-all;
-  padding: 0 4px;
-}
+/* 하단 시스템 상태: 사이드바 바닥에 고정 */
+section[data-testid="stSidebar"] .stElementContainer:has(.sb-status) { position: static; }
 .sb-status {
-  background: var(--sb-card);
-  border-radius: 10px;
-  padding: 14px 14px 12px;
-  font-family: 'Noto Sans KR', sans-serif;
+  position: absolute; left: 14px; right: 14px; bottom: 24px;
+  display: flex; flex-direction: column; gap: 12px;
+  padding: 16px; border-radius: 10px; background: var(--page);
+  font-size: 13px; color: var(--ink-2);
 }
-.sb-status-head {
-  color: var(--sb-text-strong);
-  font-size: 13px;
-  font-weight: 500;
-  margin-bottom: 6px;
-}
-.sb-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-size: 12.5px;
-  line-height: 2;
-}
-.sb-row-label {
-  color: var(--sb-text);
-  flex-shrink: 0;
-  margin-right: 10px;
-}
-/* 긴 모델 이름(lightgbm_is_unbalance_integrated_v1.0)은 말줄임, 전체는 마우스 오버 */
-.sb-row-value {
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  color: var(--sb-text-strong);
-  font-family: 'JetBrains Mono', monospace;
-  font-weight: 500;
-}
-.sb-state {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  color: var(--sb-ok);
-  font-weight: 700;
-}
-.sb-state::before {
-  content: "";
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: currentColor;
-}
-.sb-state.err { color: var(--sb-err); }
-.sb-link {
-  display: block;
-  margin-top: 6px;
-  color: var(--sb-active) !important;
-  font-size: 12.5px;
-  font-weight: 700;
-  text-decoration: none !important;
-}
-.sb-link:hover { text-decoration: underline !important; }
+.sb-status-head { font-size: 12px; font-weight: 700; color: var(--ink-3); }
+.sb-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; white-space: nowrap; }
+.sb-row b { min-width: 0; overflow: hidden; text-overflow: ellipsis; font-weight: 700; color: var(--ink); }
+.sb-state { display: inline-flex; align-items: center; gap: 6px; color: var(--ok-text); font-weight: 700; }
+.sb-state::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--ok); }
+.sb-state.fail { color: var(--fail-text); }
+.sb-state.fail::before { background: var(--fail); }
+.sb-status a { font-weight: 700; color: var(--accent) !important; text-decoration: none; }
+.sb-status a:hover { text-decoration: underline; }
+
+/* 헤더(고정 배치) 조각은 사이드바 흐름에서 빼서 메뉴 위에 간격이 생기지 않게 */
+section[data-testid="stSidebar"] .stElementContainer:has(.hdr),
+section[data-testid="stSidebar"] [data-testid="stLayoutWrapper"]:has(.st-key-hdr-search) { position: absolute; }
+/* page_link 의 기본 위아래 음수 여백·높이 제거 → 메뉴 한 칸 44px, 칸 사이 4px */
+section[data-testid="stSidebar"] .stElementContainer:has(> .stPageLink),
+section[data-testid="stSidebar"] .stPageLink { margin: 0 !important; height: 44px; }
+section[data-testid="stSidebar"] [class*="st-key-nav-"]:not([class*="st-key-nav-group"]) { gap: 0; }
