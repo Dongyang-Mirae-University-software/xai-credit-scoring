@@ -102,8 +102,7 @@ xai-credit-scoring/
 ├── data/
 │   ├── raw/                 # GMSC 원본 (cs-training.csv, cs-test.csv, Data Dictionary.xls)
 │   ├── intermediate/        # step1 중간 결과 (01_loaded.csv, 02_simulated.csv) - git 미포함
-│   ├── splits/              # Train/Validation/Test 분할 CSV - git 미포함
-│   └── mock/                # 개발용 mock 데이터
+│   └── splits/              # Train/Validation/Test 분할 CSV - git 미포함
 ├── src/
 │   ├── data/                # loader.py(로드) · simulator.py(대안 데이터·씬파일러) · preprocessor.py(결측·스케일링·분할)
 │   ├── models/              # train.py(9개 조합 학습·5-Fold CV·최종 선택) · imbalance_comparison.py
@@ -118,7 +117,7 @@ xai-credit-scoring/
 ├── notebooks/01_eda.ipynb   # 탐색적 데이터 분석
 ├── docs/                    # report_draft.md(실험 리포트 초안) · column_spec.md(칸 이름·단위)
 ├── tests/                   # pytest 단위 테스트
-├── scripts/                 # mock 데이터 생성 등 보조 스크립트
+├── scripts/                 # 보조 실험 스크립트
 ├── mlflow/                  # 팀 MLflow 서버 배포 설정 (서버용, 로컬 실행에는 필요 없음)
 ├── docker-compose.yml       # api(8000) · dashboard(8501) · mlflow(5000)
 ├── Dockerfile
