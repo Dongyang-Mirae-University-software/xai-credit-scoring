@@ -3,3 +3,7 @@
 [client]
 # Deploy 버튼과 우측 상단 개발자 메뉴(⋮)를 숨긴다
 toolbarMode = "minimal"
+
+[theme]
+# 라디오·슬라이더·포커스 테두리 같은 기본 강조색을 대시보드 파란색에 맞춘다 (기본값은 빨강)
+primaryColor = "#2563eb"
