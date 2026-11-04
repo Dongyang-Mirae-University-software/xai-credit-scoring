@@ -209,60 +209,65 @@ def _change_card(mitigation, auc_target):
 # ---------------------------------------------------------------------------
 st.html(f"<style>{CSS_PATH.read_text(encoding='utf-8')}</style>")
 
-try:
-    fairness = api_client.fairness()
-    mitigation = api_client.fairness_mitigation()
-except Exception as e:
-    fairness = mitigation = None
-    render_page_header("공정성", "성별이나 나이 때문에 심사 결과가 불리하게 나오지 않는지 점검해요.")
-    render_api_error("GET /fairness", e, "page")
-    st.stop()
 
-if fairness is None and mitigation is None:
-    render_page_header("공정성", "성별이나 나이 때문에 심사 결과가 불리하게 나오지 않는지 점검해요.")
-    render_no_report("fairness")
-    st.stop()
-
-criteria = {**DEFAULT_CRITERIA, **((fairness or {}).get("criteria") or {})}
-before_block = (mitigation or {}).get("before") or fairness
-after_block = (mitigation or {}).get("after")
-before = _metrics_of(before_block, criteria)
-after = _metrics_of(after_block, criteria) if after_block else before
-
-evaluated = (fairness or {}).get("evaluated_at") or (mitigation or {}).get("evaluated_at")
-try:
-    evaluated = datetime.fromisoformat(evaluated).astimezone().strftime("%Y.%m.%d") if evaluated else "—"
-except ValueError:
-    pass
-n = (fairness or {}).get("n")
-render_page_header("공정성", "성별이나 나이 때문에 심사 결과가 불리하게 나오지 않는지 점검해요.",
-                   meta=[("점검 데이터", f"{DATASET_LABEL} {n:,}명" if n else "—"), ("마지막 점검", evaluated)])
-
-st.html(_summary(after, before, after_block is not None))
-
-# 집단별 승인율 (보정 전 / 후 전환)
-with st.container(key="fa-groups-head", horizontal=True, vertical_alignment="bottom"):
-    st.html(ui.section_head("집단별 승인율", "같은 조건이라면 성별이나 나이와 상관없이 비슷한 비율로 승인되어야 해요."))
-    if after_block:
-        view = st.radio("보정 상태", ["보정 전", "보정 후"], index=1, horizontal=True, key="fa_view",
-                        label_visibility="collapsed")
-    else:
-        view = "보정 전"
-block = after_block if view == "보정 후" and after_block else before_block
-attrs = block.get("by_attribute", {})
-st.html('<div class="fa-groups">' + "".join(
-    _group_card(attr, label, attrs[attr], criteria) for attr, label in ATTRIBUTES if attr in attrs) + "</div>")
-
-# 보정 전후 비교
-if after_block:
-    method = mitigation.get("method", "")
-    method_text = "집단별 승인 기준선을 조정하는 방식(Threshold Adjustment)으로 편향을 줄였어요." if method == "threshold_adjustment" \
-        else f"{escape(method)} 방식으로 편향을 줄였어요."
+def _main():
     try:
-        auc_target = ((api_client.metrics() or {}).get("targets") or {}).get("auc")
-    except Exception:
-        auc_target = None
-    st.html(f'<section class="fa-compare">{ui.section_head("보정 전후 비교", method_text)}'
-            f'{_compare_table(before, after, criteria)}{_change_card(mitigation, auc_target)}</section>')
-else:
-    render_no_report("fairness_mitigation")
+        fairness = api_client.fairness()
+        mitigation = api_client.fairness_mitigation()
+    except Exception as e:
+        fairness = mitigation = None
+        render_page_header("공정성", "성별이나 나이 때문에 심사 결과가 불리하게 나오지 않는지 점검해요.")
+        render_api_error("GET /fairness", e, "page")
+        return
+
+    if fairness is None and mitigation is None:
+        render_page_header("공정성", "성별이나 나이 때문에 심사 결과가 불리하게 나오지 않는지 점검해요.")
+        render_no_report("fairness")
+        return
+
+    criteria = {**DEFAULT_CRITERIA, **((fairness or {}).get("criteria") or {})}
+    before_block = (mitigation or {}).get("before") or fairness
+    after_block = (mitigation or {}).get("after")
+    before = _metrics_of(before_block, criteria)
+    after = _metrics_of(after_block, criteria) if after_block else before
+
+    evaluated = (fairness or {}).get("evaluated_at") or (mitigation or {}).get("evaluated_at")
+    try:
+        evaluated = datetime.fromisoformat(evaluated).astimezone().strftime("%Y.%m.%d") if evaluated else "—"
+    except ValueError:
+        pass
+    n = (fairness or {}).get("n")
+    render_page_header("공정성", "성별이나 나이 때문에 심사 결과가 불리하게 나오지 않는지 점검해요.",
+                       meta=[("점검 데이터", f"{DATASET_LABEL} {n:,}명" if n else "—"), ("마지막 점검", evaluated)])
+
+    st.html(_summary(after, before, after_block is not None))
+
+    # 집단별 승인율 (보정 전 / 후 전환)
+    with st.container(key="fa-groups-head", horizontal=True, vertical_alignment="bottom"):
+        st.html(ui.section_head("집단별 승인율", "같은 조건이라면 성별이나 나이와 상관없이 비슷한 비율로 승인되어야 해요."))
+        if after_block:
+            view = st.radio("보정 상태", ["보정 전", "보정 후"], index=1, horizontal=True, key="fa_view",
+                            label_visibility="collapsed")
+        else:
+            view = "보정 전"
+    block = after_block if view == "보정 후" and after_block else before_block
+    attrs = block.get("by_attribute", {})
+    st.html('<div class="fa-groups">' + "".join(
+        _group_card(attr, label, attrs[attr], criteria) for attr, label in ATTRIBUTES if attr in attrs) + "</div>")
+
+    # 보정 전후 비교
+    if after_block:
+        method = mitigation.get("method", "")
+        method_text = "집단별 승인 기준선을 조정하는 방식(Threshold Adjustment)으로 편향을 줄였어요." if method == "threshold_adjustment" \
+            else f"{escape(method)} 방식으로 편향을 줄였어요."
+        try:
+            auc_target = ((api_client.metrics() or {}).get("targets") or {}).get("auc")
+        except Exception:
+            auc_target = None
+        st.html(f'<section class="fa-compare">{ui.section_head("보정 전후 비교", method_text)}'
+                f'{_compare_table(before, after, criteria)}{_change_card(mitigation, auc_target)}</section>')
+    else:
+        render_no_report("fairness_mitigation")
+
+
+_main()

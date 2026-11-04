@@ -114,4 +114,6 @@ def josa(word, with_batchim, without):
     last = word.rstrip()[-1:] if word else ""
     if "가" <= last <= "힣":
         return with_batchim if (ord(last) - 0xAC00) % 28 else without
-    return with_batchim if last.isdigit() and last in "013678" else without
+    if last.isdigit():
+        return with_batchim if last in "013678" else without
+    return with_batchim if last.upper() in "LMN" else without  # 엘·엠·엔

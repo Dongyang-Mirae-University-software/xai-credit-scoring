@@ -30,5 +30,5 @@ render_sidebar(pages, pg)
 
 pg.run()
 
-# 모든 화면 하단 면책 조항 (미션 필수)
+# 모든 화면 하단 면책 조항 (미션 필수). 페이지에서 st.stop() 을 쓰면 이 줄이 실행되지 않으므로 페이지는 return 으로 끝낸다
 st.html(f'<footer class="ui-footer" role="note">{DISCLAIMER}</footer>')

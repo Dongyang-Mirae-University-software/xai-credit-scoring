@@ -196,45 +196,51 @@ def _confusion(m):
 # 페이지
 # ---------------------------------------------------------------------------
 st.html(f"<style>{CSS_PATH.read_text(encoding='utf-8')}</style>")
-try:
-    metrics = api_client.metrics()
-except Exception as e:
-    render_page_header("모델 성능", SUBTITLE)
-    render_api_error("GET /metrics", e, "page")
-    st.stop()
-if metrics is None:
-    render_page_header("모델 성능", SUBTITLE)
-    render_no_report("metrics")
-    st.stop()
 
-n = metrics.get("n")
-render_page_header("모델 성능", SUBTITLE, meta=[("평가 데이터", f"{DATASET_LABEL} {n:,}명" if n else "—"),
-                                             ("모델", _model_version(metrics.get("model")))])
-st.html(_summary(metrics))
 
-name = _algorithm(metrics.get("model"))
-baseline = metrics.get("baseline")  # 요청해 둔 필드: {"model", "auc", "roc_curve", "pr_curve"}
-default_rate = metrics["n_default"] / metrics["n"] if metrics.get("n") and metrics.get("n_default") is not None else None
+def _main():
+    try:
+        metrics = api_client.metrics()
+    except Exception as e:
+        render_page_header("모델 성능", SUBTITLE)
+        render_api_error("GET /metrics", e, "page")
+        return
+    if metrics is None:
+        render_page_header("모델 성능", SUBTITLE)
+        render_no_report("metrics")
+        return
 
-st.html(ui.section_head("ROC 곡선과 Precision-Recall 곡선",
-                        "곡선이 왼쪽 위(ROC), 오른쪽 위(PR)에 가까울수록 부도 고객을 잘 가려내는 모델이에요."))
-left, right = st.columns(2, gap="medium")
-config = {"displayModeBar": False, "staticPlot": False}
-with left, st.container(key="pf-roc"):
-    base_auc = f' (기준 모델 {baseline["auc"]:.3f})' if baseline and baseline.get("auc") is not None else ""
-    st.html(f'<div class="pf-card-head"><h3>ROC Curve</h3>'
-            f'<span>AUC <strong>{metrics["auc"]:.3f}</strong>{base_auc}</span></div>')
-    st.plotly_chart(_roc(metrics, baseline, name), theme=None, config=config, use_container_width=True)
-    st.html(_legend(name, baseline))
-with right, st.container(key="pf-pr"):
-    rate_text = f"부도율 {default_rate * 100:.1f}%의 불균형 데이터" if default_rate is not None else ""
-    st.html(f'<div class="pf-card-head"><h3>Precision-Recall Curve</h3><span>{rate_text}</span></div>')
-    st.plotly_chart(_pr(metrics, baseline, name, default_rate), theme=None, config=config, use_container_width=True)
-    st.html(_legend(name, baseline))
+    n = metrics.get("n")
+    render_page_header("모델 성능", SUBTITLE, meta=[("평가 데이터", f"{DATASET_LABEL} {n:,}명" if n else "—"),
+                                                 ("모델", _model_version(metrics.get("model")))])
+    st.html(_summary(metrics))
 
-threshold = (metrics.get("confusion_matrix") or {}).get("threshold")
-st.html(f'<section class="pf-section">'
-        + ui.section_head("혼동행렬", f"{DATASET_LABEL} {n:,}명을 현재 승인 기준"
-                          + (f"(부도 확률 {threshold:.0%} 미만 승인)" if threshold is not None else "")
-                          + "으로 심사했을 때의 결과예요. 색이 진할수록 해당 집단에서 차지하는 비율이 커요.")
-        + _confusion(metrics) + "</section>")
+    name = _algorithm(metrics.get("model"))
+    baseline = metrics.get("baseline")  # 요청해 둔 필드: {"model", "auc", "roc_curve", "pr_curve"}
+    default_rate = metrics["n_default"] / metrics["n"] if metrics.get("n") and metrics.get("n_default") is not None else None
+
+    st.html(ui.section_head("ROC 곡선과 Precision-Recall 곡선",
+                            "곡선이 왼쪽 위(ROC), 오른쪽 위(PR)에 가까울수록 부도 고객을 잘 가려내는 모델이에요."))
+    left, right = st.columns(2, gap="medium")
+    config = {"displayModeBar": False, "staticPlot": False}
+    with left, st.container(key="pf-roc"):
+        base_auc = f' (기준 모델 {baseline["auc"]:.3f})' if baseline and baseline.get("auc") is not None else ""
+        st.html(f'<div class="pf-card-head"><h3>ROC Curve</h3>'
+                f'<span>AUC <strong>{metrics["auc"]:.3f}</strong>{base_auc}</span></div>')
+        st.plotly_chart(_roc(metrics, baseline, name), theme=None, config=config, use_container_width=True)
+        st.html(_legend(name, baseline))
+    with right, st.container(key="pf-pr"):
+        rate_text = f"부도율 {default_rate * 100:.1f}%의 불균형 데이터" if default_rate is not None else ""
+        st.html(f'<div class="pf-card-head"><h3>Precision-Recall Curve</h3><span>{rate_text}</span></div>')
+        st.plotly_chart(_pr(metrics, baseline, name, default_rate), theme=None, config=config, use_container_width=True)
+        st.html(_legend(name, baseline))
+
+    threshold = (metrics.get("confusion_matrix") or {}).get("threshold")
+    st.html(f'<section class="pf-section">'
+            + ui.section_head("혼동행렬", f"{DATASET_LABEL} {n:,}명을 현재 승인 기준"
+                              + (f"(부도 확률 {threshold:.0%} 미만 승인)" if threshold is not None else "")
+                              + "으로 심사했을 때의 결과예요. 색이 진할수록 해당 집단에서 차지하는 비율이 커요.")
+            + _confusion(metrics) + "</section>")
+
+
+_main()

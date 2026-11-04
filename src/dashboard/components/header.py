@@ -20,7 +20,7 @@ def _data_badge():
     try:
         reports = api_client.health().get("reports", {})
     except Exception:
-        return "API 연결 안 됨"
+        return "API 오류"
     return "예시 데이터" if "example" in reports.values() else "교육용"
 
 
