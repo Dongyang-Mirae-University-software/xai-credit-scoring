@@ -3,12 +3,14 @@ Streamlit 대시보드 진입점.
 페이지: 고객 심사 / XAI 분석 / 공정성 / 모델 성능 / 통계 검증
 각 페이지는 views/ 아래 파일이며, st.navigation으로 등록한다.
 기본 사이드바 메뉴는 숨기고 components/sidebar.py에서 직접 그린다.
+화면 맨 위 상단 바(브랜드·배지)는 components/top_bar.py.
 """
 from pathlib import Path
 
 import streamlit as st
 
 from components.sidebar import render_sidebar
+from components.top_bar import render_top_bar
 
 CSS_PATH = Path(__file__).with_suffix(".css")
 
@@ -23,6 +25,7 @@ pages = [
     st.Page("views/statistical_test.py", title="통계 검증"),
 ]
 pg = st.navigation(pages, position="hidden")
+render_top_bar()
 render_sidebar(pages, pg)
 
 pg.run()

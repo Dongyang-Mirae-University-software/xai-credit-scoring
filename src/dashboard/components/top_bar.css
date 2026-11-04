@@ -1,0 +1,75 @@
+/* 상단 바 (높이는 app.css / sidebar.css 의 위쪽 여백과 맞춘다: --tb-height) */
+:root { --tb-height: 56px; }
+
+section[data-testid="stSidebar"] .stElementContainer:has(.tb-bar) {
+  position: static;
+}
+.tb-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: var(--tb-height);
+  z-index: 1000;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 0 32px 0 22px;
+  background: #ffffff;
+  border-bottom: 1px solid #e5e7eb;
+  font-family: 'Noto Sans KR', sans-serif;
+}
+.tb-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+.tb-logo {
+  width: 34px;
+  height: 34px;
+  border-radius: 9px;
+  background: #2563eb;
+  color: #ffffff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Material Symbols Rounded';
+  font-size: 21px;
+  line-height: 1;
+  font-feature-settings: 'liga';
+  -webkit-font-smoothing: antialiased;
+  flex-shrink: 0;
+}
+.tb-title {
+  color: #111827;
+  font-size: 16.5px;
+  font-weight: 700;
+  line-height: 1.25;
+}
+.tb-sub {
+  color: #6b7280;
+  font-size: 12px;
+  line-height: 1.3;
+}
+.tb-badges {
+  display: flex;
+  gap: 8px;
+  min-width: 0;
+}
+.tb-badge {
+  display: inline-block;
+  padding: 5px 12px;
+  border-radius: 999px;
+  font-size: 13.5px;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+.tb-badge.blue { background: #dbeafe; color: #1d4ed8; }
+.tb-badge.gray { background: #f1f5f9; color: #64748b; }
+.tb-badge.amber { background: #fef3c7; color: #b45309; flex-shrink: 0; }

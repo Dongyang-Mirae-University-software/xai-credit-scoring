@@ -38,7 +38,7 @@ section[data-testid="stSidebar"] [data-testid="stSidebarContent"] {
   scrollbar-gutter: auto;
 }
 section[data-testid="stSidebar"] [data-testid="stSidebarUserContent"] {
-  padding: 24px 14px 220px;
+  padding: calc(var(--tb-height, 0px) + 20px) 14px 220px;  /* 위: 상단 바 높이만큼 내림 */
 }
 section[data-testid="stSidebar"] [data-testid="stVerticalBlock"] {
   gap: 4px;
@@ -51,7 +51,7 @@ section[data-testid="stSidebar"] [data-testid="stVerticalBlock"] {
   font-weight: 500;
   padding: 0 10px 4px;
 }
-section[data-testid="stSidebar"] .stElementContainer:has(.sb-group):not(:first-child) {
+section[data-testid="stSidebar"] .stElementContainer:has(.sb-group) ~ .stElementContainer:has(.sb-group) {
   margin-top: 22px;
 }
 

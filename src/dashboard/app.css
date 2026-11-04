@@ -40,7 +40,7 @@
    페이지를 화면 높이(100vh)로 잡아, 내용이 짧아도 아래 여백이 위 여백(24px)과 같게 끝난다.
    남는 높이를 어느 카드가 가져갈지는 각 페이지 CSS에서 정한다. */
 [data-testid="stMainBlockContainer"] {
-  padding: 24px 32px 24px;
+  padding: calc(var(--tb-height, 0px) + 20px) 32px 20px;  /* 위: 상단 바(top_bar.css) 높이 + 20px */
   max-width: none;
   min-height: 100vh;
   flex-shrink: 0;  /* 부모(stMain)가 flex라, 그대로 두면 긴 페이지에서 100vh로 눌려 하단 여백이 사라진다 */
