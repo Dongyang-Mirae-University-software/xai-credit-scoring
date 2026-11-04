@@ -347,7 +347,7 @@ Experian은 대출과 카드를 합친 활성 계좌가 1~2개이거나 5개 미
 
 ### 문서
 - [README.md](../README.md) - 프로젝트 전체 개요
-- [SIMULATOR_COMPARISON.md](../src/data/SIMULATOR_COMPARISON.md) - 대안 데이터 생성 방법 비교
+- [alt_data_simulation.md](alt_data_simulation.md) - 대안 데이터 생성 방식 (잠재 상환 성실도 요인 모델, 이슈 #26)
 
 ### 구현 코드
 - [src/data/loader.py](../src/data/loader.py) - 데이터 로드 로직
