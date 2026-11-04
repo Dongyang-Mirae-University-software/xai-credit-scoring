@@ -1,239 +1,240 @@
-"""모델 성능 페이지"""
-import base64
+"""모델 성능 페이지 (디자인 07)
+
+결론(성능 목표 4개 달성 여부) → 근거(ROC · PR 곡선) → 상세(혼동행렬 + 해석).
+데이터: GET /metrics. 기준 모델(Logistic Regression) 곡선은 /metrics 의 baseline 이 있을 때만 그린다.
+"""
 from html import escape
 from pathlib import Path
 
+import plotly.graph_objects as go
 import streamlit as st
 
 import api_client
-from components.api_error import api_error_html, render_api_error
-from components.empty_state import ghost_card, ghost_metric, render_no_report
+from components import ui
+from components.api_error import render_api_error
+from components.empty_state import render_no_report
 from components.page_header import render_page_header
 
 CSS_PATH = Path(__file__).with_suffix(".css")
-
-ALGORITHMS = [
-    ("LogisticRegression", "Logistic Regression"),
-    ("XGBoost", "XGBoost"),
-    ("LightGBM", "LightGBM"),
-]
-DATA_TYPES = [
-    ("financial_only", "전통 only"),
-    ("alternative_only", "대안 only"),
-    ("integrated", "통합 (전통+대안)"),
-]
-DATA_TYPE_LABELS = {"financial_only": "전통 피처", "alternative_only": "대안 피처", "integrated": "통합 피처"}
-DATASET_LABEL = "테스트셋"  # 백엔드 main_step3.py 는 Test 데이터로 /metrics 재료를 만든다
+DATASET_LABEL = "테스트셋"
+DEFAULT_TARGETS = {"auc": 0.78, "ks": 0.28, "thin_filer_uplift": 0.03, "psi": 0.1}
+ALGORITHM_LABELS = {"lightgbm": "LightGBM", "xgboost": "XGBoost", "logistic": "Logistic Regression"}
+ACCENT, BASELINE, INK, GRID, MUTED = "#1F4FD8", "#8A94A6", "#0F1B2D", "#EDF1F6", "#5B6577"
+SUBTITLE = "최종 모델이 부도 고객을 얼마나 잘 가려내는지 확인해요."
 
 
-# ---------------------------------------------------------------------------
-# 그림 도우미 (SVG, 0~100 좌표)
-# ---------------------------------------------------------------------------
-def _polyline(xs, ys):
-    """x·y (0~1) 점 목록 → SVG points. y는 위가 1이 되도록 뒤집는다."""
-    return " ".join(f"{x * 100:.2f},{(1 - y) * 100:.2f}" for x, y in zip(xs, ys))
+def _algorithm(model_name):
+    name = (model_name or "").lower()
+    return next((label for key, label in ALGORITHM_LABELS.items() if name.startswith(key)), model_name or "최종 모델")
 
 
-LINE_COLORS = {"roc": "#2563eb", "pr": "#7c3aed"}
-
-
-def _chart(line_points, line_class, dashed_points):
-    """곡선 SVG를 이미지로 넣는다 (st.html 은 보안상 <svg> 태그를 지우므로 data URI <img> 로 전달)."""
-    svg = (
-        '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" preserveAspectRatio="none">'
-        f'<polyline points="{dashed_points}" fill="none" stroke="#9ca3af" stroke-width="1" '
-        'stroke-dasharray="4 4" vector-effect="non-scaling-stroke"/>'
-        f'<polyline points="{line_points}" fill="none" stroke="{LINE_COLORS[line_class]}" stroke-width="2.5" '
-        'stroke-linejoin="round" vector-effect="non-scaling-stroke"/></svg>'
-    )
-    encoded = base64.b64encode(svg.encode("utf-8")).decode("ascii")
-    return f'<img class="pf-plot" alt="{line_class} curve" src="data:image/svg+xml;base64,{encoded}">'
+def _model_version(model_name):
+    return (model_name or "—").removesuffix(".joblib")
 
 
 # ---------------------------------------------------------------------------
-# 화면 조각
+# 결론
 # ---------------------------------------------------------------------------
-def _metric_cards(m):
-    targets, passed = m.get("targets", {}), m.get("pass", {})
-    threshold = m["confusion_matrix"]["threshold"]
-
-    def badge(key, ok_label, ng_label):
-        if key not in passed:
-            return '<span class="pf-pill none">—</span>'
-        return (f'<span class="pf-pill ok">{ok_label}</span>' if passed[key]
-                else f'<span class="pf-pill ng">{ng_label}</span>')
-
-    cards = [
-        ("AUC", m["auc"], 3, badge("auc", "통과", "미달"), f'기준 ≥ {targets.get("auc", 0.78):.2f}'),
-        ("KS", m["ks"], 2, badge("ks", "통과", "미달"), f'기준 ≥ {targets.get("ks", 0.28):.2f}'),
-        ("PSI", m.get("psi"), 3, badge("psi", "안정", "불안정"), f'기준 &lt; {targets.get("psi", 0.1):.2f}'),
-        ("Precision", m["precision"], 2, badge(None, "", ""), f"임계값 {threshold:.2f}"),
-        ("Recall", m["recall"], 2, badge(None, "", ""), f"임계값 {threshold:.2f}"),
-        ("F1", m["f1"], 2, badge(None, "", ""), f"임계값 {threshold:.2f}"),
+def _targets(m):
+    t = {**DEFAULT_TARGETS, **(m.get("targets") or {})}
+    passes = m.get("pass") or {}
+    uplift = (m.get("thin_filer_uplift") or {}).get("uplift")
+    items = [
+        ("auc", "AUC-ROC", m.get("auc"), f"{m.get('auc', 0):.3f}", f"목표 {t['auc']:.2f} 이상",
+         passes.get("auc", m.get("auc", 0) >= t["auc"])),
+        ("ks", "KS 통계량", m.get("ks"), f"{m.get('ks', 0):.3f}", f"목표 {t['ks']:.2f} 이상",
+         passes.get("ks", m.get("ks", 0) >= t["ks"])),
+        ("thin_filer_uplift", "씬파일러 AUC 향상", uplift, "—" if uplift is None else f"{uplift:+.3f}",
+         f"목표 +{t['thin_filer_uplift']:.2f} 이상",
+         passes.get("thin_filer_uplift", uplift is not None and uplift >= t["thin_filer_uplift"])),
+        ("psi", "PSI", m.get("psi"), "—" if m.get("psi") is None else f"{m['psi']:.3f}", f"목표 {t['psi']:g} 미만",
+         passes.get("psi", m.get("psi") is not None and m["psi"] < t["psi"])),
     ]
-    html = "".join(
-        f'<div class="pf-card pf-metric">'
-        f'<div class="pf-metric-head"><span>{name}</span>{pill}</div>'
-        f'<div class="pf-metric-value">{"—" if value is None else f"{value:.{digits}f}"}</div>'
-        f'<div class="pf-caption">{caption}</div></div>'
-        for name, value, digits, pill, caption in cards
+    return t, items
+
+
+def _summary(m):
+    t, items = _targets(m)
+    done = [i for i in items if i[5]]
+    all_ok = len(done) == len(items)
+    auc, uplift = m.get("auc"), (m.get("thin_filer_uplift") or {}).get("uplift")
+    first = f"{DATASET_LABEL} AUC {auc:.3f}로 목표({t['auc']:.2f})를 {'넘었' if auc >= t['auc'] else '넘지 못했'}"
+    if uplift is None:
+        sub = first + "어요."
+    elif uplift >= t["thin_filer_uplift"]:
+        sub = f"{first}고, 대안 데이터 덕분에 씬파일러 고객의 예측력이 {uplift:.3f} 올랐어요."
+    else:
+        sub = f"{first}지만, 씬파일러 고객의 AUC 향상은 {uplift:+.3f}로 목표(+{t['thin_filer_uplift']:.2f})에 못 미쳐요."
+    title = (f"성능 목표 {len(items)}개를 모두 달성했어요" if all_ok
+             else f"성능 목표 {len(items)}개 중 {len(done)}개를 달성했어요")
+    cells = "".join(
+        f'<div class="pf-metric"><span>{label}</span><div><strong>{text}</strong>'
+        f'{ui.pill("달성" if ok else "미달", "ok" if ok else "fail")}</div><small>{rule}</small></div>'
+        for _, label, _, text, rule, ok in items)
+    secondary = [
+        ("Precision", m.get("precision"), "거절한 고객 중 실제 부도 고객 비율"),
+        ("Recall", m.get("recall"), "실제 부도 고객 중 거절로 걸러낸 비율"),
+        ("F1", m.get("f1"), "Precision과 Recall의 조화 평균"),
+    ]
+    sec = "".join(f'<div><span>{label}</span><strong>{"—" if v is None else f"{v:.3f}"}</strong><small>{desc}</small></div>'
+                  for label, v, desc in secondary)
+    tone = "ok" if all_ok else "fail"
+    return f"""
+    <section class="pf-summary">
+      <div class="pf-banner {tone}"><span class="pf-mark">{ui.icon("check" if all_ok else "x", "#FFFFFF", 22)}</span>
+        <div><strong>{title}</strong><span>{escape(sub)}</span></div></div>
+      <div class="pf-metrics">{cells}</div>
+      <div class="pf-secondary">{sec}</div>
+    </section>"""
+
+
+# ---------------------------------------------------------------------------
+# 근거: ROC · PR (Plotly)
+# ---------------------------------------------------------------------------
+def _layout(fig, x_title, y_title):
+    axis = dict(tickvals=[0, 0.2, 0.4, 0.6, 0.8, 1.0], tickformat=".1f", showgrid=True, gridcolor=GRID, zeroline=False,
+                linecolor="#CDD5E0", showline=True, ticks="", tickfont=dict(size=13, color=MUTED),
+                title_font=dict(size=14, color="#3A4456"), fixedrange=True)
+    fig.update_layout(
+        template=None, height=460, margin=dict(l=64, r=12, t=8, b=56), showlegend=False,
+        paper_bgcolor="#FFFFFF", plot_bgcolor="#FFFFFF",
+        font=dict(family="Noto Sans KR, system-ui, sans-serif", color=INK),
+        xaxis=dict(axis, title_text=x_title, range=[-0.01, 1.02]),
+        yaxis=dict(axis, title_text=y_title, range=[-0.01, 1.03]),
+        hoverlabel=dict(font_family="Noto Sans KR"),
     )
-    st.html(f'<div class="pf-metrics">{html}</div>')
+    return fig
 
 
-def _roc_card(m):
-    roc = m["roc_curve"]
-    return f"""
-    <div class="pf-card">
-      <div class="pf-title">ROC Curve</div>
-      <div class="pf-caption">AUC {m["auc"]:.3f} · 점선은 무작위 분류</div>
-      {_chart(_polyline(roc["fpr"], roc["tpr"]), "roc", "0,100 100,0")}
-      <div class="pf-axis"><span>FPR →</span><span>TPR ↑</span></div>
+def _roc(m, baseline, name):
+    cm = m.get("confusion_matrix") or {}
+    fig = go.Figure()
+    fig.add_scatter(x=[0, 1], y=[0, 1], mode="lines", line=dict(color=BASELINE, width=1, dash="dash"), hoverinfo="skip")
+    if baseline and baseline.get("roc_curve"):
+        fig.add_scatter(x=baseline["roc_curve"]["fpr"], y=baseline["roc_curve"]["tpr"], mode="lines",
+                        line=dict(color=BASELINE, width=2), name="Logistic Regression",
+                        hovertemplate="FPR %{x:.2f}<br>TPR %{y:.2f}<extra>기준 모델</extra>")
+    roc = m.get("roc_curve") or {}
+    fig.add_scatter(x=roc.get("fpr", []), y=roc.get("tpr", []), mode="lines", line=dict(color=ACCENT, width=3),
+                    name=name, hovertemplate="FPR %{x:.2f}<br>TPR %{y:.2f}<extra>최종 모델</extra>")
+    if cm.get("fp") is not None and (cm["fp"] + cm["tn"]):
+        fig.add_scatter(x=[cm["fp"] / (cm["fp"] + cm["tn"])], y=[cm.get("recall", m.get("recall"))], mode="markers",
+                        marker=dict(size=13, color="#FFFFFF", line=dict(color=INK, width=2)),
+                        hovertemplate="현재 승인 기준점<br>FPR %{x:.3f}<br>TPR %{y:.3f}<extra></extra>")
+    return _layout(fig, "잘못 거절한 정상 고객 비율 (FPR)", "걸러낸 부도 고객 비율 (TPR)")
+
+
+def _pr(m, baseline, name, default_rate):
+    fig = go.Figure()
+    if default_rate is not None:
+        fig.add_scatter(x=[0, 1], y=[default_rate, default_rate], mode="lines",
+                        line=dict(color=BASELINE, width=1, dash="dash"), hoverinfo="skip")
+        fig.add_annotation(x=0.98, y=default_rate, yshift=12, xanchor="right", showarrow=False,
+                           text=f"무작위 기준선 (부도율 {default_rate * 100:.1f}%)", font=dict(size=12, color=MUTED))
+    if baseline and baseline.get("pr_curve"):
+        fig.add_scatter(x=baseline["pr_curve"]["recall"], y=baseline["pr_curve"]["precision"], mode="lines",
+                        line=dict(color=BASELINE, width=2),
+                        hovertemplate="Recall %{x:.2f}<br>Precision %{y:.2f}<extra>기준 모델</extra>")
+    pr = m.get("pr_curve") or {}
+    fig.add_scatter(x=pr.get("recall", []), y=pr.get("precision", []), mode="lines", line=dict(color=ACCENT, width=3),
+                    hovertemplate="Recall %{x:.2f}<br>Precision %{y:.2f}<extra>최종 모델</extra>")
+    if m.get("recall") is not None and m.get("precision") is not None:
+        fig.add_scatter(x=[m["recall"]], y=[m["precision"]], mode="markers",
+                        marker=dict(size=13, color="#FFFFFF", line=dict(color=INK, width=2)),
+                        hovertemplate="현재 승인 기준점<br>Recall %{x:.3f}<br>Precision %{y:.3f}<extra></extra>")
+    return _layout(fig, "걸러낸 부도 고객 비율 (Recall)", "거절 중 실제 부도 비율 (Precision)")
+
+
+def _legend(name, baseline):
+    base = ('<span><i class="line base"></i>Logistic Regression (기준 모델)</span>' if baseline else "")
+    return (f'<div class="pf-legend"><span><i class="line"></i>{escape(name)} (최종 모델)</span>{base}'
+            '<span><i class="dot"></i>현재 승인 기준점</span></div>')
+
+
+# ---------------------------------------------------------------------------
+# 상세: 혼동행렬
+# ---------------------------------------------------------------------------
+def _cell(value, rate, label):
+    alpha = 0.12 + 0.56 * rate
+    dark = alpha > 0.4
+    return (f'<div class="pf-cell{" dark" if dark else ""}" style="background:rgba(31,79,216,{alpha:.2f})">'
+            f'<strong>{value:,}</strong><span>{label} ({rate * 100:.1f}%)</span></div>')
+
+
+def _confusion(m):
+    cm = m.get("confusion_matrix") or {}
+    tn, fp, fn, tp = (cm.get(k) for k in ("tn", "fp", "fn", "tp"))
+    if None in (tn, fp, fn, tp):
+        return '<div class="pf-empty">혼동행렬 정보가 없어요.</div>'
+    normal, default = tn + fp, fn + tp
+    total = normal + default
+    approved = tn + fn
+    r = lambda a, b: a / b if b else 0  # noqa: E731
+    fp_rate = r(fp, normal)
+    one_in = round(1 / fp_rate) if fp_rate > 0 else None
+    fp_text = (f"정상 고객 {one_in}명 중 1명꼴로 거절돼요. " if one_in and one_in > 1 else "") + \
+        "승인 기준을 높이면 줄일 수 있지만 놓치는 부도 고객이 늘어나요."
+    grid = f"""
+    <div class="pf-cm" role="group" aria-label="혼동행렬">
+      <span></span><span class="pf-cm-col">예측: 승인</span><span class="pf-cm-col">예측: 거절</span>
+      <span class="pf-cm-row">실제 정상<br>{normal:,}명</span>
+      {_cell(tn, r(tn, normal), "맞게 승인")}{_cell(fp, fp_rate, "잘못 거절")}
+      <span class="pf-cm-row">실제 부도<br>{default:,}명</span>
+      {_cell(fn, r(fn, default), "놓친 부도")}{_cell(tp, r(tp, default), "맞게 거절")}
     </div>"""
-
-
-def _pr_card(m):
-    pr = m["pr_curve"]
-    base = m["n_default"] / m["n"] if m.get("n") else 0
-    return f"""
-    <div class="pf-card">
-      <div class="pf-title">Precision-Recall Curve</div>
-      <div class="pf-caption">부도 비율 {base:.1%} · 점선은 기준선</div>
-      {_chart(_polyline(pr["recall"], pr["precision"]), "pr", f"0,{(1 - base) * 100:.2f} 100,{(1 - base) * 100:.2f}")}
-      <div class="pf-axis"><span>Recall →</span><span>Precision ↑</span></div>
-    </div>"""
-
-
-def _confusion_card(m):
-    cm = m["confusion_matrix"]
-    return f"""
-    <div class="pf-card">
-      <div class="pf-title">혼동행렬</div>
-      <div class="pf-caption">{DATASET_LABEL} {m["n"]:,}건</div>
-      <div class="pf-cm">
-        <span></span><span class="pf-cm-col">예측: 정상</span><span class="pf-cm-col">예측: 부도</span>
-        <span class="pf-cm-row">실제: 정상</span>
-        <div class="pf-cm-cell tn"><b>TN</b>{cm["tn"]:,}</div>
-        <div class="pf-cm-cell fp"><b>FP</b>{cm["fp"]:,}</div>
-        <span class="pf-cm-row">실제: 부도</span>
-        <div class="pf-cm-cell fn"><b>FN</b>{cm["fn"]:,}</div>
-        <div class="pf-cm-cell tp"><b>TP</b>{cm["tp"]:,}</div>
-      </div>
-      <div class="pf-chips">
-        <span class="pf-chip">Recall {cm["recall"]:.2f}</span>
-        <span class="pf-chip">Precision {cm["precision"]:.2f}</span>
-      </div>
-    </div>"""
-
-
-def _model_grid_card(runs_data, m):
-    """runs_data: GET /metrics/comparison 응답 (selected_model, cv_runs = 후보별 5-Fold CV 평균)."""
-    runs = list(runs_data.get("cv_runs", {}).values())
-    data_type, algorithm, _ = (runs_data["selected_model"].split("/") + ["", "", ""])[:3]
-
-    def base_run(algo, dtype):
-        # 알고리즘마다 SMOTE 가 아닌 기본 불균형 기법(class_weight 계열) 결과를 쓴다
-        for r in runs:
-            if r["algorithm"] == algo and r["data_type"] == dtype and r["method"] != "SMOTE":
-                return r
-        return None
-
-    def cell(r):
-        if not r:
-            return "—"
-        mean = r["cv_test_mean"]["cv_test_roc_auc_mean"]
-        std = r.get("cv_test_std", {}).get("cv_test_roc_auc_std")
-        return f"{mean:.3f} ± {std:.3f}" if std is not None else f"{mean:.3f}"
-
-    rows = []
-    for algo, label in ALGORITHMS:
-        selected = algo == algorithm
-        cells = "".join(
-            f'<td class="{"pf-sel" if selected and dtype == data_type else ""}">{cell(base_run(algo, dtype))}</td>'
-            for dtype, _ in DATA_TYPES)
-        integrated = base_run(algo, "integrated")
-        ks = f'{integrated["cv_test_mean"]["cv_test_ks_mean"]:.2f}' if integrated else "—"
-        psi = f'{m["psi"]:.3f}' if selected and m and m.get("psi") is not None else "—"  # PSI 는 최종 모델만 계산됨
-        rows.append(f'<tr><th class="{"pf-sel" if selected else ""}">{label}</th>{cells}<td>{ks}</td><td>{psi}</td></tr>')
-
-    pick = f"최종 선택: {escape(algorithm)} · {DATA_TYPE_LABELS.get(data_type, data_type)}"
-    head = "".join(f"<th>{label}</th>" for _, label in DATA_TYPES)
-    return f"""
-    <div class="pf-card">
-      <div class="pf-card-head">
-        <div>
-          <div class="pf-title">후보 모델 비교 · AUC</div>
-          <div class="pf-caption">5-Fold 교차검증 평균</div>
-        </div>
-        <span class="pf-chip blue">{pick}</span>
-      </div>
-      <table class="pf-table">
-        <thead><tr><th>알고리즘</th>{head}<th>KS</th><th>PSI</th></tr></thead>
-        <tbody>{"".join(rows)}</tbody>
-      </table>
-    </div>"""
-
-
-def _thin_filer_card(m):
-    test = m.get("thin_filer_uplift")
-    cv = m.get("thin_filer_uplift_cv")   # 판정 기준: Train+Val 교차검증 (#26). 없으면 Test 1회 값
-    t = cv or test
-    if not t:
-        return """
-        <div class="pf-card">
-          <div class="pf-title">씬파일러 세그먼트</div>
-          <div class="pf-empty">/metrics 응답에 thin_filer_uplift 가 없습니다.</div>
-        </div>"""
-    note = ("대안 데이터가 씬파일러 판별력을 높임" if t["pass"]
-            else f"목표(+{t.get('target', 0.03):.2f}) 미달")
-    ci = f' · 95% CI [{t["ci_low"]:+.2f}, {t["ci_high"]:+.2f}]' if "ci_low" in t else ""
-    label = "Train+Val 5-Fold 교차검증" if cv else DATASET_LABEL
-    test_note = (f'<div class="pf-caption">{DATASET_LABEL} 1회: {test["uplift"]:+.3f} AUC '
-                 f'(씬파일러 {test["n_thin_filer"]:,}명, 표본이 작아 참고값)</div>') if cv and test else ""
-    return f"""
-    <div class="pf-card">
-      <div class="pf-title">씬파일러 세그먼트</div>
-      <div class="pf-caption">씬파일러 {t["n_thin_filer"]:,}명 ({label})</div>
-      <div class="pf-thin">
-        <div class="pf-thin-row"><span>대안 데이터 포함</span><b class="ok">AUC {t["auc_with_alt"]:.2f}</b></div>
-        <div class="pf-thin-row"><span>전통 데이터만</span><b>AUC {t["auc_without_alt"]:.2f}</b></div>
-      </div>
-      <span class="pf-pill {"ok" if t["pass"] else "ng"} wide">{t["uplift"]:+.2f} AUC · {note}{ci}</span>
-      {test_note}
-    </div>"""
+    notes = [
+        (f"부도 고객 {default:,}명 중 {tp:,}명을 거절했어요",
+         f"Recall {r(tp, default) * 100:.1f}%. 놓친 부도 고객은 {fn:,}명이에요."),
+        (f"정상 고객 {normal:,}명 중 {fp:,}명을 거절했어요", fp_text),
+        (f"전체 승인율은 {r(approved, total) * 100:.1f}%예요", f"{total:,}명 중 {approved:,}명을 승인했어요."),
+    ]
+    side = "".join(f'<div><strong>{a}</strong><span>{b}</span></div>' for a, b in notes)
+    return f'<div class="pf-cm-card">{grid}<div class="pf-cm-notes">{side}</div></div>'
 
 
 # ---------------------------------------------------------------------------
 # 페이지
 # ---------------------------------------------------------------------------
 st.html(f"<style>{CSS_PATH.read_text(encoding='utf-8')}</style>")
-render_page_header("모델 성능", "최종 모델이 부도를 얼마나 잘 가려내는지 보여 줍니다")
-
 try:
-    metrics, metrics_error = api_client.metrics(), None
+    metrics = api_client.metrics()
 except Exception as e:
-    metrics, metrics_error = None, e
+    render_page_header("모델 성능", SUBTITLE)
+    render_api_error("GET /metrics", e, "page")
+    st.stop()
+if metrics is None:
+    render_page_header("모델 성능", SUBTITLE)
+    render_no_report("metrics")
+    st.stop()
 
-if metrics_error is not None:  # 실패해도 st.stop() 하지 않아야 사이드바 하단 면책 조항이 그려진다
-    render_api_error("GET /metrics", metrics_error, "page")
-else:
-    if metrics is not None:
-        _metric_cards(metrics)
-        st.html(f'<div class="pf-row3">{_roc_card(metrics)}{_pr_card(metrics)}{_confusion_card(metrics)}</div>')
-    else:
-        # 결과가 없으면 안내 한 줄 + 카드 자리만 보여 준다 (격자 비교는 model_metadata.json 이라 그대로 표시)
-        render_no_report("metrics")
-        st.html('<div class="pf-metrics">' + "".join(
-            ghost_metric(name, "pf-card pf-metric") for name in ["AUC", "KS", "PSI", "Precision", "Recall", "F1"]) + "</div>")
-        st.html('<div class="pf-row3">' + "".join(
-            ghost_card(title, "pf-card", "pf-title") for title in ["ROC Curve", "Precision-Recall Curve", "혼동행렬"]) + "</div>")
+n = metrics.get("n")
+render_page_header("모델 성능", SUBTITLE, meta=[("평가 데이터", f"{DATASET_LABEL} {n:,}명" if n else "—"),
+                                             ("모델", _model_version(metrics.get("model")))])
+st.html(_summary(metrics))
 
-    try:
-        runs_data = api_client.model_comparison()
-        grid = _model_grid_card(runs_data, metrics)
-    except Exception as e:
-        grid = f'<div class="pf-card"><div class="pf-title">후보 모델 비교</div>{api_error_html("GET /metrics/comparison", e, "inline")}</div>'
-    if metrics is not None:
-        st.html(f'<div class="pf-row2">{grid}{_thin_filer_card(metrics)}</div>')
-    else:
-        st.html(f'<div class="pf-row2">{grid}{ghost_card("씬파일러 세그먼트", "pf-card", "pf-title")}</div>')
+name = _algorithm(metrics.get("model"))
+baseline = metrics.get("baseline")  # 요청해 둔 필드: {"model", "auc", "roc_curve", "pr_curve"}
+default_rate = metrics["n_default"] / metrics["n"] if metrics.get("n") and metrics.get("n_default") is not None else None
+
+st.html(ui.section_head("ROC 곡선과 Precision-Recall 곡선",
+                        "곡선이 왼쪽 위(ROC), 오른쪽 위(PR)에 가까울수록 부도 고객을 잘 가려내는 모델이에요."))
+left, right = st.columns(2, gap="medium")
+config = {"displayModeBar": False, "staticPlot": False}
+with left, st.container(key="pf-roc"):
+    base_auc = f' (기준 모델 {baseline["auc"]:.3f})' if baseline and baseline.get("auc") is not None else ""
+    st.html(f'<div class="pf-card-head"><h3>ROC Curve</h3>'
+            f'<span>AUC <strong>{metrics["auc"]:.3f}</strong>{base_auc}</span></div>')
+    st.plotly_chart(_roc(metrics, baseline, name), theme=None, config=config, use_container_width=True)
+    st.html(_legend(name, baseline))
+with right, st.container(key="pf-pr"):
+    rate_text = f"부도율 {default_rate * 100:.1f}%의 불균형 데이터" if default_rate is not None else ""
+    st.html(f'<div class="pf-card-head"><h3>Precision-Recall Curve</h3><span>{rate_text}</span></div>')
+    st.plotly_chart(_pr(metrics, baseline, name, default_rate), theme=None, config=config, use_container_width=True)
+    st.html(_legend(name, baseline))
+
+threshold = (metrics.get("confusion_matrix") or {}).get("threshold")
+st.html(f'<section class="pf-section">'
+        + ui.section_head("혼동행렬", f"{DATASET_LABEL} {n:,}명을 현재 승인 기준"
+                          + (f"(부도 확률 {threshold:.0%} 미만 승인)" if threshold is not None else "")
+                          + "으로 심사했을 때의 결과예요. 색이 진할수록 해당 집단에서 차지하는 비율이 커요.")
+        + _confusion(metrics) + "</section>")
