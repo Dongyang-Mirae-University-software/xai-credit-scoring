@@ -70,3 +70,48 @@ def fmt_value(feature, value):
     if feature == "MonthlyIncome":
         return f"{float(value) / 10_000:,.0f}만원"
     return _UNITS.get(feature, "{}").format(_count(value))
+
+
+# 영향력 비중 막대의 묶음: 기본 정보(인적 사항) / 금융 이력 / 대안 데이터
+BASIC_FEATURES = ["age", "MonthlyIncome", "NumberOfDependents"]
+GROUP_LABELS = {"financial": "금융 이력", "alternative": "대안 데이터", "basic": "기본 정보"}
+
+
+def group_of(feature):
+    if feature in ALTERNATIVE_FEATURES:
+        return "alternative"
+    if feature in BASIC_FEATURES:
+        return "basic"
+    return "financial"
+
+
+# 방향 문구에 '많을수록 / 적을수록' 을 쓰는 건수형 변수
+_COUNT_FEATURES = set(DELINQUENCY_FEATURES) | {
+    "NumberOfOpenCreditLinesAndLoans", "NumberRealEstateLoansOrLines", "NumberOfDependents",
+    "regular_payment_count", "app_login_frequency",
+}
+
+
+def direction_text(feature, higher_is_riskier):
+    if higher_is_riskier is None:
+        return ""
+    if feature in _COUNT_FEATURES:
+        return "많을수록 위험↑" if higher_is_riskier else "적을수록 위험↑"
+    return "높을수록 위험↑" if higher_is_riskier else "낮을수록 위험↑"
+
+
+def fmt_input(feature, value):
+    """/predict 요청 단위의 값(부채비율·납부율은 %, 한도 사용률은 0~1, 소득은 원)을 화면 표기로."""
+    if value is None:
+        return "—"
+    if feature in {"DebtRatio", "telecom_payment_rate", "utility_payment_rate"}:
+        return f"{float(value):.0f}%"
+    return fmt_value(feature, value)
+
+
+def josa(word, with_batchim, without):
+    """한글 받침에 따라 조사를 고른다: josa('사용률', '이', '가') → '이'."""
+    last = word.rstrip()[-1:] if word else ""
+    if "가" <= last <= "힣":
+        return with_batchim if (ord(last) - 0xAC00) % 28 else without
+    return with_batchim if last.isdigit() and last in "013678" else without

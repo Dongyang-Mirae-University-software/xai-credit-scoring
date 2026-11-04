@@ -572,6 +572,13 @@ if lookup:
     st.session_state.scr_current = None
     _lookup(lookup)
 
+# XAI 분석의 '조건 바꿔 재심사' → 그 고객 결과 화면에서 입력 창을 연다
+edit_id = st.session_state.pop("scr_edit_request", None)
+if edit_id and edit_id in st.session_state.customers:
+    entry = st.session_state.customers[edit_id]
+    st.session_state.scr_current = {"profile": entry["profile"], "result": entry["result"]}
+    _open_form(entry["profile"], loaded=False)
+
 if st.session_state.scr_current is None:
     _start_view()
 else:
