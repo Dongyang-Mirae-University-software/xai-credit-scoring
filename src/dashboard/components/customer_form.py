@@ -123,14 +123,19 @@ def _payload(profile):
 
 
 def run_predict(profile, record=True):
-    """POST /predict. 성공하면 결과를 현재 심사·XAI 고객 목록에 넣고, record 면 오늘 심사한 고객에도 쌓는다. 실패하면 예외를 올린다."""
+    """심사 실행: POST /predict 와 POST /explain 을 함께 부른다 (승인이든 거절이든).
+    결과를 현재 심사·XAI 고객 목록에 넣고, record 면 오늘 심사한 고객에도 쌓는다. /predict 가 실패하면 예외를 올린다.
+    /explain 이 실패하면 그 예외를 캐시에 넣어 두고 결과 화면이 안내한다 (화면을 그릴 때 다시 부르지 않는다)."""
     ss = st.session_state
     payload = _payload(profile)
     result = {**api_client.predict(payload), "customer_id": profile["customer_id"]}
     customer_id = profile["customer_id"]
     ss.customers.pop(customer_id, None)  # 다시 심사하면 XAI 고객 목록 맨 앞으로
     ss.customers[customer_id] = {"payload": payload, "result": result, "profile": profile}
-    ss.xai_explain.pop(customer_id, None)
+    try:
+        ss.xai_explain[customer_id] = api_client.explain(payload)
+    except Exception as e:
+        ss.xai_explain[customer_id] = e
     ss.scr_current = {"profile": profile, "result": result}
     if record:
         history = [h for h in ss.scr_history if h["result"]["customer_id"] != customer_id]
@@ -142,6 +147,16 @@ def run_predict(profile, record=True):
 # ---------------------------------------------------------------------------
 # 입력 창
 # ---------------------------------------------------------------------------
+def get_explain(customer_id):
+    """심사 실행 때 받아 둔 /explain 응답. 그때 실패했으면 그 예외를 다시 올린다."""
+    explain = st.session_state.xai_explain.get(customer_id)
+    if isinstance(explain, Exception):
+        raise explain
+    if explain is None:
+        raise LookupError(f"{customer_id} 고객의 설명(/explain)이 없어요. 다시 심사해 주세요.")
+    return explain
+
+
 def _num(value, as_int):
     if value is None:
         return None

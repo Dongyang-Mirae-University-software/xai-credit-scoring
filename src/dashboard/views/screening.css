@@ -148,6 +148,9 @@
 .scr-bar .seg-C { background: #E39A1B; }
 .scr-bar .seg-B { background: #5FB892; }
 .scr-bar .seg-A { background: #0E7C5A; }
+/* 승인 기준 점선 (650점) */
+.scr-bar u { position: absolute; top: -4px; bottom: -4px; border-left: 2px dashed var(--ink); opacity: .45; }
+.scr-bar-note { margin: 4px 0 0; font-size: 12px; color: var(--ink-3); }
 .scr-bar em { position: absolute; top: -6px; width: 4px; height: 24px; margin-left: -2px; border-radius: 2px; background: var(--ink); }
 .scr-bar-labels {
   display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 3px;
@@ -167,7 +170,7 @@
 .st-key-scr-copy iframe { display: block; }
 .scr-rr { background: var(--card); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; }
 .scr-rr-row {
-  display: grid; grid-template-columns: 40px 200px minmax(0, 1fr) 80px 80px; column-gap: 24px;
+  display: grid; grid-template-columns: 40px 200px minmax(0, 1fr) 80px 80px 110px; column-gap: 24px;
   align-items: center; padding: 0 24px; min-height: 60px;
 }
 .scr-rr-row + .scr-rr-row { border-top: 1px solid var(--divider); }
@@ -183,6 +186,10 @@
 .scr-rr-row b.num { font-size: 15px; font-weight: 700; color: var(--ink); }
 .scr-rr-ref { font-size: 15px; color: var(--ink-3); }
 .scr-rr-empty { padding: 20px 24px; color: var(--ink-3); font-size: 14px; }
+.scr-rr-row strong.num { text-align: right; font-size: 15px; }
+.scr-rr-row strong.up { color: var(--fail-text); }
+.scr-rr-row strong.down { color: #1A56A8; }
+.scr-rr-note { margin: 12px 0 0; font-size: 12px; color: var(--ink-3); }
 
 /* 아래 이동 카드 (카드 전체가 버튼) */
 [class*="st-key-scr-act-"]:not([class*="st-key-scr-act-btn"]) { position: relative; gap: 0; }

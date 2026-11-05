@@ -51,7 +51,7 @@
 .st-key-xai-copy { gap: 0; }
 .xai-rr { background: var(--card); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; }
 .xai-rr-row {
-  display: grid; grid-template-columns: 56px 230px minmax(0, 1fr) 88px 88px 220px; column-gap: 24px;
+  display: grid; grid-template-columns: 56px 290px minmax(0, 1fr) 88px 88px 200px; column-gap: 24px;
   align-items: center; padding: 0 24px; min-height: 72px;
 }
 .xai-rr-row + .xai-rr-row { border-top: 1px solid var(--divider); }
@@ -65,8 +65,14 @@
   width: 28px; height: 28px; border-radius: 50%; background: var(--divider); color: var(--ink-2);
   font-style: normal; font-size: 14px; font-weight: 700; display: flex; align-items: center; justify-content: center;
 }
-.xai-rr-name { display: flex; align-items: center; gap: 8px; min-width: 0; }
-.xai-rr-name strong { font-size: 15px; font-weight: 700; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+/* 항목: 한글 이름 + 묶음 태그, 아래 줄에 변수 이름 (한 줄 고정) */
+.xai-rr-name { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; min-width: 0; }
+.xai-rr-name > span { display: flex; align-items: center; gap: 8px; }
+.xai-rr-name strong { font-size: 15px; font-weight: 700; color: var(--ink); white-space: nowrap; }
+.xai-rr-name code {
+  padding: 0; background: none; font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 11px; color: var(--ink-3); white-space: nowrap;
+}
 .xai-tag { flex: 0 0 auto; padding: 2px 8px; border-radius: 4px; background: var(--divider); color: #4A5568; font-size: 12px; font-weight: 700; }
 .xai-tag.alt { background: var(--accent-bg); color: var(--accent); }
 .xai-rr-text { font-size: 14px; line-height: 1.5; color: var(--ink-2); padding: 12px 0; }
@@ -112,7 +118,7 @@ strong.down { color: var(--risk-down); }
 .wf-row + .wf-row { border-top: 1px solid #F3F5F8; }
 .wf-row.wf-final { border-top: 1px solid var(--border); }
 .wf-row.wf-axis { border-top: 0; }
-.wf-label { display: block; text-align: right; font-size: 13px; color: var(--ink-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.wf-label { display: block; text-align: right; font-size: 13px; line-height: 1.4; color: var(--ink-2); }
 .wf-label b { color: var(--ink); font-weight: 700; margin-left: 6px; }
 .wf-label.muted { color: var(--ink-3); }
 strong.wf-label { color: var(--ink); font-weight: 700; }
@@ -148,14 +154,14 @@ strong.wf-label { color: var(--ink); font-weight: 700; }
 /* Beeswarm */
 .bs { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 2px; }
 .bs li, .bs-axis {
-  display: grid; grid-template-columns: 22px 168px minmax(0, 1fr) 96px; align-items: center; gap: 12px;
+  display: grid; grid-template-columns: 22px 236px minmax(0, 1fr) 96px; align-items: center; gap: 12px;
   padding: 0 8px; margin: 0;
 }
 .bs li { height: 34px; border-radius: 6px; }
 .bs li.mine { background: #FFF6F6; }
 .bs-rank { font-size: 12px; color: var(--ink-3); text-align: right; }
 .bs-name { display: flex; align-items: center; gap: 6px; min-width: 0; font-size: 13px; white-space: nowrap; color: var(--ink); }
-.bs-name > span { overflow: hidden; text-overflow: ellipsis; }
+.bs-name > span { white-space: nowrap; }
 .bs-name > span.alt { color: var(--accent); font-weight: 700; }
 .xai-mine {
   flex: 0 0 auto; font-style: normal; padding: 0 6px; border-radius: 4px;

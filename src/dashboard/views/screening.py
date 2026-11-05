@@ -16,7 +16,6 @@ from pathlib import Path
 
 import streamlit as st
 
-import api_client
 import config
 import features as F
 from components import connection
@@ -180,20 +179,20 @@ def _summary_html(profile, result):
 
 
 def _score_bar(score, grade):
-    """E~A 다섯 칸을 같은 폭으로 그리고, 점수는 해당 등급 칸 안에서의 위치로 표시한다."""
+    """E~A 다섯 칸을 점수 구간 길이 비율(45:20:15:10:10)로 그리고, 점수 위치와 승인 기준(650점) 점선을 표시한다."""
     scale = config.GRADE_SCALE  # [(등급, 구간 상한)] 낮은 등급부터
-    lower, marker = 0, 0.0
-    for i, (g, upper) in enumerate(scale):
-        if g == grade:
-            frac = min(max((score - lower) / (upper - lower), 0), 1)
-            marker = (i + frac) / len(scale) * 100
-            break
-        lower = upper
+    lowers = [0] + [upper for _, upper in scale[:-1]]
+    widths = " ".join(f"{upper - lower}fr" for (_, upper), lower in zip(scale, lowers))
+    top = scale[-1][1]
+    marker = min(max(score / top, 0), 1) * 100
+    cut = config.APPROVAL_SCORE / top * 100
     tone = RISK_TONE[GRADE_RISK.get(grade, "high")]
     segs = "".join(f'<i class="seg-{g}"></i>' for g, _ in scale)
     labels = "".join(f'<b class="{tone}">{g}</b>' if g == grade else f"<span>{g}</span>" for g, _ in scale)
-    return (f'<div class="scr-bar">{segs}<em style="left:{marker:.1f}%"></em></div>'
-            f'<div class="scr-bar-labels">{labels}</div>')
+    return (f'<div class="scr-bar" style="grid-template-columns:{widths}">{segs}'
+            f'<u style="left:{cut:.1f}%"></u><em style="left:{marker:.1f}%"></em></div>'
+            f'<div class="scr-bar-labels" style="grid-template-columns:{widths}">{labels}</div>'
+            f'<p class="scr-bar-note">점수는 (1 − 부도 확률) × 1000이에요. 점선은 승인 기준 {config.APPROVAL_SCORE}점이에요.</p>')
 
 
 def _decision_html(result):
@@ -227,24 +226,79 @@ def _decision_html(result):
     </section>"""
 
 
-def _explain(customer_id):
-    cache = st.session_state.xai_explain
-    if customer_id not in cache:
-        cache[customer_id] = api_client.explain(st.session_state.customers[customer_id]["payload"])
-    return cache[customer_id]
-
-
 def _reason_text(reason):
     return CONTRIBUTION_SUFFIX.sub("", reason.get("explanation") or "")
 
 
-def _reasons_section(result):
-    """주요 거절 사유 3개 (POST /explain rejection_reasons[:3])."""
+# /predict 요청은 % 로 보내고 /explain 의 current_value 는 0~1 로 오는 칸
+PERCENT_FIELDS = {"DebtRatio", "telecom_payment_rate", "utility_payment_rate"}
+FACTOR_LIMIT = 3  # 결과 화면의 주요 승인 요인 수
+
+
+def _risk_shap(explain, reason):
+    """부도 위험 기준 SHAP 기여도 (양수 = 위험 증가). shap_values 가 부도 쪽 값이라 그것을 쓰고,
+    없으면 rejection_reasons 의 승인 쪽 값(shap_contribution)을 뒤집는다."""
+    value = (explain.get("shap_values") or {}).get(reason["feature"])
+    if value is None and reason.get("shap_contribution") is not None:
+        value = -reason["shap_contribution"]
+    return value
+
+
+def _approval_factors(explain, profile):
+    """주요 승인 요인 3개: /explain 의 top_factors. 서버가 아직 주지 않으면 shap_values 에서
+    부도 위험을 가장 많이 낮춘(음수) 변수 3개를 고르고, 현재 값은 입력값에서 가져온다 (기준 값은 없음)."""
+    factors = explain.get("top_factors")
+    if factors:
+        return factors[:FACTOR_LIMIT]
+    lowest = sorted((v, f) for f, v in (explain.get("shap_values") or {}).items() if v < 0)[:FACTOR_LIMIT]
+    rows = []
+    for _, feature in lowest:
+        current = profile.get(feature)
+        if current is not None and feature in PERCENT_FIELDS:
+            current = current / 100
+        rows.append({"feature": feature, "current_value": current, "reference_value": None,
+                     "explanation": f"{F.label(feature)} 값이 부도 위험을 낮췄어요."})
+    return rows
+
+
+def _shap_cell(value):
+    if value is None:
+        return '<strong class="num">—</strong>'
+    return f'<strong class="num {"up" if value >= 0 else "down"}">{"+" if value >= 0 else "−"}{abs(value):.2f}</strong>'
+
+
+def _factor_table(label, explain, rows):
+    body = "".join(
+        f'<div class="scr-rr-row"><span class="scr-rr-rank">{r.get("rank", i)}</span>'
+        f'<strong>{escape(F.label(r["feature"]))}</strong>'
+        f'<span class="scr-rr-text">{escape(_reason_text(r))}</span>'
+        f'<b class="num">{F.fmt_value(r["feature"], r.get("current_value"))}</b>'
+        f'<span class="num scr-rr-ref">{F.fmt_value(r["feature"], r.get("reference_value"))}</span>'
+        f'{_shap_cell(_risk_shap(explain, r))}</div>'
+        for i, r in enumerate(rows, 1))
+    st.html(f"""
+    <div class="scr-rr" role="table" aria-label="{label}">
+      <div class="scr-rr-row scr-rr-headrow"><span>순위</span><span>항목</span><span>설명</span>
+        <span class="num">현재</span><span class="num">기준</span><span class="num">SHAP 기여도</span></div>
+      {body or f'<div class="scr-rr-empty">{label}가 없어요</div>'}
+    </div>
+    <p class="scr-rr-note">SHAP 기여도는 부도 위험 기준이에요. 양수는 위험을 높이고, 음수는 위험을 낮췄다는 뜻이에요.</p>""")
+
+
+def _factors_section(result, profile, approved):
+    """승인: 주요 승인 요인 3개 (top_factors). 거절: 주요 거절 사유 3개 (rejection_reasons) + 안내문 복사."""
     try:
-        reasons = (_explain(result["customer_id"]).get("rejection_reasons") or [])[:REASON_LIMIT]
+        explain = CF.get_explain(result["customer_id"])
     except Exception as e:
         st.html(api_error_html("POST /explain", e, "banner"))
         return
+    if approved:
+        with st.container(key="scr-reasons-head", horizontal=True, vertical_alignment="bottom"):
+            st.html(ui.section_head("주요 승인 요인", "부도 위험을 가장 많이 낮춘 정보예요. "
+                                                    "모든 심사 결과에는 SHAP 기반 설명을 함께 제공해요."))
+        _factor_table("주요 승인 요인", explain, _approval_factors(explain, profile))
+        return
+    reasons = (explain.get("rejection_reasons") or [])[:REASON_LIMIT]
     with st.container(key="scr-reasons-head", horizontal=True, vertical_alignment="bottom"):
         st.html(ui.section_head("주요 거절 사유",
                                 "자동화 평가 결과는 고객에게 주요 사유를 설명해야 해요 (신용정보법 제36조의2)."))
@@ -255,19 +309,7 @@ def _reasons_section(result):
             + ["", config.DISCLAIMER])
         with st.container(key="scr-copy"):
             ui.copy_button("안내문 복사", notice)
-    rows = "".join(
-        f'<div class="scr-rr-row"><span class="scr-rr-rank">{r.get("rank", i)}</span>'
-        f'<strong title="{escape(r["feature"])}">{escape(F.label(r["feature"]))}</strong>'
-        f'<span class="scr-rr-text">{escape(_reason_text(r))}</span>'
-        f'<b class="num">{F.fmt_value(r["feature"], r.get("current_value"))}</b>'
-        f'<span class="num scr-rr-ref">{F.fmt_value(r["feature"], r.get("reference_value"))}</span></div>'
-        for i, r in enumerate(reasons, 1))
-    st.html(f"""
-    <div class="scr-rr" role="table" aria-label="주요 거절 사유">
-      <div class="scr-rr-row scr-rr-headrow"><span>순위</span><span>항목</span><span>설명</span>
-        <span class="num">현재</span><span class="num">기준</span></div>
-      {rows or '<div class="scr-rr-empty">거절 사유가 없어요</div>'}
-    </div>""")
+    _factor_table("주요 거절 사유", explain, reasons)
 
 
 def _action_card(key, title, caption):
@@ -295,10 +337,9 @@ def _result_view():
 
     st.html(_decision_html(result))
 
-    if not approved:
-        _reasons_section(result)
+    _factors_section(result, profile, approved)
 
-    title, caption = (("판단 근거 보기", "어떤 정보가 점수에 영향을 줬는지 XAI 분석에서 확인") if approved
+    title, caption = (("전체 판단 근거 보기", "어떤 정보가 점수에 영향을 줬는지 XAI 분석에서 확인") if approved
                       else ("사유 5개 전체와 근거 보기", "XAI 분석에서 SHAP 기여도와 원본 플롯 확인"))
     if _action_card("xai", title, caption):
         st.session_state.xai_customer = result["customer_id"]
