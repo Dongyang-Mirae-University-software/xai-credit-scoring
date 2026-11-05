@@ -137,3 +137,32 @@ def model_comparison():
 
 def anova():
     return _report("anova", "/anova")
+
+
+# ---------------------------------------------------------------------------
+# 심사 이력 (오늘 심사한 고객이 새로고침해도 남도록). 서버가 예전 버전이라 없으면 404 → False / [] 로 대비
+# ---------------------------------------------------------------------------
+def _missing(exc):
+    return isinstance(exc, requests.HTTPError) and exc.response is not None and exc.response.status_code in (404, 405)
+
+
+def save_screening(record):
+    """POST /screenings: 심사 결과 저장 ({input, result}). API 가 아직 없으면 False."""
+    try:
+        _post("/screenings", record)
+        return True
+    except requests.HTTPError as e:
+        if _missing(e):
+            return False
+        raise
+
+
+def screenings(limit=20):
+    """GET /screenings?limit=: 저장된 최근 심사 (최신순, 고객당 1건). API 가 아직 없으면 [].
+    항목: {screening_id, customer_id, approval_status, risk_grade, credit_score, screened_at(ISO)}"""
+    try:
+        return _get(f"/screenings?limit={limit}")
+    except requests.HTTPError as e:
+        if _missing(e):
+            return []
+        raise

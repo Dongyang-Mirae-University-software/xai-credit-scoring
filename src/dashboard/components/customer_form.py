@@ -3,7 +3,8 @@
 흐름 (디자인 시안의 프로토타입 동작과 같다)
 - 불러오기 · 시연용 샘플 · 정보 수정 · 조건 바꿔 재심사 → 제목 옆에 고객 ID 태그가 붙은 창 (값이 채워져 있다)
 - 신규 고객 심사 → 태그 없이 빈 칸으로 시작하는 창
-- 심사 실행 → POST /predict → 고객 심사의 결과 화면 (이번 세션의 '오늘 심사한 고객'에 남는다. 저장 기능은 없다)
+- 심사 실행 → POST /predict + /explain → 고객 심사의 결과 화면. 결과는 POST /screenings 로 서버 이력에 바로 남는다
+  (따로 누르는 저장 버튼은 없다. 오늘 심사한 고객이 새로고침해도 남게 하려는 것)
 - 취소 · 닫기 → 창만 닫고 지금 화면에 남는다
 
 고객 ID 불러오기와 시연용 샘플은 API 를 부르지 않고 로컬 파일 samples.json(테스트셋 고객 입력값)에서 읽는다.
@@ -78,7 +79,7 @@ def init_state():
     ss = st.session_state
     ss.setdefault("scr_seq", 1)
     ss.setdefault("scr_current", None)   # 지금 보고 있는 심사 결과 {profile, result}. 있으면 고객 심사 = 결과 화면
-    ss.setdefault("scr_history", [])     # 이번 세션에서 심사한 것 [{profile, result, at}] → 오늘 심사한 고객
+    ss.setdefault("scr_history", [])     # 이번 세션에서 심사한 것 [{profile, result, at}]. 서버 이력(GET /screenings)과 합쳐 보인다
     ss.setdefault("customers", {})       # 심사한 고객 {id: {payload, result, profile}} (XAI 분석 고객 목록)
     ss.setdefault("xai_explain", {})     # /explain 응답 캐시
 
@@ -122,6 +123,14 @@ def _payload(profile):
     return {k: v for k, v in profile.items() if k != "gender"}
 
 
+def _save(payload, result):
+    """POST /screenings: 서버 이력에 남긴다. 저장이 실패해도 심사 결과는 보여 준다 (이번 세션 목록에는 남는다)."""
+    try:
+        api_client.save_screening({"input": payload, "result": result})
+    except Exception:
+        pass
+
+
 def run_predict(profile, record=True):
     """심사 실행: POST /predict 와 POST /explain 을 함께 부른다 (승인이든 거절이든).
     결과를 현재 심사·XAI 고객 목록에 넣고, record 면 오늘 심사한 고객에도 쌓는다. /predict 가 실패하면 예외를 올린다.
@@ -138,6 +147,7 @@ def run_predict(profile, record=True):
         ss.xai_explain[customer_id] = e
     ss.scr_current = {"profile": profile, "result": result}
     if record:
+        _save(payload, result)
         history = [h for h in ss.scr_history if h["result"]["customer_id"] != customer_id]
         ss.scr_history = ([{"profile": profile, "result": result, "at": datetime.now()}] + history)[:HISTORY_LIMIT]
     if customer_id == new_id():
