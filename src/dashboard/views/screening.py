@@ -1,13 +1,14 @@
 """고객 심사 페이지 (디자인 01~04)
 
 흐름 (디자인 시안의 프로토타입 동작과 같다)
-- 첫 화면: 불러오기 · 샘플 → '불러왔어요' 입력 창, 신규 고객 직접 입력 → '신규 고객이에요' 입력 창
-- 입력 창(components/customer_form)에서 심사 실행 → 결과 화면
-- 최근 심사 줄 · 헤더 고객 ID 검색 → 그 고객의 결과 화면 바로
-- 결과 화면: 정보 수정 → 입력 창, 새 심사 · 위치 표시 '고객 심사' → 첫 화면
-- 사이드바 '고객 심사' 는 마지막 단계(첫 화면 또는 결과 화면)로 돌아온다 (scr_current 를 유지)
+- 첫 화면: 불러오기 → '불러왔어요' 입력 창, 신규 고객 심사 → 빈 입력 창,
+  시연용 샘플 칩 → 입력 없이 바로 결과 화면
+- 입력 창(components/customer_form)에서 심사 실행 → 결과 화면 (결과는 서버 이력에 바로 남는다)
+- 오늘 심사한 고객 줄 → 그 고객의 결과 화면 바로
+- 결과 화면: 정보 수정 → 입력 창, 새 심사 → 첫 화면
+- 로고 · 사이드바 '고객 심사' → 언제나 첫 화면
 '불러오기'는 GET /customers/{id} 를 먼저 부르고, 없으면 이번 세션에서 심사한 고객과 샘플 고객에서 찾는다.
-최근 심사는 서버에 저장된 이력(GET /screenings)과 이번 세션에서 심사한 것을 합쳐 보여 준다.
+오늘 심사한 고객은 서버에 저장된 이력(GET /screenings)과 이번 세션에서 심사한 것을 합쳐 보여 준다.
 """
 import re
 from datetime import datetime
@@ -25,6 +26,7 @@ from components.api_error import api_error_html
 
 CSS_PATH = Path(__file__).with_suffix(".css")
 HISTORY_LIMIT = 5
+RISK_DOT = {"low": "#0E7C5A", "mid": "#E39A1B", "high": "#C62828"}
 REASON_LIMIT = 3  # 결과 화면의 주요 거절 사유 수 (전체 5개는 XAI 분석)
 
 # 등급 → 위험도 (A·B 저위험 / C 중위험 / D·E 고위험) → 색 (ok / mid / fail)
@@ -60,8 +62,13 @@ def _load_by_id():
 
 
 def _open_sample(customer_id):
-    """샘플 칩: 그 고객 값이 채워진 '불러왔어요' 입력 창을 연다."""
-    CF.open_form(CF.find_customer(customer_id), loaded=True)
+    """시연용 샘플 칩: 입력 창 없이 바로 심사해 결과 화면으로."""
+    try:
+        CF.run_predict(CF.sample_profile(customer_id))
+    except Exception as e:
+        _toast_later(f"샘플 고객을 심사하지 못했어요: {type(e).__name__}", error=True)
+        return
+    _toast_later(f"샘플 고객 {customer_id}의 심사 결과예요")
 
 
 def _open_history(customer_id):
@@ -87,7 +94,7 @@ def _parse_time(text):
 
 
 def _history_entries():
-    """최근 심사 = 서버에 저장된 이력(GET /screenings) + 이번 세션에서 심사한 것. 고객당 최신 1건, 최신순 5건."""
+    """오늘 심사한 고객 = 서버에 저장된 이력(GET /screenings) + 이번 세션에서 심사한 것. 오늘 것만, 고객당 최신 1건, 최신순 5건."""
     rows = [{**h["result"], "at": h["at"]} for h in st.session_state.scr_history]
     try:
         saved = api_client.screenings(HISTORY_LIMIT)
@@ -97,69 +104,79 @@ def _history_entries():
         at = _parse_time(r.get("screened_at"))
         if at and r.get("customer_id"):
             rows.append({**r, "at": at})
+    today = datetime.now().date()
     latest = {}
     for r in sorted(rows, key=lambda r: r["at"], reverse=True):
-        latest.setdefault(r["customer_id"], r)
+        if r["at"].date() == today:
+            latest.setdefault(r["customer_id"], r)
     return list(latest.values())[:HISTORY_LIMIT]
 
 
-def _history_row(r, today):
-    at = r["at"]
+def _customer_type(r):
+    """고객 유형. 서버 이력 목록에 is_thin_filer 가 없으면 이번 세션에서 심사한 결과로 찾고, 그래도 없으면 '—'."""
+    thin = r.get("is_thin_filer")
+    if thin is None:
+        thin = st.session_state.customers.get(r["customer_id"], {}).get("result", {}).get("is_thin_filer")
+    return "—" if thin is None else ("씬파일러" if thin else "일반")
+
+
+def _history_row(r):
     approved = r["approval_status"] == "APPROVED"
-    tone = RISK_TONE[GRADE_RISK.get(r["risk_grade"], "high")] if approved else "fail"
-    tone = "ok" if approved and tone == "fail" else tone
-    when = ("오늘 " if at.date() == today else at.strftime("%m.%d ")) + at.strftime("%H:%M")
+    grade = str(r["risk_grade"])
+    risk = GRADE_RISK.get(grade, "high")
     return (f'<tr><td class="scr-id">{escape(r["customer_id"])}</td>'
-            f'<td>{ui.pill("승인" if approved else "거절", tone)}</td>'
-            f'<td>{escape(str(r["risk_grade"]))}</td><td>{r["credit_score"]}</td>'
-            f'<td class="scr-time">{when}</td></tr>')
+            f'<td class="scr-type">{_customer_type(r)}</td>'
+            f'<td>{ui.pill("승인" if approved else "거절", "ok" if approved else "fail")}</td>'
+            f'<td><span class="scr-risk"><i style="background:{RISK_DOT[risk]}"></i><b>{escape(grade)}</b>'
+            f'<span>{RISK_LABELS[risk]}</span></span></td>'
+            f'<td class="num">{r["credit_score"]}</td>'
+            f'<td class="scr-time">오늘 {r["at"].strftime("%H:%M")}</td>'
+            f'<td class="scr-go">{ui.icon("chevron", "#8A94A6", 16)}</td></tr>')
 
 
 def _history():
-    """최근 심사 표. 줄 전체가 눌리고 (위에 투명 버튼), 누르면 그 고객의 결과 화면이 열린다."""
-    colgroup = ('<colgroup><col style="width:24%"><col style="width:19%"><col style="width:12.5%">'
-                '<col style="width:20%"><col></colgroup>')
-    today = datetime.now().date()
+    """오늘 심사한 고객 표. 줄 전체가 눌리고 (위에 투명 버튼), 누르면 그 고객의 결과 화면이 열린다."""
+    colgroup = "<colgroup>" + "<col>" * 6 + '<col style="width:40px"></colgroup>'
     entries = _history_entries()
     with st.container(key="scr-history"):
-        st.html('<h2 class="scr-history-title">최근 심사</h2>'
-                f'<table class="ui-table scr-history-head">{colgroup}<thead><tr><th>고객 ID</th><th>결과</th>'
-                '<th>등급</th><th>신용 점수</th><th>심사 시각</th></tr></thead></table>')
-        if not entries:
-            st.html('<p class="scr-empty">아직 심사한 고객이 없어요. 심사를 실행하면 여기에 쌓여요.</p>')
-        for i, r in enumerate(entries):
-            customer_id = r["customer_id"]
-            with st.container(key=f"scr-hrow-{i}"):
-                st.html(f'<table class="ui-table">{colgroup}<tbody>{_history_row(r, today)}</tbody></table>')
-                st.button(f"{customer_id} 심사 결과 열기", key=f"scr-hrow-btn-{i}",
-                          on_click=_open_history, args=(customer_id,))
+        st.html('<div class="scr-history-head"><h2>오늘 심사한 고객</h2>'
+                '<span>줄을 누르면 심사 결과를 다시 볼 수 있어요</span></div>')
+        with st.container(key="scr-history-card"):
+            st.html(f'<table class="scr-htable">{colgroup}<thead><tr><th>고객 ID</th><th>고객 유형</th><th>결과</th>'
+                    '<th>리스크 등급</th><th class="num">신용 점수</th><th>심사 시각</th><th></th></tr></thead></table>')
+            if not entries:
+                st.html('<p class="scr-empty">오늘 심사한 고객이 아직 없어요. 심사를 실행하면 여기에 쌓여요.</p>')
+            for i, r in enumerate(entries):
+                customer_id = r["customer_id"]
+                with st.container(key=f"scr-hrow-{i}"):
+                    st.html(f'<table class="scr-htable">{colgroup}<tbody>{_history_row(r)}</tbody></table>')
+                    st.button(f"{customer_id} 심사 결과 열기", key=f"scr-hrow-btn-{i}",
+                              on_click=_open_history, args=(customer_id,))
 
 
 def _start_view():
-    st.html('<div class="ui-page-head"><div><h1>고객 심사</h1>'
-            '<p>고객을 불러오거나 새로 입력해 심사를 시작하세요.</p></div></div>')
+    with st.container(key="scr-start-head", horizontal=True, vertical_alignment="bottom"):
+        st.html('<div class="ui-page-head"><div><h1>고객 심사</h1>'
+                '<p>기존 고객은 ID로 불러오고, 처음 오신 고객은 신규 심사로 시작하세요.</p></div></div>')
+        st.button("신규 고객 심사", key="scr-new", type="primary",
+                  on_click=lambda: CF.open_form(CF.new_profile(), loaded=False))
     if st.session_state.get("scr_load_invalid"):
         st.html("<style>.st-key-scr-load [data-baseweb=\"input\"]{border-color:var(--fail)!important;"
                 "box-shadow:0 0 0 3px rgba(198,40,40,.15)}</style>")
 
-    with st.container(key="scr-start"):
-        st.html(f"""
-        <div class="scr-start-icon">{ui.icon("doc", "#1F4FD8", 30)}</div>
-        <div class="scr-start-text"><h2>진행 중인 심사가 없어요</h2>
-          <p>기존 고객은 ID로 불러오면 정보가 자동으로 채워져요.</p></div>
-        """)
-        with st.form("scr-load-form", border=False, enter_to_submit=True):
-            with st.container(key="scr-load", horizontal=True, gap="small"):
-                st.text_input("고객 ID", key="scr_load_id", label_visibility="collapsed",
-                              placeholder=f"고객 ID 입력 (예: {next(iter(CF.SAMPLE_CUSTOMERS))})")
-                st.form_submit_button("불러오기", type="primary", on_click=_load_by_id)
-        st.html('<div class="scr-or"><i></i>또는<i></i></div>')
-        st.button("신규 고객 직접 입력", key="scr-new", on_click=lambda: CF.open_form(CF.new_profile(), loaded=False))
-        with st.container(key="scr-samples", horizontal=True, horizontal_alignment="center",
-                          vertical_alignment="center", gap="small"):
-            st.html('<span class="scr-samples-label">샘플로 바로 심사</span>')
-            for customer_id, (label, _, _) in CF.SAMPLE_CUSTOMERS.items():
-                st.button(label, key=f"scr-sample-{customer_id}", on_click=_open_sample, args=(customer_id,))
+    with st.container(key="scr-load-card", horizontal=True, vertical_alignment="bottom"):
+        with st.container(key="scr-load-box"):
+            st.html('<span class="scr-load-label">고객 ID로 불러오기</span>')
+            with st.form("scr-load-form", border=False, enter_to_submit=True):
+                with st.container(key="scr-load", horizontal=True, gap="small"):
+                    st.text_input("고객 ID", key="scr_load_id", label_visibility="collapsed",
+                                  placeholder=f"고객 ID 입력 (예: {next(iter(CF.SAMPLE_CUSTOMERS))})")
+                    st.form_submit_button("불러오기", on_click=_load_by_id)
+        with st.container(key="scr-samples"):
+            st.html('<span class="scr-samples-label">시연용 샘플 (입력 없이 결과 보기)</span>')
+            with st.container(key="scr-sample-chips", horizontal=True, gap="small"):
+                for customer_id, (label, _, _) in CF.SAMPLE_CUSTOMERS.items():
+                    st.button(label, key=f"scr-sample-{customer_id}", on_click=_open_sample, args=(customer_id,))
 
     _history()
 
@@ -293,31 +310,14 @@ def _action_card(key, title, caption):
         return st.button(title, key=f"scr-act-btn-{key}")
 
 
-def _save(profile, result):
-    """POST /screenings 로 저장. 서버가 예전 버전이라 API 가 없으면 이번 세션 이력에만 남았다고 알린다."""
-    customer_id = result["customer_id"]
-    try:
-        saved = api_client.save_screening({"input": profile, "result": result})
-    except Exception as e:
-        st.toast(f"저장하지 못했어요: {type(e).__name__}")
-        return
-    st.session_state.scr_saved.add(customer_id)
-    st.toast("심사 이력에 저장했어요" if saved else "저장 API(POST /screenings)가 아직 없어 이번 세션 이력에만 남았어요")
-
-
 def _result_view():
     current = st.session_state.scr_current
     profile, result = current["profile"], current["result"]
     approved = result["approval_status"] == "APPROVED"
 
     with st.container(key="scr-result-head", horizontal=True, vertical_alignment="bottom"):
-        with st.container(key="scr-result-title"):
-            with st.container(key="scr-crumb", horizontal=True, vertical_alignment="center", gap=None):
-                st.button("고객 심사", key="scr-crumb-start", type="tertiary", on_click=_new_screening)
-                st.html(f'<span class="scr-crumb-rest" aria-label="현재 위치">{ui.icon("chevron", "#8A94A6", 12)}'
-                        '<b>심사 결과</b></span>')
-            st.html(f'<div class="ui-page-head"><div><h1>심사 결과</h1>'
-                    f'<p>{_completed_at(result)} 심사 완료</p></div></div>')
+        st.html(f'<div class="ui-page-head"><div><h1>심사 결과</h1>'
+                f'<p>{_completed_at(result)} 심사 완료</p></div></div>')
         st.button("새 심사", key="scr-new-screening", type="primary", on_click=_new_screening)
 
     with st.container(key="scr-summary-card", horizontal=True, vertical_alignment="center"):
@@ -329,23 +329,11 @@ def _result_view():
     if not approved:
         _reasons_section(result)
 
-    left, right = st.columns(2, gap="small")
-    with left:
-        title, caption = (("판단 근거 보기", "어떤 정보가 점수에 영향을 줬는지 XAI 분석에서 확인") if approved
-                          else ("사유 5개 전체와 근거 보기", "XAI 분석에서 SHAP 기여도와 원본 플롯 확인"))
-        if _action_card("xai", title, caption):
-            st.session_state.xai_customer = result["customer_id"]
-            st.switch_page("views/xai.py")
-    with right:
-        saved = result["customer_id"] in st.session_state.scr_saved
-        # 시안: 저장하면 카드가 '저장 완료'(초록)로 바뀌고, 다시 누르면 '이미 저장된 심사예요'
-        clicked = (_action_card("saved", "저장 완료", "방금 심사 이력에 기록됐어요") if saved
-                   else _action_card("save", "심사 결과 저장", "입력값과 결과를 심사 이력에 기록"))
-        if clicked and saved:
-            st.toast("이미 저장된 심사예요")
-        elif clicked:
-            _save(profile, result)
-            st.rerun()
+    title, caption = (("판단 근거 보기", "어떤 정보가 점수에 영향을 줬는지 XAI 분석에서 확인") if approved
+                      else ("사유 5개 전체와 근거 보기", "XAI 분석에서 SHAP 기여도와 원본 플롯 확인"))
+    if _action_card("xai", title, caption):
+        st.session_state.xai_customer = result["customer_id"]
+        st.switch_page("views/xai.py")
 
 
 # ---------------------------------------------------------------------------

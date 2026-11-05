@@ -32,15 +32,6 @@ div[role="dialog"] [data-testid="stNumberInputContainer"] > [data-baseweb="input
 .st-key-dlg-loaded .stButton { margin-left: auto; }
 .st-key-dlg-loaded button { height: 32px; min-height: 32px; padding: 0 10px; }
 .st-key-dlg-loaded button p { font-size: 13px; font-weight: 700; color: var(--ok-text); }
-/* 신규 고객 안내 (회색, 버튼은 파란 글씨) */
-.st-key-dlg-new {
-  padding: 12px 16px; border-radius: 10px; background: var(--page); gap: 12px; flex-wrap: nowrap;
-}
-.dlg-new-text { font-size: 14px; color: var(--ink-2); white-space: nowrap; }
-.st-key-dlg-new .stButton { margin-left: auto; }
-.st-key-dlg-new button { height: 32px; min-height: 32px; padding: 0 10px; }
-.st-key-dlg-new button p { font-size: 13px; font-weight: 700; color: var(--accent); }
-
 /* 묶음 머리 (기본 정보 / 금융 이력 / 추가 정보 / 대안 데이터) */
 .st-key-dlg-basic, .st-key-dlg-finance, .st-key-dlg-extra, .st-key-dlg-alt { gap: 12px !important; }
 .dlg-group-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
@@ -53,6 +44,8 @@ div[role="dialog"] [data-testid="stNumberInputContainer"] > [data-baseweb="input
   font-style: normal; padding: 2px 8px; border-radius: 999px;
   background: var(--ok-bg); color: var(--ok-text); font-size: 12px; font-weight: 700;
 }
+.dlg-tag.mid { background: var(--mid-bg); color: var(--mid-text); }
+.dlg-tag.info { background: var(--accent-bg); color: var(--accent); }
 .dlg-label { font-size: 13px; color: var(--ink-2); }
 .dlg-hint { display: block; font-size: 12px; color: var(--ink-3); }
 .dlg-hint b { color: var(--ink); font-weight: 700; }
@@ -131,6 +124,8 @@ div[role="dialog"] [data-testid="InputInstructions"] { display: none; }
 .dlg-alt-list > div:nth-last-child(1) { border-bottom: 0; }
 .dlg-alt-list span { color: var(--ink-2); }
 .dlg-alt-list b { font-weight: 700; color: var(--ink); }
+.dlg-alt-list b.dlg-alt-empty { color: var(--ink-3); }
+.dlg-missing { margin: 0; padding: 10px 14px; border-radius: 8px; background: var(--fail-bg); color: var(--fail-text); font-size: 13px; }
 
 /* 창 아래 버튼 줄 (창 바닥에 붙는다) */
 div[role="dialog"] [data-testid="stLayoutWrapper"]:has(> .st-key-dlg-foot) {

@@ -3,80 +3,78 @@
 /* =========================================================================
    01 첫 화면
    ========================================================================= */
-.st-key-scr-start {
-  background: var(--card); border: 1px solid var(--border); border-radius: 16px;
-  padding: 48px 32px; gap: 20px; align-items: center; text-align: center;
+.st-key-scr-start-head { justify-content: space-between; flex-wrap: nowrap; }
+.st-key-scr-new button, .st-key-scr-new-screening button {
+  display: inline-flex; align-items: center; gap: 8px;
+  height: 44px; min-height: 44px; padding: 0 18px; border-radius: 10px; border: 0; background: var(--accent);
+  color: #FFF;
 }
-.st-key-scr-start [data-testid="stForm"], .scr-or { margin: 0 auto; }
-.st-key-scr-start .stElementContainer:has(.stButton) { width: auto !important; align-self: center; }
-.st-key-scr-samples > div { width: auto !important; flex: 0 0 auto !important; }
-.scr-start-icon {
-  width: 64px; height: 64px; border-radius: 50%; background: var(--accent-bg);
-  display: flex; align-items: center; justify-content: center; margin: 0 auto;
-}
-.scr-start-icon img { display: block; }
-.scr-start-text { display: flex; flex-direction: column; gap: 6px; margin-top: 20px; }
-.scr-start-text h2 { margin: 0; padding: 0; font-size: 20px; font-weight: 700; line-height: 1.45; color: var(--ink); }
-.scr-start-text p { margin: 0; font-size: 14px; color: var(--ink-3); line-height: 1.5; }
+.st-key-scr-new button p, .st-key-scr-new-screening button p { font-size: 15px; font-weight: 700; color: #FFF; }
 
-/* ID 입력 + 불러오기 (최대 460px) */
-.st-key-scr-start [data-testid="stForm"] { width: 100%; max-width: 460px; padding: 0; border: 0; }
+/* 고객 불러오기 카드: 왼쪽 ID 입력, 오른쪽 시연용 샘플 */
+.st-key-scr-load-card {
+  background: var(--card); border: 1px solid var(--border); border-radius: 14px;
+  padding: 24px 28px; gap: 32px; flex-wrap: nowrap;
+}
+[data-testid="stLayoutWrapper"]:has(> .st-key-scr-load-box) { flex: 1 1 auto; min-width: 0; }
+.st-key-scr-load-box { gap: 8px; }
+.scr-load-label { font-size: 14px; font-weight: 700; color: var(--ink); line-height: 1.5; }
+.st-key-scr-load-box [data-testid="stForm"] { padding: 0; border: 0; }
 .st-key-scr-load { gap: 8px; flex-wrap: nowrap; }
 .st-key-scr-load .stTextInput { flex: 1 1 0; min-width: 0; }
 .st-key-scr-load [data-baseweb="input"] {
-  height: 48px; border: 1px solid var(--input) !important; border-radius: 10px; background: #FFF;
+  height: 52px; border: 1px solid var(--input) !important; border-radius: 10px; background: #FFF;
 }
 .st-key-scr-load [data-baseweb="base-input"] { background: #FFF; }
-.st-key-scr-load input { height: 46px; padding: 0 14px; font-size: 15px; color: var(--ink); }
+.st-key-scr-load input { height: 50px; padding: 0 16px; font-size: 16px; color: var(--ink); }
 .st-key-scr-load input::placeholder { color: #8A94A6; opacity: 1; }
 .st-key-scr-load [data-testid="InputInstructions"] { display: none; }
 .st-key-scr-load [data-testid="stFormSubmitButton"] button {
-  height: 48px; min-height: 48px; padding: 0 18px; border-radius: 10px; border: 0;
-  background: var(--accent); color: #FFF; font-size: 15px; font-weight: 700; white-space: nowrap;
+  height: 52px; min-height: 52px; padding: 0 24px; border-radius: 10px; border: 0;
+  background: var(--ink); color: #FFF; white-space: nowrap;
 }
 .st-key-scr-load [data-testid="stFormSubmitButton"] button p { font-size: 15px; font-weight: 700; color: #FFF; }
-.scr-load-msg { margin: -8px 0 0; font-size: 13px; color: var(--fail-text); }
 
-.scr-or {
-  display: flex; align-items: center; gap: 12px; width: 460px; max-width: 100%;
-  font-size: 13px; color: var(--ink-3);
-}
-.scr-or i { flex: 1 1 0; height: 1px; background: var(--border); }
-
-/* 신규 고객 직접 입력 */
-.st-key-scr-new button {
-  display: inline-flex; align-items: center; gap: 8px;
-  height: 44px; min-height: 44px; padding: 0 18px;
-  border: 1px solid var(--input); border-radius: 10px; background: #FFF; color: var(--ink-2);
-}
-.st-key-scr-new button p { font-size: 15px; font-weight: 700; color: var(--ink-2); }
-.st-key-scr-new button:hover { border-color: var(--accent); color: var(--accent); }
-
-/* 샘플로 바로 심사 */
-.st-key-scr-samples { gap: 8px; }
-.scr-samples-label { font-size: 13px; color: var(--ink-3); white-space: nowrap; }
-.st-key-scr-samples button {
-  height: 32px; min-height: 32px; padding: 0 12px;
+[data-testid="stLayoutWrapper"]:has(> .st-key-scr-samples) { flex: 0 0 auto; width: auto !important; }
+.st-key-scr-samples { gap: 8px; padding-left: 32px; border-left: 1px solid var(--divider); }
+.scr-samples-label { font-size: 13px; color: var(--ink-3); white-space: nowrap; line-height: 1.5; }
+.st-key-scr-sample-chips { gap: 8px; flex-wrap: nowrap; }
+.st-key-scr-sample-chips button {
+  height: 36px; min-height: 36px; padding: 0 14px;
   border: 1px solid var(--input); border-radius: 999px; background: #FFF;
 }
-.st-key-scr-samples button p { font-size: 13px; color: var(--ink-2); }
-.st-key-scr-samples button:hover { border-color: var(--accent); }
+.st-key-scr-sample-chips button p { font-size: 14px; color: var(--ink-2); white-space: nowrap; }
+.st-key-scr-sample-chips button:hover { border-color: var(--accent); }
 
-/* 최근 심사 */
-.st-key-scr-history {
-  background: var(--card); border: 1px solid var(--border); border-radius: 12px;
-  padding: 20px 22px; gap: 0;
+/* 오늘 심사한 고객 */
+.st-key-scr-history { gap: 12px; }
+.scr-history-head { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; }
+.scr-history-head h2 { margin: 0; padding: 0; font-size: 18px; font-weight: 700; line-height: 1.4; color: var(--ink); }
+.scr-history-head span { font-size: 13px; color: var(--ink-3); }
+.st-key-scr-history-card {
+  background: var(--card); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; gap: 0;
 }
-.scr-history-title { margin: 0 0 12px; padding: 0; font-size: 15px; font-weight: 700; line-height: 1.5; color: var(--ink); }
-.st-key-scr-history .ui-table { margin: 0; }
-.st-key-scr-history .scr-id { font-weight: 700; color: var(--accent); }
-.st-key-scr-history .scr-time { color: var(--ink-3); }
-.st-key-scr-history .scr-empty { margin: 0; color: var(--ink-3); text-align: center; padding: 20px 10px; font-size: 14px; }
+.scr-htable { width: 100%; border-collapse: collapse; table-layout: fixed; font-size: 14px; margin: 0; }
+.scr-htable th {
+  padding: 12px 16px; font-size: 12px; font-weight: 500; color: var(--ink-3); text-align: left; background: #F8FAFC;
+}
+.scr-htable td { padding: 14px 16px; border-top: 1px solid var(--divider); color: var(--ink); vertical-align: middle; }
+.scr-htable .num { text-align: right; }
+.scr-htable .scr-id { font-weight: 700; }
+.scr-htable .scr-type { color: var(--ink-2); }
+.scr-htable .scr-time { color: var(--ink-3); }
+.scr-htable .scr-go { text-align: right; }
+.scr-htable .scr-go img { display: inline-block; vertical-align: middle; }
+.scr-risk { display: inline-flex; align-items: center; gap: 8px; }
+.scr-risk i { width: 8px; height: 8px; border-radius: 50%; }
+.scr-risk b { font-weight: 700; }
+.scr-risk span { color: var(--ink-3); }
+.st-key-scr-history .scr-empty {
+  margin: 0; padding: 24px 16px; border-top: 1px solid var(--divider);
+  color: var(--ink-3); text-align: center; font-size: 14px;
+}
 /* 줄 전체가 버튼: 보이는 줄(HTML) 위에 투명 버튼을 덮는다 */
 .st-key-scr-history [class*="st-key-scr-hrow-"]:not([class*="btn"]) { position: relative; gap: 0; cursor: pointer; }
-.st-key-scr-history [class*="st-key-scr-hrow-"] td { border-bottom: 0; }
-.st-key-scr-history [class*="st-key-scr-hrow-"]:not(.st-key-scr-hrow-0):not([class*="btn"]) td { border-top: 1px solid var(--divider); }
-.scr-history-head th { border-bottom: 1px solid var(--border); }
 .st-key-scr-history [class*="st-key-scr-hrow-"]:not([class*="btn"]):hover td { background: var(--page); }
 .st-key-scr-history [class*="st-key-scr-hrow-btn-"] { position: absolute; inset: 0; width: 100% !important; height: 100%; margin: 0; z-index: 1; }
 .st-key-scr-history [class*="st-key-scr-hrow-btn-"] button {
@@ -87,12 +85,6 @@
    03 / 04 결과
    ========================================================================= */
 .st-key-scr-result-head { justify-content: space-between; flex-wrap: nowrap; }
-.st-key-scr-new-screening button {
-  display: inline-flex; align-items: center; gap: 8px;
-  height: 44px; min-height: 44px; padding: 0 18px; border-radius: 10px; border: 0; background: var(--accent);
-  color: #FFF;
-}
-.st-key-scr-new-screening button p { font-size: 15px; font-weight: 700; color: #FFF; }
 
 /* 입력 요약 줄 */
 .st-key-scr-summary-card {
@@ -192,7 +184,7 @@
 .scr-rr-ref { font-size: 15px; color: var(--ink-3); }
 .scr-rr-empty { padding: 20px 24px; color: var(--ink-3); font-size: 14px; }
 
-/* 아래 이동 카드 2개 (카드 전체가 버튼) */
+/* 아래 이동 카드 (카드 전체가 버튼) */
 [class*="st-key-scr-act-"]:not([class*="st-key-scr-act-btn"]) { position: relative; gap: 0; }
 .scr-act {
   display: flex; align-items: center; justify-content: space-between; gap: 16px;
@@ -202,19 +194,8 @@
 .scr-act b { font-size: 15px; font-weight: 700; color: var(--ink); }
 .scr-act span { font-size: 13px; color: var(--ink-3); }
 [class*="st-key-scr-act-"]:hover .scr-act { border-color: var(--accent); }
-.st-key-scr-act-saved .scr-act { border-color: #A8D9C3; background: #F3FAF6; }
 /* 버튼 칸은 Streamlit 이 내용 폭(fit-content)으로 잡으므로 카드 전체 폭으로 늘린다 */
 [class*="st-key-scr-act-btn"] { position: absolute; inset: 0; width: 100% !important; height: 100%; margin: 0 !important; z-index: 1; }
 [class*="st-key-scr-act-btn"] .stButton, [class*="st-key-scr-act-btn"] button {
   width: 100%; height: 100%; opacity: 0; cursor: pointer;
 }
-[data-testid="stMain"] [data-testid="stHorizontalBlock"]:has([class*="st-key-scr-act-"]) { gap: 16px; }
-
-/* 위치 표시: 고객 심사 › 심사 결과 */
-.st-key-scr-result-title { gap: 4px; }
-.st-key-scr-crumb { gap: 8px !important; }
-.st-key-scr-crumb-start button { height: auto; min-height: 0; padding: 0; }
-.st-key-scr-crumb-start button p { font-size: 13px; color: var(--ink-3); }
-.st-key-scr-crumb-start button:hover p { color: var(--accent); }
-.scr-crumb-rest { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; color: var(--ink); }
-.scr-crumb-rest b { font-weight: 400; }
