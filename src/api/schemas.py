@@ -146,6 +146,7 @@ class ShapSummaryFeature(BaseModel):
     feature: str
     mean_abs_shap: float
     group: str = Field(description='financial | alternative')
+    higher_is_riskier: Optional[bool] = Field(None, description='값이 클수록 부도 위험이 올라가는지')
 
 
 class ShapSummaryResponse(BaseModel):
@@ -155,6 +156,8 @@ class ShapSummaryResponse(BaseModel):
     n_samples: int
     shap_space: str = 'log-odds'
     features: list[ShapSummaryFeature] = Field(description='mean |SHAP| 내림차순')
+    beeswarm: Optional[dict[str, dict[str, list[float]]]] = Field(
+        None, description='변수별 {shap, value}: 표본 최대 60개의 SHAP 값과 0~1 로 맞춘 변수 값')
 
 
 # ---------- 03 공정성 ----------

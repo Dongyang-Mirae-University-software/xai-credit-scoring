@@ -176,6 +176,7 @@ def anova_report(records, test2_data_type='integrated', metric='roc_auc'):
             'metric': f'fold_k_{metric}',
             'runs_used': len(latest_per_combo(records)),
             'test_2_data_type': test2_data_type,
+            'cv': {'n_splits': 5, 'n_repeats': 1},   # src/models/train.py StratifiedKFold(n_splits=5)
         },
         'disclaimer': DISCLAIMER,
     }

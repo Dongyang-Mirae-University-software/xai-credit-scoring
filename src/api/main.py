@@ -9,7 +9,7 @@ FastAPI 신용평가 API.
 """
 from fastapi import FastAPI
 
-from src.api.routers import anova, explain, fairness, health, metrics, predict
+from src.api.routers import anova, customers, explain, fairness, health, metrics, predict, screenings
 
 DESCRIPTION = """
 XAI 기반 대안신용평가 시스템 API. 대시보드는 모델 파일을 직접 열지 않고 이 API 로만 통신한다.
@@ -17,7 +17,7 @@ XAI 기반 대안신용평가 시스템 API. 대시보드는 모델 파일을 �
 | 화면 | 엔드포인트 | 데이터 출처 |
 |---|---|---|
 | 사이드바 | `GET /health` | 모델 파일 존재 여부, 리포트 출처 |
-| 01 고객 심사 | `POST /predict` | 최종 모델 즉시 계산 |
+| 01 고객 심사 | `POST /predict`, `POST·GET /screenings`, `GET /customers/{id}` | 최종 모델 즉시 계산 / 심사 이력 SQLite / `data/customers.json` |
 | 02 XAI 분석 | `POST /explain`, `GET /explain/summary` | SHAP 즉시 계산 / `outputs/evaluation/shap_summary.json` |
 | 03 공정성 | `GET /fairness`, `GET /fairness/mitigation` | `outputs/fairness/*.json` |
 | 04 모델 성능 | `GET /metrics`, `GET /metrics/comparison` | `outputs/evaluation/metrics_*.json`, `models/model_metadata.json` |
@@ -36,7 +36,7 @@ TAGS = [
 ]
 
 app = FastAPI(title='XAI 기반 대안신용평가 API', version='1.0.0', description=DESCRIPTION, openapi_tags=TAGS)
-for module in (health, predict, explain, fairness, metrics, anova):
+for module in (health, predict, screenings, customers, explain, fairness, metrics, anova):
     app.include_router(module.router)
 
 
