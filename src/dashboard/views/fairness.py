@@ -95,7 +95,7 @@ def _summary(now, before, mitigated):
                if failed_before else "보정 전후 모두 기준을 충족했어요.")
     else:
         failed = [m[1] for m in now if m[5] is False]
-        title = f"공정성 점검 {len(now)}개 중 {len(failed)}개 항목이 기준에 못 미쳐요"
+        title = f"공정성 점검 {len(now)}개 중 {len(failed)}개 항목이 미달이에요"
         sub = f"{_josa_list(failed)} 기준을 벗어났어요." + ("" if mitigated else " 보정 결과가 아직 없어요.")
     cells = "".join(
         f'<div class="fa-metric"><span>{name}</span>'
