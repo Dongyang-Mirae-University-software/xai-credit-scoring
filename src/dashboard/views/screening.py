@@ -1,13 +1,12 @@
 """고객 심사 페이지 (디자인 01~04)
 
 흐름 (디자인 시안의 프로토타입 동작과 같다)
-- 첫 화면: 불러오기 → '불러왔어요' 입력 창, 신규 고객 심사 → 빈 입력 창,
-  시연용 샘플 칩 → 입력 없이 바로 결과 화면
+- 첫 화면: 불러오기 · 시연용 샘플 칩 → 값이 채워진 입력 창 (제목 옆 고객 ID), 신규 고객 심사 → 빈 입력 창
 - 입력 창(components/customer_form)에서 심사 실행 → 결과 화면 (결과는 서버 이력에 바로 남는다)
 - 오늘 심사한 고객 줄 → 그 고객의 결과 화면 바로
 - 결과 화면: 정보 수정 → 입력 창, 새 심사 → 첫 화면
 - 로고 · 사이드바 '고객 심사' → 언제나 첫 화면
-'불러오기'는 GET /customers/{id} 를 먼저 부르고, 없으면 이번 세션에서 심사한 고객과 샘플 고객에서 찾는다.
+'불러오기'·샘플은 API 를 부르지 않고 로컬 고객 파일(samples.json)과 이번 세션에서 심사한 고객에서 찾는다.
 오늘 심사한 고객은 서버에 저장된 이력(GET /screenings)과 이번 세션에서 심사한 것을 합쳐 보여 준다.
 """
 import re
@@ -51,7 +50,7 @@ def _load_by_id():
     customer_id = (ss.scr_load_id or "").strip().upper()
     ss.scr_load_invalid = True
     if not customer_id:
-        _toast_later(f"고객 ID를 입력해 주세요. 예: {next(iter(CF.SAMPLE_CUSTOMERS))}", error=True)
+        _toast_later(f"고객 ID를 입력해 주세요. 예: {CF.SAMPLE_CHIPS[0][0]}", error=True)
         return
     profile = CF.find_customer(customer_id)
     if not profile:
@@ -62,13 +61,8 @@ def _load_by_id():
 
 
 def _open_sample(customer_id):
-    """시연용 샘플 칩: 입력 창 없이 바로 심사해 결과 화면으로."""
-    try:
-        CF.run_predict(CF.sample_profile(customer_id))
-    except Exception as e:
-        _toast_later(f"샘플 고객을 심사하지 못했어요: {type(e).__name__}", error=True)
-        return
-    _toast_later(f"샘플 고객 {customer_id}의 심사 결과예요")
+    """시연용 샘플 칩: 그 고객 값이 채워진 입력 창을 연다 (고객 파일에서 읽는다)."""
+    CF.open_form(CF.find_customer(customer_id), loaded=True)
 
 
 def _open_history(customer_id):
@@ -170,12 +164,12 @@ def _start_view():
             with st.form("scr-load-form", border=False, enter_to_submit=True):
                 with st.container(key="scr-load", horizontal=True, gap="small"):
                     st.text_input("고객 ID", key="scr_load_id", label_visibility="collapsed",
-                                  placeholder=f"고객 ID 입력 (예: {next(iter(CF.SAMPLE_CUSTOMERS))})")
+                                  placeholder=f"고객 ID 입력 (예: {CF.SAMPLE_CHIPS[0][0]})")
                     st.form_submit_button("불러오기", on_click=_load_by_id)
         with st.container(key="scr-samples"):
-            st.html('<span class="scr-samples-label">시연용 샘플 (입력 없이 결과 보기)</span>')
+            st.html('<span class="scr-samples-label">시연용 샘플 불러오기</span>')
             with st.container(key="scr-sample-chips", horizontal=True, gap="small"):
-                for customer_id, (label, _, _) in CF.SAMPLE_CUSTOMERS.items():
+                for customer_id, label in CF.SAMPLE_CHIPS:
                     st.button(label, key=f"scr-sample-{customer_id}", on_click=_open_sample, args=(customer_id,))
 
     _history()

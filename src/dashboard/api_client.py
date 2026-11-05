@@ -95,16 +95,6 @@ def _missing(exc):
     return isinstance(exc, requests.HTTPError) and exc.response is not None and exc.response.status_code in (404, 405)
 
 
-def customer(customer_id):
-    """GET /customers/{id}: 고객 입력값 15개 + gender. 없는 고객이거나 API 가 아직 없으면 None."""
-    try:
-        return _get(f"/customers/{customer_id}")
-    except requests.HTTPError as e:
-        if _missing(e):
-            return None
-        raise
-
-
 def save_screening(record):
     """POST /screenings: 심사 결과 저장. API 가 아직 없으면 False."""
     try:

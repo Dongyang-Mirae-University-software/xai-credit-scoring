@@ -23,15 +23,12 @@ div[role="dialog"]:has(.dlg-sub) [data-testid="stWidgetLabel"] p { font-size: 13
 div[role="dialog"] [data-testid="stNumberInputContainer"] { border: 0; height: 44px; background: none; }
 div[role="dialog"] [data-testid="stNumberInputContainer"] > [data-baseweb="input"] { flex: 1 1 auto; }
 
-/* 불러옴 안내 */
-.st-key-dlg-loaded {
-  padding: 12px 16px; border-radius: 10px; background: var(--ok-bg); gap: 12px; flex-wrap: nowrap;
+/* 제목 옆 고객 ID 태그 (글자는 창에서 content 로 넣는다) */
+div[role="dialog"]:has(.dlg-sub) > div:first-child p::after {
+  display: inline-block; margin-left: 10px; padding: 3px 10px; border-radius: 6px; vertical-align: 2px;
+  background: var(--divider); color: var(--ink-2); font-size: 13px; font-weight: 700; line-height: 1.5;
 }
-.dlg-loaded-text { display: inline-flex; align-items: center; gap: 8px; font-size: 14px; color: var(--ok-text); white-space: nowrap; }
-.dlg-loaded-text b { font-weight: 700; }
-.st-key-dlg-loaded .stButton { margin-left: auto; }
-.st-key-dlg-loaded button { height: 32px; min-height: 32px; padding: 0 10px; }
-.st-key-dlg-loaded button p { font-size: 13px; font-weight: 700; color: var(--ok-text); }
+
 /* 묶음 머리 (기본 정보 / 금융 이력 / 추가 정보 / 대안 데이터) */
 .st-key-dlg-basic, .st-key-dlg-finance, .st-key-dlg-extra, .st-key-dlg-alt { gap: 12px !important; }
 .dlg-group-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }

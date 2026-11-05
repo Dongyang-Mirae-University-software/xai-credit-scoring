@@ -1,12 +1,15 @@
 """고객 정보 입력 창 (디자인 02, st.dialog) 과 심사 실행. 고객 심사·XAI 분석 두 화면에서 쓴다.
 
 흐름 (디자인 시안의 프로토타입 동작과 같다)
-- 불러오기 · 정보 수정 · 조건 바꿔 재심사 → '불러왔어요' 안내가 있는 창
-- 신규 고객 심사 → 안내 없이 빈 칸으로 채운 창
+- 불러오기 · 시연용 샘플 · 정보 수정 · 조건 바꿔 재심사 → 제목 옆에 고객 ID 태그가 붙은 창 (값이 채워져 있다)
+- 신규 고객 심사 → 태그 없이 빈 칸으로 시작하는 창
 - 심사 실행 → POST /predict → 고객 심사의 결과 화면. 결과는 POST /screenings 로 바로 이력에 남긴다
 - 취소 · 닫기 → 창만 닫고 지금 화면에 남는다
-- 다른 고객 불러오기 → 창을 닫고 고객 심사 첫 화면
+
+고객 ID 불러오기와 시연용 샘플은 API 를 부르지 않고 로컬 파일 samples.json(테스트셋 고객 입력값)에서 읽는다.
+모델이 아니라 입력값이라 '대시보드는 모델을 직접 읽지 않는다' 규칙에 맞다. API 를 부르는 것은 심사 실행뿐이다.
 """
+import json
 from datetime import datetime
 from html import escape
 from pathlib import Path
@@ -14,7 +17,6 @@ from pathlib import Path
 import streamlit as st
 
 import api_client
-from components import ui
 from components.api_error import api_error_html
 
 CSS = Path(__file__).with_suffix(".css").read_text(encoding="utf-8")
@@ -32,20 +34,10 @@ DEFAULT_CUSTOMER = {
     "regular_payment_count": 5, "app_login_frequency": 22,
 }
 
-# 시연용 샘플 고객 (첫 화면 칩 → 입력 없이 바로 심사). ID 는 고객 DB(GET /customers)에 없는 번호를 쓴다.
-SAMPLE_CUSTOMERS = {
-    "C001234": ("일반 고객", "여성", {
-        **DEFAULT_CUSTOMER, "age": 42, "MonthlyIncome": 5_200_000, "DebtRatio": 25.0,
-        "RevolvingUtilizationOfUnsecuredLines": 0.15, "NumberOfTime30-59DaysPastDueNotWorse": 0,
-        "NumberOfOpenCreditLinesAndLoans": 8, "telecom_payment_rate": 99.0, "utility_payment_rate": 99.0,
-        "spending_consistency": 88.0, "regular_payment_count": 9, "app_login_frequency": 25}),
-    "C005678": ("씬파일러", "남성", {
-        **DEFAULT_CUSTOMER, "age": 27, "MonthlyIncome": 2_100_000, "DebtRatio": 58.0,
-        "RevolvingUtilizationOfUnsecuredLines": 0.89, "NumberOfDependents": 0,
-        "NumberOfTime30-59DaysPastDueNotWorse": 0, "NumberOfOpenCreditLinesAndLoans": 1,
-        "NumberRealEstateLoansOrLines": 0, "telecom_payment_rate": 78.0, "utility_payment_rate": 70.0,
-        "spending_consistency": 45.0, "regular_payment_count": 2, "app_login_frequency": 8}),
-}
+# 고객 파일: [{customer_id, gender, sample_label?, + POST /predict 입력 15개}]. sample_label 이 있으면 첫 화면 샘플 칩
+SAMPLES_PATH = Path(__file__).resolve().parent.parent / "samples.json"
+CUSTOMERS = {c["customer_id"]: c for c in json.loads(SAMPLES_PATH.read_text(encoding="utf-8"))}
+SAMPLE_CHIPS = [(cid, c["sample_label"]) for cid, c in CUSTOMERS.items() if c.get("sample_label")]
 
 # 입력 창 칸: (요청 키, 라벨)
 DELINQUENCY_FIELDS = [
@@ -98,25 +90,14 @@ def new_profile():
     return profile
 
 
-def sample_profile(customer_id):
-    _, gender, values = SAMPLE_CUSTOMERS[customer_id]
-    return {"customer_id": customer_id, "gender": gender, **values}
-
-
 def find_customer(customer_id):
-    """고객 DB(GET /customers/{id}) → 이번 세션에서 심사한 고객 → 샘플 고객 순서로 찾는다. 없으면 None."""
-    try:
-        found = api_client.customer(customer_id)
-    except Exception:
-        found = None
+    """고객 파일(samples.json) → 이번 세션에서 새로 심사한 고객 순서로 찾는다. 없으면 None. API 는 부르지 않는다."""
+    found = CUSTOMERS.get(customer_id)
     if found:
-        return {"customer_id": customer_id, "gender": found.get("gender"),
-                **{k: found[k] for k in DEFAULT_CUSTOMER if k in found}}
+        return {"customer_id": customer_id, "gender": found.get("gender"), **{k: found[k] for k in DEFAULT_CUSTOMER}}
     entry = st.session_state.customers.get(customer_id)
     if entry and "profile" in entry:
         return entry["profile"]
-    if customer_id in SAMPLE_CUSTOMERS:
-        return sample_profile(customer_id)
     return None
 
 
@@ -287,30 +268,21 @@ def _group_head(title, right=""):
     st.html(f'<div class="dlg-group-head"><span>{title}</span>{right}</div>')
 
 
-def _go_start(on_screening):
-    """창을 닫고 고객 심사 첫 화면 (ID 입력)으로."""
-    st.session_state.scr_current = None
-    if on_screening:
-        st.rerun()
-    st.switch_page(SCREENING_PAGE)
-
-
 @st.dialog("고객 정보 입력", width="medium")
 def _dialog(on_screening):
     ss = st.session_state
     customer_id = ss.dlg_profile["customer_id"]
-    st.html('<p class="dlg-sub">불러온 값은 그대로 두고 바뀐 항목만 수정하세요.</p>')
+    if ss.dlg_loaded:
+        # 제목 옆 고객 ID 태그 (창 제목은 Streamlit 이 그리므로 제목 글 뒤에 CSS 로 붙인다)
+        tag = "".join(ch for ch in customer_id if ch.isalnum())
+        st.html(f'<style>div[role="dialog"]:has(.dlg-sub) > div:first-child p::after{{content:"{tag}"}}</style>'
+                '<p class="dlg-sub">불러온 값은 그대로 두고 바뀐 항목만 수정하세요.</p>')
+    else:
+        st.html('<p class="dlg-sub">고객 정보를 입력한 뒤 심사를 실행하세요.</p>')
     # 창 안 버튼 콜백에서 st.toast 를 부르면 창 밖에 쓰여 페이지 스타일이 지워지므로, 콜백은 글만 남기고 여기서 띄운다
     toast = ss.pop("dlg_toast", None)
     if toast:
         st.toast(toast, icon=":material/check_circle:")
-
-    if ss.dlg_loaded:
-        with st.container(key="dlg-loaded", horizontal=True, vertical_alignment="center"):
-            st.html(f'<span class="dlg-loaded-text">{ui.icon("check", "#0B5E44", 16)}'
-                    f'<b>{escape(customer_id)}</b> 고객 정보를 불러왔어요</span>')
-            if st.button("다른 고객 불러오기", key="dlg-other", type="tertiary"):
-                _go_start(on_screening)
 
     # 기본 정보
     with st.container(key="dlg-basic"):
@@ -320,7 +292,7 @@ def _dialog(on_screening):
             st.number_input("나이", min_value=18, max_value=100, step=1, key="dlg_age", placeholder="0")
         with c2, st.container(key="dlg-gender-box"):
             st.radio("성별", ["여성", "남성"], index=None, horizontal=True, key="dlg_gender")
-            st.html('<span class="dlg-hint">공정성 점검용이며 심사 점수에는 쓰지 않아요</span>')
+            st.html('<span class="dlg-hint">공정성 점검용, 점수 미반영</span>')
         with c3, st.container(key="dlg-unit-income"):
             st.number_input("월 소득", min_value=0, step=10, key="dlg_income", placeholder="0")
 
