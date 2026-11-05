@@ -6,6 +6,9 @@ MSA 제약: 대시보드는 모델 파일을 직접 로드하지 않고 이 모�
 없으면 서버가 예시(src/api/examples/) 값을 대신 돌려준다. 예시 값을 실제 결과처럼 보여 주지 않도록,
 /health 의 reports 에서 'example' / 'missing' 이면 호출하지 않고 None 을 돌려준다 → 화면은 '데이터 없음' 안내.
 """
+import json
+import logging
+import sys
 import time
 
 import requests
@@ -15,17 +18,53 @@ import config
 NO_DATA = {"example", "missing"}
 _health_cache = {"at": 0.0, "data": None}
 
+# API 호출 로그 (Streamlit 은 서버에서 API 를 부르므로 브라우저 네트워크 탭에 안 보인다 → 터미널에 찍는다)
+#   API_LOG=1    → POST /predict 200 (85ms)
+#   API_LOG=body → 위 줄 + 요청·응답 JSON (길면 자른다)
+_log = logging.getLogger("dashboard.api")
+if config.API_LOG and not _log.handlers:  # Streamlit 이 모듈을 다시 읽어도 핸들러는 하나만
+    _handler = logging.StreamHandler(sys.stderr)
+    _handler.setFormatter(logging.Formatter("%(asctime)s [API] %(message)s", "%H:%M:%S"))
+    _log.addHandler(_handler)
+    _log.setLevel(logging.INFO)
+    _log.propagate = False
 
-def _get(path):
-    r = requests.get(f"{config.API_BASE_URL}{path}", timeout=config.API_TIMEOUT)
+
+def _short(data):
+    text = json.dumps(data, ensure_ascii=False)
+    return text if len(text) <= config.API_LOG_BODY_MAX else text[:config.API_LOG_BODY_MAX] + f"… ({len(text)}자)"
+
+
+def request(method, path, payload=None, timeout=None):
+    """API 호출 하나. 실패하면 requests 예외를 그대로 올린다. API_LOG 가 켜져 있으면 결과를 터미널에 남긴다."""
+    started = time.perf_counter()
+    try:
+        r = requests.request(method, f"{config.API_BASE_URL}{path}", json=payload,
+                             timeout=timeout or config.API_TIMEOUT)
+    except requests.RequestException as e:
+        if config.API_LOG:
+            _log.info("%s %s 연결 실패 (%dms) %s", method, path, (time.perf_counter() - started) * 1000,
+                      type(e).__name__)
+        raise
+    if config.API_LOG:
+        _log.info("%s %s %d (%dms)", method, path, r.status_code, (time.perf_counter() - started) * 1000)
+        if config.API_LOG == "body":
+            if payload is not None:
+                _log.info("  요청 %s", _short(payload))
+            try:
+                _log.info("  응답 %s", _short(r.json()))
+            except ValueError:
+                _log.info("  응답 %s", r.text[:config.API_LOG_BODY_MAX])
     r.raise_for_status()
     return r.json()
+
+
+def _get(path):
+    return request("GET", path)
 
 
 def _post(path, payload):
-    r = requests.post(f"{config.API_BASE_URL}{path}", json=payload, timeout=config.API_TIMEOUT)
-    r.raise_for_status()
-    return r.json()
+    return request("POST", path, payload)
 
 
 def health():

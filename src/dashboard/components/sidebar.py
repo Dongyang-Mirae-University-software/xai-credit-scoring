@@ -8,6 +8,7 @@ from pathlib import Path
 import requests
 import streamlit as st
 
+import api_client
 import config
 from components import ui
 from components.header import go_start
@@ -25,9 +26,7 @@ NAV_GROUPS = [
 def _fetch_health(base_url):
     """/health 응답을 dict로 반환한다. 연결 실패 시 None."""
     try:
-        r = requests.get(f"{base_url}/health", timeout=config.HEALTH_TIMEOUT)
-        r.raise_for_status()
-        return r.json()
+        return api_client.request("GET", "/health", timeout=config.HEALTH_TIMEOUT)
     except requests.RequestException:
         return None
 

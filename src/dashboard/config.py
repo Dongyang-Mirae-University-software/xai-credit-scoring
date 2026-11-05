@@ -8,6 +8,10 @@ API_BASE_URL = os.getenv("API_BASE_URL", "http://localhost:8000")
 HEALTH_TIMEOUT = float(os.getenv("HEALTH_TIMEOUT", "2"))
 HEALTH_CACHE_TTL = int(os.getenv("HEALTH_CACHE_TTL", "10"))
 API_TIMEOUT = float(os.getenv("API_TIMEOUT", "5"))
+# API 호출 로그: "" 끔 / "1" 한 줄 요약 / "body" 요청·응답 JSON 까지 (api_client.request)
+API_LOG = os.getenv("API_LOG", "").strip().lower()
+API_LOG = "" if API_LOG in ("", "0", "false", "off") else ("body" if API_LOG == "body" else "1")
+API_LOG_BODY_MAX = int(os.getenv("API_LOG_BODY_MAX", "600"))
 
 # ---- 고객 심사 화면 표시용 값 (미션 문서에 정의 없음 → 백엔드 확정 시 동기화) ----
 # 승인 임계값: 부도 확률이 이 값 미만이면 승인
