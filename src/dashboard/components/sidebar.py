@@ -1,14 +1,20 @@
-"""사이드바: 브랜드, 페이지 이동 메뉴, 하단 서버 상태 카드."""
+"""사이드바 240px: 묶음별 메뉴(심사 업무 / 모델 검증)와 하단 시스템 상태 (GET /health)."""
 from html import escape
 from pathlib import Path
-from urllib.parse import urlparse
 
 import requests
 import streamlit as st
 
 import config
+from components import ui
 
 CSS_PATH = Path(__file__).with_suffix(".css")
+
+# 메뉴 묶음: (묶음 이름, [(페이지 제목, 아이콘 이름 — components/ui.py ICONS)])
+NAV_GROUPS = [
+    ("심사 업무", [("고객 심사", "screening"), ("XAI 분석", "xai")]),
+    ("모델 검증", [("공정성", "fairness"), ("모델 성능", "performance"), ("통계 검증", "stats")]),
+]
 
 
 @st.cache_data(ttl=config.HEALTH_CACHE_TTL, show_spinner=False)
@@ -22,52 +28,40 @@ def _fetch_health(base_url):
         return None
 
 
-def _status_card():
-    base_url = config.API_BASE_URL
-    port = urlparse(base_url).port
-    health = _fetch_health(base_url)
-
+def _status_box():
+    health = _fetch_health(config.API_BASE_URL)
     if health is None:
-        dot, head = "sb-dot err", "FastAPI 연결 안 됨"
-        health = {}
+        server, model = '<span class="sb-state fail">연결 안 됨</span>', "—"
     else:
-        dot, head = "sb-dot", "FastAPI 연결됨"
-    if port:
-        head += f" · :{port}"
-
-    latency = st.session_state.get("predict_latency")
-    rows = [
-        ("model_version", health.get("model_version", "—")),
-        ("/predict 응답", f"{latency:.2f} s" if latency is not None else "—"),
-        ("MLflow", health.get("model_stage", "—")),
-    ]
-    rows_html = "".join(
-        f'<div class="sb-row"><span class="sb-row-label">{label}</span>'
-        f'<span class="sb-row-value" title="{escape(str(value))}">{escape(str(value))}</span></div>'
-        for label, value in rows
-    )
-    # 면책 조항(미션 필수, 이슈 #37)은 모든 페이지에 보이도록 사이드바 하단 상태 카드 바로 위에 둔다
+        server, model = '<span class="sb-state">정상</span>', escape(str(health.get("model_version") or "—"))
     st.html(
-        '<div class="sb-bottom">'
-        f'<div class="sb-disclaimer" role="note">ⓘ {escape(config.DISCLAIMER)}</div>'
-        f'<div class="sb-status">'
-        f'<div class="sb-status-head"><span class="{dot}"></span>{head}</div>'
-        f"{rows_html}</div>"
+        '<div class="sb-status">'
+        '<span class="sb-status-head">시스템 상태</span>'
+        f'<span class="sb-row">API 서버{server}</span>'
+        f'<span class="sb-row">모델 버전<b title="{model}">{model}</b></span>'
+        f'<a href="{escape(config.MLFLOW_UI_URL)}" target="_blank" rel="noopener">MLflow 실험 기록 열기</a>'
         "</div>"
     )
 
 
+def _icon_css():
+    rules = [ui.mask_css(f'[class*="st-key-nav-{name}"] a[data-testid="stPageLink-NavLink"]::before', name)
+             for _, items in NAV_GROUPS for _, name in items]
+    return "".join(rules)
+
+
 def render_sidebar(pages, current):
-    st.html(f"<style>{CSS_PATH.read_text(encoding='utf-8')}</style>")
+    """pages 는 app.py 의 st.Page 목록. 메뉴 묶음과 아이콘은 NAV_GROUPS 에서 정한다."""
+    by_title = {page.title: page for page in pages}
     with st.sidebar:
-        st.html(
-            '<div class="sb-brand">'
-            '<div class="sb-brand-title">XAI 신용평가</div>'
-            '<div class="sb-brand-sub">심사역 대시보드 · 대안신용평가</div>'
-            "</div>"
-        )
-        for i, page in enumerate(pages, start=1):
-            state = "active" if page.url_path == current.url_path else "idle"
-            with st.container(key=f"nav-{state}-{i}"):
-                st.page_link(page, label=f"`{i:02d}` {page.title}")
-        _status_card()
+        # 스타일만 있는 블록도 간격(24px)을 차지하므로 첫 묶음 이름과 함께 넣는다
+        style = f"<style>{CSS_PATH.read_text(encoding='utf-8')}{_icon_css()}</style>"
+        for i, (group, items) in enumerate(NAV_GROUPS):
+            with st.container(key=f"nav-group-{items[0][1]}"):
+                st.html((style if i == 0 else "") + f'<span class="sb-group">{group}</span>')
+                for title, name in items:
+                    page = by_title[title]
+                    active = page.url_path == current.url_path
+                    with st.container(key=f"nav-{name}" + ("-active" if active else "")):
+                        st.page_link(page, label=title)
+        _status_box()

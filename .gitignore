@@ -31,3 +31,4 @@ outputs/**
 !outputs/fairness/fairness.json
 !outputs/fairness/fairness_mitigation.json
 !outputs/statistics/anova.json
+data/screenings.db

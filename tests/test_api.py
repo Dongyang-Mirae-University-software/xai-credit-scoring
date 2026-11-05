@@ -39,6 +39,7 @@ def test_percent_inputs_are_divided_by_100():
     from src.api.schemas import CustomerInput
     f = CustomerInput(**{**CUSTOMER_EXAMPLE, 'DebtRatio': 35, 'telecom_payment_rate': 78, 'utility_payment_rate': 100}).features()
     assert (f['DebtRatio'], f['telecom_payment_rate'], f['utility_payment_rate']) == (0.35, 0.78, 1.0)
+    assert f['MonthlyIncome'] == CUSTOMER_EXAMPLE['MonthlyIncome'] / model.INCOME_KRW_PER_UNIT  # 원 → 모델 단위
     assert f['spending_consistency'] == CUSTOMER_EXAMPLE['spending_consistency']  # 점수는 그대로
 
 
@@ -64,3 +65,46 @@ def test_thin_filer_rule():
     features = {k: v for k, v in thin.items() if k != 'customer_id'}
     assert model.is_thin_filer(features) is True
     assert model.is_thin_filer({k: v for k, v in CUSTOMER_EXAMPLE.items() if k != 'customer_id'}) is False
+
+
+# ---------- 대시보드 시안용 추가 (이슈 #116) ----------
+def test_screenings_keep_latest_per_customer(tmp_path, monkeypatch):
+    monkeypatch.setenv('SCREENINGS_DB', str(tmp_path / 's.db'))
+
+    def save(cid, grade):
+        r = client.post('/screenings', json={'input': {'customer_id': cid}, 'result': {
+            'approval_status': 'APPROVED', 'risk_grade': grade, 'credit_score': 700}})
+        assert r.status_code == 201 and r.json()['screening_id'].startswith('S')
+    save('C1', 'B'); save('C2', 'C'); save('C1', 'A')
+    rows = client.get('/screenings?limit=5').json()
+    assert [(r['customer_id'], r['risk_grade']) for r in rows] == [('C1', 'A'), ('C2', 'C')]
+    assert len(client.get('/screenings?limit=1').json()) == 1
+
+
+def test_customers_lookup_uses_predict_units():
+    c = client.get('/customers/C100001')
+    assert c.status_code == 200, c.text
+    body = c.json()
+    assert body['customer_id'] == 'C100001' and 0 <= body['telecom_payment_rate'] <= 100
+    assert client.get('/customers/NOPE').status_code == 404
+    if model.ready():  # 조회 결과를 그대로 /predict 에 넣을 수 있어야 한다
+        assert client.post('/predict', json=body).status_code == 200
+
+
+def test_new_report_fields():
+    s = client.get('/explain/summary').json()
+    assert all('higher_is_riskier' in f for f in s['features'])
+    assert {'shap', 'value'} == set(next(iter(s['beeswarm'].values())))
+    assert {'auc', 'roc_curve', 'pr_curve'} <= set(client.get('/metrics').json()['baseline'])
+    assert 'evaluated_at' in client.get('/fairness').json()
+    assert 'evaluated_at' in client.get('/fairness/mitigation').json()
+    assert client.get('/anova').json()['source']['cv'] == {'n_splits': 5, 'n_repeats': 1}
+
+
+def test_income_is_won_outside_the_api():
+    c = client.get('/customers/C100001').json()
+    assert c['MonthlyIncome'] == 9120 * model.INCOME_KRW_PER_UNIT  # 파일은 모델 단위, 응답은 원
+    if model.ready():
+        r = client.post('/explain', json=c).json()
+        income = [x for x in r['rejection_reasons'] if x['feature'] == 'MonthlyIncome']
+        assert all(x['current_value'] == c['MonthlyIncome'] for x in income)
