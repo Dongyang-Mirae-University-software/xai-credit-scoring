@@ -83,6 +83,6 @@ def explain(features, references=None):
     """src.explainer.shap_explainer.explain_customer 결과: rejection_reasons, shap_values, base_value."""
     from src.explainer.shap_explainer import explain_customer
     if references:  # 기준 평균도 원 단위로 (reference_values.json 은 모델 단위로 저장돼 있다)
-        references = {g: {**t, 'MonthlyIncome': t['MonthlyIncome'] * INCOME_KRW_PER_UNIT} if 'MonthlyIncome' in t else t
+        references = {g: {**t, 'MonthlyIncome': round(t['MonthlyIncome'] * INCOME_KRW_PER_UNIT)} if 'MonthlyIncome' in t else t
                       for g, t in references.items()}
     return explain_customer(_explainer(), _scaled_frame(features), _won(features), references=references)
