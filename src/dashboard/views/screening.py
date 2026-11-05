@@ -2,12 +2,12 @@
 
 흐름 (디자인 시안의 프로토타입 동작과 같다)
 - 첫 화면: 불러오기 · 시연용 샘플 칩 → 값이 채워진 입력 창 (제목 옆 고객 ID), 신규 고객 심사 → 빈 입력 창
-- 입력 창(components/customer_form)에서 심사 실행 → 결과 화면 (결과는 서버 이력에 바로 남는다)
+- 입력 창(components/customer_form)에서 심사 실행 → 결과 화면. API 를 부르는 것은 심사 실행뿐이다
 - 오늘 심사한 고객 줄 → 그 고객의 결과 화면 바로
 - 결과 화면: 정보 수정 → 입력 창, 새 심사 → 첫 화면
 - 로고 · 사이드바 '고객 심사' → 언제나 첫 화면
 '불러오기'·샘플은 API 를 부르지 않고 로컬 고객 파일(samples.json)과 이번 세션에서 심사한 고객에서 찾는다.
-오늘 심사한 고객은 서버에 저장된 이력(GET /screenings)과 이번 세션에서 심사한 것을 합쳐 보여 준다.
+오늘 심사한 고객은 이번 세션에서 심사한 것이다 (심사 결과 저장 기능은 없다).
 """
 import re
 from datetime import datetime
@@ -67,51 +67,21 @@ def _open_sample(customer_id):
 
 
 def _open_history(customer_id):
-    """최근 심사 줄: 그 고객의 결과 화면으로.
-    이번 세션에서 심사한 고객이면 그 결과를, 서버 이력에만 있으면 고객 정보(GET /customers)로 다시 계산해 보여 준다."""
-    if CF.show_result(customer_id):
-        return
-    profile = CF.find_customer(customer_id)
-    if not profile:
-        _toast_later(f"{customer_id} 고객의 입력값을 찾을 수 없어 결과를 열지 못했어요.", error=True)
-        return
-    try:
-        CF.run_predict(profile, record=False)
-    except Exception as e:
-        _toast_later(f"{customer_id} 고객의 결과를 불러오지 못했어요: {type(e).__name__}", error=True)
-
-
-def _parse_time(text):
-    try:
-        return datetime.fromisoformat(text).astimezone().replace(tzinfo=None)
-    except (TypeError, ValueError):
-        return None
+    """오늘 심사한 고객 줄: 그 고객의 결과 화면으로."""
+    if not CF.show_result(customer_id):
+        _toast_later(f"{customer_id} 고객의 심사 결과를 찾지 못했어요.", error=True)
 
 
 def _history_entries():
-    """오늘 심사한 고객 = 서버에 저장된 이력(GET /screenings) + 이번 세션에서 심사한 것. 오늘 것만, 고객당 최신 1건, 최신순 5건."""
-    rows = [{**h["result"], "at": h["at"]} for h in st.session_state.scr_history]
-    try:
-        saved = api_client.screenings(HISTORY_LIMIT)
-    except Exception:
-        saved = []  # 이력 조회가 실패해도 첫 화면은 그린다
-    for r in saved:
-        at = _parse_time(r.get("screened_at"))
-        if at and r.get("customer_id"):
-            rows.append({**r, "at": at})
+    """오늘 심사한 고객 (이번 세션). 오늘 것만, 고객당 최신 1건, 최신순 5건."""
     today = datetime.now().date()
-    latest = {}
-    for r in sorted(rows, key=lambda r: r["at"], reverse=True):
-        if r["at"].date() == today:
-            latest.setdefault(r["customer_id"], r)
-    return list(latest.values())[:HISTORY_LIMIT]
+    rows = [{**h["result"], "at": h["at"]} for h in st.session_state.scr_history if h["at"].date() == today]
+    return sorted(rows, key=lambda r: r["at"], reverse=True)[:HISTORY_LIMIT]
 
 
 def _customer_type(r):
-    """고객 유형. 서버 이력 목록에 is_thin_filer 가 없으면 이번 세션에서 심사한 결과로 찾고, 그래도 없으면 '—'."""
+    """고객 유형: /predict 응답의 is_thin_filer."""
     thin = r.get("is_thin_filer")
-    if thin is None:
-        thin = st.session_state.customers.get(r["customer_id"], {}).get("result", {}).get("is_thin_filer")
     return "—" if thin is None else ("씬파일러" if thin else "일반")
 
 
@@ -194,14 +164,15 @@ def _completed_at(result):
 
 
 def _summary_html(profile, result):
-    late = sum(int(profile[f]) for f, _ in CF.DELINQUENCY_FIELDS)
+    counts = [profile[f] for f, _ in CF.DELINQUENCY_FIELDS if profile[f] is not None]  # None = 기록 없음
+    late = sum(int(c) for c in counts)
     cells = [
         ("고객 ID", profile["customer_id"]),
         ("나이", f'{profile["age"]}세'),
         ("성별", profile.get("gender") or "—"),
         ("월 소득", f'{profile["MonthlyIncome"] / 10_000:,.0f}만원'),
         ("부채비율", f'{profile["DebtRatio"]:.0f}%'),
-        ("연체", f"{late}회" if late else "없음"),
+        ("연체", f"{late}회" if late else ("기록 없음" if not counts else "없음")),
         ("고객 유형", "씬파일러" if result.get("is_thin_filer") else "일반 고객"),
     ]
     return '<div class="scr-summary">' + "".join(

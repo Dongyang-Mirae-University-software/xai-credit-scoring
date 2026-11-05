@@ -100,7 +100,32 @@ div[role="dialog"] [data-testid="InputInstructions"] { display: none; }
 }
 .dlg-step-label { font-size: 13px; color: var(--ink-3); white-space: nowrap; }
 .dlg-step-value { display: inline-block; min-width: 20px; text-align: center; font-size: 16px; font-weight: 700; color: var(--ink); }
-.st-key-dlg-steps-extra .dlg-step-value { min-width: 32px; }
+[class*="st-key-dlg-steps-extra"] .dlg-step-value { min-width: 32px; }
+
+/* 연체 칸: 증감 줄 + '기록 없음' 체크 (체크하면 값 대신 '–', 칸 배경 회색) */
+[class*="st-key-dlg-due-"] {
+  flex: 1 1 0; min-width: 0; gap: 8px !important;
+  padding: 10px; border: 1px solid var(--border); border-radius: 8px;
+}
+[class*="st-key-dlg-due-"][class*="-none"] { background: var(--page); }
+[class*="st-key-dlg-due-"] [class*="st-key-dlg-step-"] { padding: 0; border: 0; border-radius: 0; }
+[class*="st-key-dlg-due-"] [class*="st-key-dlg-step-"] button:disabled { opacity: .4; }
+[class*="st-key-dlg-due-"] .stCheckbox label { gap: 6px; min-height: 0; }
+[class*="st-key-dlg-due-"] .stCheckbox label p { font-size: 12px; color: var(--ink-3); }
+[class*="st-key-dlg-due-"] .stCheckbox [data-testid="stCheckbox"] { margin: 0; }
+[class*="st-key-dlg-due-"] .stElementContainer:has(.stCheckbox) { height: auto; }
+
+/* 추가 정보 2×2 · 신용카드 이용 기간 입력칸 (64×32) */
+[class*="st-key-dlg-steps-extra-"] { gap: 8px !important; flex-wrap: nowrap; }
+.st-key-dlg-step-card { gap: 6px !important; }
+.st-key-dlg-step-card .stNumberInput { width: 64px !important; flex: none; }
+.st-key-dlg-step-card .stElementContainer:has(.stNumberInput) { width: 64px !important; flex: none; height: 32px; }
+div[role="dialog"] .st-key-dlg-step-card [data-testid="stNumberInputContainer"] { height: 32px; }
+div[role="dialog"] .st-key-dlg-step-card .stNumberInput [data-baseweb="input"] {
+  height: 32px; border-radius: 6px; padding-right: 0;
+}
+div[role="dialog"] .st-key-dlg-step-card .stNumberInput input { padding: 0 8px; font-size: 15px; }
+.dlg-step-unit { font-size: 13px; color: var(--ink-3); white-space: nowrap; }
 [class*="st-key-dlg-step-"] button {
   width: 32px; height: 32px; min-height: 32px; padding: 0;
   border: 1px solid var(--input); border-radius: 6px; background: #FFF;
@@ -138,3 +163,7 @@ div[role="dialog"] [data-testid="stLayoutWrapper"]:has(> .st-key-dlg-foot) {
 .st-key-dlg-reset button p, .st-key-dlg-cancel button p { color: var(--ink-2); }
 .st-key-dlg-submit button { padding: 0 28px; background: var(--accent); border: 0; }
 .st-key-dlg-submit button p { color: #FFF; font-weight: 700; }
+/* 증감 줄: 라벨은 왼쪽, '− 값 +' 은 오른쪽에 붙여 모은다 (칸이 넓어도 벌어지지 않게) */
+[class*="st-key-dlg-step-"] > .stElementContainer { flex: 0 0 auto; width: auto !important; }
+[class*="st-key-dlg-step-"] > .stElementContainer:has(.dlg-step-value) { margin: 0 10px; }
+[class*="st-key-dlg-step-"] > [data-testid="stSpace"], [class*="st-key-dlg-step-"] > .stElementContainer:has([data-testid="stSpace"]) { flex: 1 1 auto; }

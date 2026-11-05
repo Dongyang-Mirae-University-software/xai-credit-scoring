@@ -17,7 +17,8 @@
     "utility_payment_rate": 99.0,
     "spending_consistency": 88.0,
     "regular_payment_count": 9,
-    "app_login_frequency": 25
+    "app_login_frequency": 25,
+    "credit_card_months": 41
   },
   {
     "customer_id": "C005678",
@@ -37,7 +38,8 @@
     "utility_payment_rate": 70.0,
     "spending_consistency": 45.0,
     "regular_payment_count": 2,
-    "app_login_frequency": 8
+    "app_login_frequency": 8,
+    "credit_card_months": 8
   },
   {
     "customer_id": "C116731",
@@ -56,7 +58,8 @@
     "utility_payment_rate": 96.9596,
     "spending_consistency": 92.9784,
     "regular_payment_count": 12,
-    "app_login_frequency": 22
+    "app_login_frequency": 22,
+    "credit_card_months": null
   },
   {
     "customer_id": "C135990",
@@ -75,7 +78,8 @@
     "utility_payment_rate": 89.2828,
     "spending_consistency": 90.2682,
     "regular_payment_count": 12,
-    "app_login_frequency": 21
+    "app_login_frequency": 21,
+    "credit_card_months": null
   },
   {
     "customer_id": "C196843",
@@ -94,7 +98,8 @@
     "utility_payment_rate": 86.4954,
     "spending_consistency": 89.3277,
     "regular_payment_count": 12,
-    "app_login_frequency": 20
+    "app_login_frequency": 20,
+    "credit_card_months": null
   },
   {
     "customer_id": "C118955",
@@ -113,6 +118,7 @@
     "utility_payment_rate": 89.0878,
     "spending_consistency": 90.8695,
     "regular_payment_count": 11,
-    "app_login_frequency": 21
+    "app_login_frequency": 21,
+    "credit_card_months": null
   }
 ]

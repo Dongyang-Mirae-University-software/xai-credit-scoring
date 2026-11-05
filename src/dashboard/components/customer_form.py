@@ -3,7 +3,7 @@
 흐름 (디자인 시안의 프로토타입 동작과 같다)
 - 불러오기 · 시연용 샘플 · 정보 수정 · 조건 바꿔 재심사 → 제목 옆에 고객 ID 태그가 붙은 창 (값이 채워져 있다)
 - 신규 고객 심사 → 태그 없이 빈 칸으로 시작하는 창
-- 심사 실행 → POST /predict → 고객 심사의 결과 화면. 결과는 POST /screenings 로 바로 이력에 남긴다
+- 심사 실행 → POST /predict → 고객 심사의 결과 화면 (이번 세션의 '오늘 심사한 고객'에 남는다. 저장 기능은 없다)
 - 취소 · 닫기 → 창만 닫고 지금 화면에 남는다
 
 고객 ID 불러오기와 시연용 샘플은 API 를 부르지 않고 로컬 파일 samples.json(테스트셋 고객 입력값)에서 읽는다.
@@ -31,10 +31,15 @@ DEFAULT_CUSTOMER = {
     "NumberOfDependents": 2, "NumberOfTime30-59DaysPastDueNotWorse": 1, "NumberOfTime60-89DaysPastDueNotWorse": 0,
     "NumberOfTimes90DaysLate": 0, "NumberOfOpenCreditLinesAndLoans": 6, "NumberRealEstateLoansOrLines": 1,
     "telecom_payment_rate": 90.0, "utility_payment_rate": 93.0, "spending_consistency": 75.0,
-    "regular_payment_count": 5, "app_login_frequency": 22,
+    "regular_payment_count": 5, "app_login_frequency": 22, "credit_card_months": 36,
 }
+# 신용카드 이용 기간(개월). 원래 과제의 씬파일러 기준 '카드 거래 이력 12개월 미만' 을 API 가 판정할 수 있게 보낸다.
+# 비우면 null. (API 에 이 칸이 아직 없으면 서버가 무시한다)
+CARD_FIELD = "credit_card_months"
 
-# 고객 파일: [{customer_id, gender, sample_label?, + POST /predict 입력 15개}]. sample_label 이 있으면 첫 화면 샘플 칩
+# 고객 파일: [{customer_id, gender, sample_label?, + POST /predict 입력}]. sample_label 이 있으면 첫 화면 샘플 칩 이름.
+# 고객 유형(씬파일러 여부)은 넣지 않는다 → /predict 응답의 is_thin_filer 로만 보여 준다.
+# 연체 칸이 null 이면 '기록 없음' (0회와 다르다)
 SAMPLES_PATH = Path(__file__).resolve().parent.parent / "samples.json"
 CUSTOMERS = {c["customer_id"]: c for c in json.loads(SAMPLES_PATH.read_text(encoding="utf-8"))}
 SAMPLE_CHIPS = [(cid, c["sample_label"]) for cid, c in CUSTOMERS.items() if c.get("sample_label")]
@@ -62,7 +67,8 @@ ALT_FIELDS = [
 ALT_TAGS = {"linked": ("자동 연동", "ok"), "empty": ("직접 입력", "ok"),
             "editing": ("직접 입력 중", "mid"), "edited": ("직접 수정됨", "info")}
 STEP_MAX = 50
-INT_FIELDS = {f for f, _ in DELINQUENCY_FIELDS + EXTRA_FIELDS} | {"age", "regular_payment_count", "app_login_frequency"}
+INT_FIELDS = ({f for f, _ in DELINQUENCY_FIELDS + EXTRA_FIELDS}
+              | {"age", "regular_payment_count", "app_login_frequency", CARD_FIELD})
 
 
 # ---------------------------------------------------------------------------
@@ -72,7 +78,7 @@ def init_state():
     ss = st.session_state
     ss.setdefault("scr_seq", 1)
     ss.setdefault("scr_current", None)   # 지금 보고 있는 심사 결과 {profile, result}. 있으면 고객 심사 = 결과 화면
-    ss.setdefault("scr_history", [])     # 이번 세션에서 심사한 것 [{profile, result, at}]. 서버 이력(GET /screenings)과 합쳐 보인다
+    ss.setdefault("scr_history", [])     # 이번 세션에서 심사한 것 [{profile, result, at}] → 오늘 심사한 고객
     ss.setdefault("customers", {})       # 심사한 고객 {id: {payload, result, profile}} (XAI 분석 고객 목록)
     ss.setdefault("xai_explain", {})     # /explain 응답 캐시
 
@@ -94,7 +100,7 @@ def find_customer(customer_id):
     """고객 파일(samples.json) → 이번 세션에서 새로 심사한 고객 순서로 찾는다. 없으면 None. API 는 부르지 않는다."""
     found = CUSTOMERS.get(customer_id)
     if found:
-        return {"customer_id": customer_id, "gender": found.get("gender"), **{k: found[k] for k in DEFAULT_CUSTOMER}}
+        return {"customer_id": customer_id, "gender": found.get("gender"), **{k: found.get(k) for k in DEFAULT_CUSTOMER}}
     entry = st.session_state.customers.get(customer_id)
     if entry and "profile" in entry:
         return entry["profile"]
@@ -111,21 +117,13 @@ def show_result(customer_id):
 
 
 def _payload(profile):
-    """심사 요청 본문 (GMSC 10 + 대안 5). 성별은 예측에 쓰지 않으므로 보내지 않는다."""
+    """심사 요청 본문 (GMSC 10 + 대안 5 + 신용카드 이용 기간). 성별은 공정성 점검용이라 보내지 않는다.
+    '기록 없음' 연체 칸과 비운 카드 이용 기간은 null 로 보낸다."""
     return {k: v for k, v in profile.items() if k != "gender"}
 
 
-def _save(payload, result):
-    """POST /screenings: 심사 결과를 서버 이력에 남긴다. 저장이 실패해도 심사 결과는 보여 준다 (이번 세션 이력에는 남는다)."""
-    try:
-        api_client.save_screening({"input": payload, "result": result})
-    except Exception:
-        pass
-
-
 def run_predict(profile, record=True):
-    """POST /predict. 성공하면 결과를 현재 심사·XAI 고객 목록에 넣고, record 면 최근 심사와 서버 이력(POST /screenings)에 남긴다.
-    record=False 는 서버 이력에 있던 고객을 다시 열 때 (새 심사가 아니므로 시각을 바꾸지 않는다). 실패하면 예외를 올린다."""
+    """POST /predict. 성공하면 결과를 현재 심사·XAI 고객 목록에 넣고, record 면 오늘 심사한 고객에도 쌓는다. 실패하면 예외를 올린다."""
     ss = st.session_state
     payload = _payload(profile)
     result = {**api_client.predict(payload), "customer_id": profile["customer_id"]}
@@ -135,16 +133,10 @@ def run_predict(profile, record=True):
     ss.xai_explain.pop(customer_id, None)
     ss.scr_current = {"profile": profile, "result": result}
     if record:
-        _save(payload, result)
         history = [h for h in ss.scr_history if h["result"]["customer_id"] != customer_id]
         ss.scr_history = ([{"profile": profile, "result": result, "at": datetime.now()}] + history)[:HISTORY_LIMIT]
     if customer_id == new_id():
         ss.scr_seq += 1
-
-
-def thin_filer(open_lines, real_estate, late_total):
-    """씬파일러 판정 미리보기 (src/data/simulator.label_thin_filer 기준 2와 같다). 실제 판정은 /predict 응답."""
-    return open_lines <= 1 and real_estate == 0 and late_total == 0
 
 
 # ---------------------------------------------------------------------------
@@ -170,6 +162,11 @@ def _fill_form(profile, loaded):
     ss.dlg_util = int(round(min(profile["RevolvingUtilizationOfUnsecuredLines"] or 0, 1.0) * 100))
     for field, *_ in DELINQUENCY_FIELDS + EXTRA_FIELDS + ALT_FIELDS:
         ss[f"dlg_{field}"] = _num(profile[field], field in INT_FIELDS)
+    for field, _ in DELINQUENCY_FIELDS:  # null = 기록 없음 (값 칸은 0 으로 두고 체크만 켠다)
+        ss[f"dlg_none_{field}"] = profile[field] is None
+        if profile[field] is None:
+            ss[f"dlg_{field}"] = 0
+    ss.dlg_card = _num(profile.get(CARD_FIELD), True)
 
 
 def _form_profile():
@@ -196,6 +193,10 @@ def _form_profile():
     }
     for field, *_ in DELINQUENCY_FIELDS + EXTRA_FIELDS + ALT_FIELDS:
         profile[field] = ss[f"dlg_{field}"]
+    for field, _ in DELINQUENCY_FIELDS:
+        if ss[f"dlg_none_{field}"]:
+            profile[field] = None
+    profile[CARD_FIELD] = ss.dlg_card
     return profile
 
 
@@ -213,12 +214,14 @@ def _missing_fields():
 
 
 def _reset_form():
-    """초기화: 입력칸·슬라이더·증감 칸을 모두 비운다 (시안 동작). 성별과 대안 데이터는 그대로 둔다."""
+    """초기화: 입력칸·슬라이더·증감 칸·기록 없음을 모두 비운다 (시안 동작). 성별과 대안 데이터는 그대로 둔다."""
     ss = st.session_state
-    ss.dlg_age = ss.dlg_income = ss.dlg_repay = None
+    ss.dlg_age = ss.dlg_income = ss.dlg_repay = ss.dlg_card = None
     ss.dlg_util = 0
     for field, _ in DELINQUENCY_FIELDS + EXTRA_FIELDS:
         ss[f"dlg_{field}"] = 0
+    for field, _ in DELINQUENCY_FIELDS:
+        ss[f"dlg_none_{field}"] = False
     ss.dlg_missing, ss.dlg_error = [], None
     ss.dlg_toast = "입력값을 모두 지웠어요"
 
@@ -251,17 +254,44 @@ def _bump(field, delta):
     st.session_state[key] = min(max(int(st.session_state[key]) + delta, 0), STEP_MAX)
 
 
-def _steppers(fields, key):
-    """'라벨  − 값 +' 칸 3개 (디자인의 증감 버튼). 값은 위젯이 아닌 세션 값(dlg_<필드>)."""
-    with st.container(key=f"dlg-steps-{key}", horizontal=True, gap="small"):
-        for field, label in fields:
-            with st.container(key=f"dlg-step-{field}", horizontal=True, vertical_alignment="center", gap=None):
-                st.html(f'<span class="dlg-step-label">{escape(label)}</span>')
-                st.space("stretch")
-                st.button("−", key=f"dlg-dec-{field}", on_click=_bump, args=(field, -1),
-                          disabled=st.session_state[f"dlg_{field}"] <= 0)
-                st.html(f'<b class="dlg-step-value">{st.session_state[f"dlg_{field}"]}</b>')
-                st.button("\\+", key=f"dlg-inc-{field}", on_click=_bump, args=(field, 1))
+def _stepper(field, label, disabled=False):
+    """'라벨  − 값 +' 한 줄 (디자인의 증감 버튼). 값은 위젯이 아닌 세션 값(dlg_<필드>). disabled 면 값 대신 '–'."""
+    ss = st.session_state
+    with st.container(key=f"dlg-step-{field}", horizontal=True, vertical_alignment="center", gap=None):
+        st.html(f'<span class="dlg-step-label">{escape(label)}</span>')
+        st.space("stretch")
+        st.button("−", key=f"dlg-dec-{field}", on_click=_bump, args=(field, -1),
+                  disabled=disabled or ss[f"dlg_{field}"] <= 0)
+        st.html(f'<b class="dlg-step-value">{"–" if disabled else ss[f"dlg_{field}"]}</b>')
+        st.button("\\+", key=f"dlg-inc-{field}", on_click=_bump, args=(field, 1), disabled=disabled)
+
+
+def _delinquency():
+    """연체 3칸: 증감 + '기록 없음' 체크 (체크하면 null 로 보낸다)."""
+    ss = st.session_state
+    with st.container(key="dlg-steps-due", horizontal=True, gap="small"):
+        for field, label in DELINQUENCY_FIELDS:
+            none = ss[f"dlg_none_{field}"]
+            with st.container(key=f"dlg-due-{field}" + ("-none" if none else ""), gap=None):
+                _stepper(field, label, disabled=none)
+                st.checkbox("기록 없음", key=f"dlg_none_{field}")
+
+
+def _extra():
+    """추가 정보 2×2: 신용카드 이용 기간(입력칸) + 신용 개설 건수 · 부동산 대출 · 부양가족 수 (증감)."""
+    cells = [None] + EXTRA_FIELDS
+    for r, row in enumerate((cells[:2], cells[2:])):
+        with st.container(key=f"dlg-steps-extra-{r}", horizontal=True, gap="small"):
+            for cell in row:
+                if cell is None:
+                    with st.container(key="dlg-step-card", horizontal=True, vertical_alignment="center", gap=None):
+                        st.html('<span class="dlg-step-label">신용카드 이용 기간</span>')
+                        st.space("stretch")
+                        st.number_input("신용카드 이용 기간", min_value=0, max_value=600, step=1, key="dlg_card",
+                                        placeholder="0", label_visibility="collapsed")
+                        st.html('<span class="dlg-step-unit">개월</span>')
+                else:
+                    _stepper(*cell)
 
 
 def _group_head(title, right=""):
@@ -296,12 +326,9 @@ def _dialog(on_screening):
         with c3, st.container(key="dlg-unit-income"):
             st.number_input("월 소득", min_value=0, step=10, key="dlg_income", placeholder="0")
 
-    # 금융 이력
+    # 금융 이력 (씬파일러 판정은 심사 실행 후 API 가 한다 → 여기서는 미리 보여 주지 않는다)
     with st.container(key="dlg-finance"):
-        late_total = sum(int(ss[f"dlg_{f}"]) for f, _ in DELINQUENCY_FIELDS)
-        thin = thin_filer(ss["dlg_NumberOfOpenCreditLinesAndLoans"], ss["dlg_NumberRealEstateLoansOrLines"], late_total)
-        verdict = "입력 후 판정" if ss.dlg_age is None or ss.dlg_income is None else ("해당" if thin else "해당 없음")
-        _group_head("금융 이력", f'<em>씬파일러 자동 판정 <b>{verdict}</b></em>')
+        _group_head("금융 이력", "<em>기록이 없는 항목은 ‘기록 없음’을 선택하세요</em>")
         c1, c2 = st.columns(2, gap="medium")
         with c1, st.container(key="dlg-unit-repay"):
             st.number_input("월 대출 상환액", min_value=0, step=1, key="dlg_repay", placeholder="0")
@@ -311,12 +338,12 @@ def _dialog(on_screening):
             st.html(f'<div class="dlg-util-head"><span>신용한도 사용률</span><b>{ss.dlg_util}%</b></div>')
             st.slider("신용한도 사용률", 0, 100, key="dlg_util", label_visibility="collapsed")
         st.html('<span class="dlg-label">최근 2년 연체 횟수</span>')
-        _steppers(DELINQUENCY_FIELDS, "due")
+        _delinquency()
 
     # 추가 정보
     with st.container(key="dlg-extra"):
         _group_head("추가 정보", '<em>불러온 값이 기본으로 채워져요</em>')
-        _steppers(EXTRA_FIELDS, "extra")
+        _extra()
 
     # 대안 데이터: 불러온 고객은 '자동 연동' 값, 신규 고객은 '입력 필요'. '직접 수정' 을 누르면 입력칸
     with st.container(key="dlg-alt"):
