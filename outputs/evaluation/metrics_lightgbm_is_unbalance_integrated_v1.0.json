@@ -232,7 +232,7 @@
     "auc": true,
     "ks": true,
     "psi": true,
-    "thin_filer_uplift": false
+    "thin_filer_uplift": true
   },
   "targets": {
     "auc": 0.78,
@@ -511,5 +511,21 @@
         1.0
       ]
     }
+  },
+  "thin_filer_uplift_cv": {
+    "n_thin_filer": 3485,
+    "n_thin_filer_default": 253,
+    "auc_without_alt": 0.749035093726764,
+    "auc_with_alt": 0.8151116062693226,
+    "uplift": 0.06607651254255853,
+    "ci_low": 0.04168112035626392,
+    "ci_high": 0.08876742737384458,
+    "ci_level": 0.95,
+    "n_bootstrap": 1000,
+    "target": 0.03,
+    "pass": true,
+    "model_without_alt": "financial_only/LightGBM/is_unbalance",
+    "model_with_alt": "integrated/LightGBM/is_unbalance",
+    "method": "5-fold out-of-fold (Train+Val, Test 미사용)"
   }
 }

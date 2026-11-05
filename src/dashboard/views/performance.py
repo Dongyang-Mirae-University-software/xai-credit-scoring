@@ -35,10 +35,15 @@ def _model_version(model_name):
 # ---------------------------------------------------------------------------
 # 결론
 # ---------------------------------------------------------------------------
+def _uplift(m):
+    """씬파일러 향상: 판정 기준인 Train+Val 교차검증 값(#110)을 먼저 쓰고, 없으면 Test 1회 값."""
+    return (m.get("thin_filer_uplift_cv") or m.get("thin_filer_uplift") or {}).get("uplift")
+
+
 def _targets(m):
     t = {**DEFAULT_TARGETS, **(m.get("targets") or {})}
     passes = m.get("pass") or {}
-    uplift = (m.get("thin_filer_uplift") or {}).get("uplift")
+    uplift = _uplift(m)
     items = [
         ("auc", "AUC-ROC", m.get("auc"), f"{m.get('auc', 0):.3f}", f"목표 {t['auc']:.2f} 이상",
          passes.get("auc", m.get("auc", 0) >= t["auc"])),
@@ -57,7 +62,7 @@ def _summary(m):
     t, items = _targets(m)
     done = [i for i in items if i[5]]
     all_ok = len(done) == len(items)
-    auc, uplift = m.get("auc"), (m.get("thin_filer_uplift") or {}).get("uplift")
+    auc, uplift = m.get("auc"), _uplift(m)
     first = f"{DATASET_LABEL} AUC {auc:.3f}로 목표({t['auc']:.2f})를 {'넘었' if auc >= t['auc'] else '넘지 못했'}"
     if uplift is None:
         sub = first + "어요."
