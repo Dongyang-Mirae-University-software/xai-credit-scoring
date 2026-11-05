@@ -195,9 +195,13 @@ def _main():
         render_no_report("anova")
         return
 
-    cv = (anova.get("source") or {}).get("cv") or {}   # 요청해 둔 필드: {"n_splits": 5, "n_repeats": 5}
-    cv_text = (f'{cv["n_splits"]}-Fold × {cv["n_repeats"]}회 반복 CV' if cv.get("n_splits") and cv.get("n_repeats")
-               else "교차검증(CV) 폴드별 AUC")
+    cv = (anova.get("source") or {}).get("cv") or {}   # {"n_splits": 5, "n_repeats": 5}. 예전 서버엔 없다
+    if cv.get("n_splits") and (cv.get("n_repeats") or 1) > 1:
+        cv_text = f'{cv["n_splits"]}-Fold × {cv["n_repeats"]}회 반복 CV'
+    elif cv.get("n_splits"):
+        cv_text = f'{cv["n_splits"]}-Fold CV'
+    else:
+        cv_text = "교차검증(CV) 폴드별 AUC"
     sizes = sorted({n for key, _, _ in TESTS for n in (anova.get(key, {}).get("group_sizes") or {}).values()})
     size_text = "AUC " + " / ".join(f"{n}개" for n in sizes) if sizes else "—"
     render_page_header("통계 검증", SUBTITLE, meta=[("검증 데이터", cv_text), ("그룹별 표본", size_text)])

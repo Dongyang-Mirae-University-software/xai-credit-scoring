@@ -89,7 +89,7 @@ def anova():
 
 
 # ---------------------------------------------------------------------------
-# 백엔드에 요청해 둔 API (아직 없으면 404 → None / False 로 대비)
+# 고객 조회 · 심사 이력 (서버가 예전 버전이라 없으면 404 → None / False / [] 로 대비)
 # ---------------------------------------------------------------------------
 def _missing(exc):
     return isinstance(exc, requests.HTTPError) and exc.response is not None and exc.response.status_code in (404, 405)
@@ -113,4 +113,15 @@ def save_screening(record):
     except requests.HTTPError as e:
         if _missing(e):
             return False
+        raise
+
+
+def screenings(limit=5):
+    """GET /screenings?limit=: 저장된 최근 심사 (최신순, 고객당 1건). API 가 아직 없으면 [].
+    항목: {screening_id, customer_id, approval_status, risk_grade, credit_score, screened_at(ISO)}"""
+    try:
+        return _get(f"/screenings?limit={limit}")
+    except requests.HTTPError as e:
+        if _missing(e):
+            return []
         raise

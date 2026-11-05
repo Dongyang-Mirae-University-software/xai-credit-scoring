@@ -294,7 +294,7 @@ def _share_bar(features):
 
 def _beeswarm(summary, reason_features):
     features = sorted(summary.get("features", []), key=lambda x: x["mean_abs_shap"], reverse=True)[:SUMMARY_TOP]
-    swarm = summary.get("beeswarm") or {}   # 요청해 둔 필드: {feature: {"shap": [...], "value": [0~1 ...]}}
+    swarm = summary.get("beeswarm") or {}   # {feature: {"shap": [...], "value": [0~1 ...]}}. 예전 서버엔 없다
     if swarm:
         values = [v for f in swarm.values() for v in f.get("shap", [])[:BEESWARM_MAX_DOTS]]
         lo, hi = min(values + [0]), max(values + [0])

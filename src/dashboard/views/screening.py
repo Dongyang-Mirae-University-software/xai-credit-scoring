@@ -6,7 +6,8 @@
 - 최근 심사 줄 · 헤더 고객 ID 검색 → 그 고객의 결과 화면 바로
 - 결과 화면: 정보 수정 → 입력 창, 새 심사 · 위치 표시 '고객 심사' → 첫 화면
 - 사이드바 '고객 심사' 는 마지막 단계(첫 화면 또는 결과 화면)로 돌아온다 (scr_current 를 유지)
-'불러오기'는 GET /customers/{id} 를 먼저 부르고, API 가 아직 없으면 이번 세션에서 심사한 고객과 샘플 고객에서 찾는다.
+'불러오기'는 GET /customers/{id} 를 먼저 부르고, 없으면 이번 세션에서 심사한 고객과 샘플 고객에서 찾는다.
+최근 심사는 서버에 저장된 이력(GET /screenings)과 이번 세션에서 심사한 것을 합쳐 보여 준다.
 """
 import re
 from datetime import datetime
@@ -23,6 +24,7 @@ from components import ui
 from components.api_error import api_error_html
 
 CSS_PATH = Path(__file__).with_suffix(".css")
+HISTORY_LIMIT = 5
 REASON_LIMIT = 3  # 결과 화면의 주요 거절 사유 수 (전체 5개는 XAI 분석)
 
 # 등급 → 위험도 (A·B 저위험 / C 중위험 / D·E 고위험) → 색 (ok / mid / fail)
@@ -63,20 +65,53 @@ def _open_sample(customer_id):
 
 
 def _open_history(customer_id):
-    """최근 심사 줄: 그 고객의 결과 화면으로."""
-    if not CF.show_result(customer_id):
-        _toast_later(f"{customer_id} 고객의 심사 결과를 찾을 수 없어요.", error=True)
+    """최근 심사 줄: 그 고객의 결과 화면으로.
+    이번 세션에서 심사한 고객이면 그 결과를, 서버 이력에만 있으면 고객 정보(GET /customers)로 다시 계산해 보여 준다."""
+    if CF.show_result(customer_id):
+        return
+    profile = CF.find_customer(customer_id)
+    if not profile:
+        _toast_later(f"{customer_id} 고객의 입력값을 찾을 수 없어 결과를 열지 못했어요.", error=True)
+        return
+    try:
+        CF.run_predict(profile, record=False)
+    except Exception as e:
+        _toast_later(f"{customer_id} 고객의 결과를 불러오지 못했어요: {type(e).__name__}", error=True)
 
 
-def _history_row(h, today):
-    r, at = h["result"], h["at"]
+def _parse_time(text):
+    try:
+        return datetime.fromisoformat(text).astimezone().replace(tzinfo=None)
+    except (TypeError, ValueError):
+        return None
+
+
+def _history_entries():
+    """최근 심사 = 서버에 저장된 이력(GET /screenings) + 이번 세션에서 심사한 것. 고객당 최신 1건, 최신순 5건."""
+    rows = [{**h["result"], "at": h["at"]} for h in st.session_state.scr_history]
+    try:
+        saved = api_client.screenings(HISTORY_LIMIT)
+    except Exception:
+        saved = []  # 이력 조회가 실패해도 첫 화면은 그린다
+    for r in saved:
+        at = _parse_time(r.get("screened_at"))
+        if at and r.get("customer_id"):
+            rows.append({**r, "at": at})
+    latest = {}
+    for r in sorted(rows, key=lambda r: r["at"], reverse=True):
+        latest.setdefault(r["customer_id"], r)
+    return list(latest.values())[:HISTORY_LIMIT]
+
+
+def _history_row(r, today):
+    at = r["at"]
     approved = r["approval_status"] == "APPROVED"
     tone = RISK_TONE[GRADE_RISK.get(r["risk_grade"], "high")] if approved else "fail"
     tone = "ok" if approved and tone == "fail" else tone
     when = ("오늘 " if at.date() == today else at.strftime("%m.%d ")) + at.strftime("%H:%M")
     return (f'<tr><td class="scr-id">{escape(r["customer_id"])}</td>'
             f'<td>{ui.pill("승인" if approved else "거절", tone)}</td>'
-            f'<td>{escape(r["risk_grade"])}</td><td>{r["credit_score"]}</td>'
+            f'<td>{escape(str(r["risk_grade"]))}</td><td>{r["credit_score"]}</td>'
             f'<td class="scr-time">{when}</td></tr>')
 
 
@@ -85,16 +120,17 @@ def _history():
     colgroup = ('<colgroup><col style="width:24%"><col style="width:19%"><col style="width:12.5%">'
                 '<col style="width:20%"><col></colgroup>')
     today = datetime.now().date()
+    entries = _history_entries()
     with st.container(key="scr-history"):
         st.html('<h2 class="scr-history-title">최근 심사</h2>'
                 f'<table class="ui-table scr-history-head">{colgroup}<thead><tr><th>고객 ID</th><th>결과</th>'
                 '<th>등급</th><th>신용 점수</th><th>심사 시각</th></tr></thead></table>')
-        if not st.session_state.scr_history:
+        if not entries:
             st.html('<p class="scr-empty">아직 심사한 고객이 없어요. 심사를 실행하면 여기에 쌓여요.</p>')
-        for i, h in enumerate(st.session_state.scr_history):
-            customer_id = h["result"]["customer_id"]
+        for i, r in enumerate(entries):
+            customer_id = r["customer_id"]
             with st.container(key=f"scr-hrow-{i}"):
-                st.html(f'<table class="ui-table">{colgroup}<tbody>{_history_row(h, today)}</tbody></table>')
+                st.html(f'<table class="ui-table">{colgroup}<tbody>{_history_row(r, today)}</tbody></table>')
                 st.button(f"{customer_id} 심사 결과 열기", key=f"scr-hrow-btn-{i}",
                           on_click=_open_history, args=(customer_id,))
 
@@ -258,7 +294,7 @@ def _action_card(key, title, caption):
 
 
 def _save(profile, result):
-    """POST /screenings 로 저장. API 가 아직 없으면 이번 세션 이력에만 남았다고 알린다."""
+    """POST /screenings 로 저장. 서버가 예전 버전이라 API 가 없으면 이번 세션 이력에만 남았다고 알린다."""
     customer_id = result["customer_id"]
     try:
         saved = api_client.save_screening({"input": profile, "result": result})
@@ -302,7 +338,12 @@ def _result_view():
             st.switch_page("views/xai.py")
     with right:
         saved = result["customer_id"] in st.session_state.scr_saved
-        if _action_card("save", "심사 결과 저장" + (" 완료" if saved else ""), "입력값과 결과를 심사 이력에 기록"):
+        # 시안: 저장하면 카드가 '저장 완료'(초록)로 바뀌고, 다시 누르면 '이미 저장된 심사예요'
+        clicked = (_action_card("saved", "저장 완료", "방금 심사 이력에 기록됐어요") if saved
+                   else _action_card("save", "심사 결과 저장", "입력값과 결과를 심사 이력에 기록"))
+        if clicked and saved:
+            st.toast("이미 저장된 심사예요")
+        elif clicked:
             _save(profile, result)
             st.rerun()
 

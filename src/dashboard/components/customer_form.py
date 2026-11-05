@@ -83,7 +83,7 @@ def init_state():
     ss = st.session_state
     ss.setdefault("scr_seq", 1)
     ss.setdefault("scr_current", None)   # 지금 보고 있는 심사 결과 {profile, result}. 있으면 고객 심사 = 결과 화면
-    ss.setdefault("scr_history", [])     # 최근 심사 [{profile, result, at}] (세션 안에서만 유지, GET /screenings 대기)
+    ss.setdefault("scr_history", [])     # 이번 세션에서 심사한 것 [{profile, result, at}]. 저장한 심사는 GET /screenings 로 함께 보인다
     ss.setdefault("scr_saved", set())    # '심사 결과 저장' 을 누른 고객
     ss.setdefault("customers", {})       # 심사한 고객 {id: {payload, result, profile}} (XAI 분석 고객 목록)
     ss.setdefault("xai_explain", {})     # /explain 응답 캐시
@@ -129,8 +129,9 @@ def _payload(profile):
     return {k: v for k, v in profile.items() if k != "gender"}
 
 
-def run_predict(profile):
-    """POST /predict. 성공하면 결과를 현재 심사·최근 심사·XAI 고객 목록에 넣는다. 실패하면 예외를 올린다."""
+def run_predict(profile, record=True):
+    """POST /predict. 성공하면 결과를 현재 심사·XAI 고객 목록에 넣고, record 면 최근 심사에도 쌓는다.
+    record=False 는 서버 이력에 있던 고객을 다시 열 때 (새 심사가 아니므로 시각을 바꾸지 않는다). 실패하면 예외를 올린다."""
     ss = st.session_state
     payload = _payload(profile)
     result = {**api_client.predict(payload), "customer_id": profile["customer_id"]}
@@ -140,8 +141,9 @@ def run_predict(profile):
     ss.xai_explain.pop(customer_id, None)
     ss.scr_saved.discard(customer_id)
     ss.scr_current = {"profile": profile, "result": result}
-    history = [h for h in ss.scr_history if h["result"]["customer_id"] != customer_id]
-    ss.scr_history = ([{"profile": profile, "result": result, "at": datetime.now()}] + history)[:HISTORY_LIMIT]
+    if record:
+        history = [h for h in ss.scr_history if h["result"]["customer_id"] != customer_id]
+        ss.scr_history = ([{"profile": profile, "result": result, "at": datetime.now()}] + history)[:HISTORY_LIMIT]
     if customer_id == new_id():
         ss.scr_seq += 1
 
@@ -162,6 +164,7 @@ def _fill_form(profile, loaded):
     ss.dlg_gender = profile.get("gender")
     ss.dlg_income = int(round(income))
     ss.dlg_repay = int(round(profile["DebtRatio"] / 100 * income))
+    ss.dlg_shown = (ss.dlg_income, ss.dlg_repay)  # 창에 보여 준 만원 단위 값 (고치지 않으면 원래 값을 그대로 보낸다)
     ss.dlg_util = int(round(min(profile["RevolvingUtilizationOfUnsecuredLines"], 1.0) * 100))
     for field, *_ in DELINQUENCY_FIELDS + EXTRA_FIELDS + ALT_FIELDS:
         ss[f"dlg_{field}"] = int(profile[field]) if field in INT_FIELDS else float(profile[field])
@@ -170,14 +173,24 @@ def _fill_form(profile, loaded):
 def _form_profile():
     ss = st.session_state
     income = ss.dlg_income or 0
+    original = ss.dlg_profile
+    if (ss.dlg_income, ss.dlg_repay) == ss.dlg_shown and "MonthlyIncome" in original:
+        # 월 소득·상환액을 고치지 않았으면 만원 단위로 반올림한 값이 아니라 불러온 원래 값을 보낸다
+        monthly_income, debt_ratio = float(original["MonthlyIncome"]), float(original["DebtRatio"])
+    else:
+        monthly_income = float(income * 10_000)
+        # 부채비율 = 월 상환액 ÷ 월 소득 (API 는 % 로 받는다)
+        debt_ratio = round(ss.dlg_repay / income * 100, 1) if income else 0.0
+    util = original.get("RevolvingUtilizationOfUnsecuredLines")
     profile = {
-        "customer_id": ss.dlg_profile["customer_id"],
+        "customer_id": original["customer_id"],
         "gender": ss.dlg_gender,
         "age": ss.dlg_age,
-        "MonthlyIncome": float(income * 10_000),
-        # 부채비율 = 월 상환액 ÷ 월 소득 (API 는 % 로 받는다)
-        "DebtRatio": round(ss.dlg_repay / income * 100, 1) if income else 0.0,
-        "RevolvingUtilizationOfUnsecuredLines": ss.dlg_util / 100,
+        "MonthlyIncome": monthly_income,
+        "DebtRatio": debt_ratio,
+        # 슬라이더는 1% 단위라, 움직이지 않았으면 원래 값 (1 초과 값도 그대로)
+        "RevolvingUtilizationOfUnsecuredLines": (
+            float(util) if util is not None and ss.dlg_util == int(round(min(util, 1.0) * 100)) else ss.dlg_util / 100),
     }
     for field, *_ in DELINQUENCY_FIELDS + EXTRA_FIELDS + ALT_FIELDS:
         profile[field] = ss[f"dlg_{field}"]

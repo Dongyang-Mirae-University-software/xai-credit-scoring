@@ -202,6 +202,7 @@
 .scr-act b { font-size: 15px; font-weight: 700; color: var(--ink); }
 .scr-act span { font-size: 13px; color: var(--ink-3); }
 [class*="st-key-scr-act-"]:hover .scr-act { border-color: var(--accent); }
+.st-key-scr-act-saved .scr-act { border-color: #A8D9C3; background: #F3FAF6; }
 [class*="st-key-scr-act-btn"] { position: absolute; inset: 0; margin: 0 !important; }
 [class*="st-key-scr-act-btn"] .stButton, [class*="st-key-scr-act-btn"] button {
   width: 100%; height: 100%; opacity: 0; cursor: pointer;

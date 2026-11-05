@@ -216,7 +216,7 @@ def _main():
     st.html(_summary(metrics))
 
     name = _algorithm(metrics.get("model"))
-    baseline = metrics.get("baseline")  # 요청해 둔 필드: {"model", "auc", "roc_curve", "pr_curve"}
+    baseline = metrics.get("baseline")  # {"model", "auc", "roc_curve", "pr_curve"}. 예전 서버엔 없다
     default_rate = metrics["n_default"] / metrics["n"] if metrics.get("n") and metrics.get("n_default") is not None else None
 
     st.html(ui.section_head("ROC 곡선과 Precision-Recall 곡선",
