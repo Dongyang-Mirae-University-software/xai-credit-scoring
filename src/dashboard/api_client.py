@@ -20,7 +20,8 @@ _health_cache = {"at": 0.0, "data": None}
 
 # API 호출 로그 (Streamlit 은 서버에서 API 를 부르므로 브라우저 네트워크 탭에 안 보인다 → 터미널에 찍는다)
 #   API_LOG=1    → POST /predict 200 (85ms)
-#   API_LOG=body → 위 줄 + 요청·응답 JSON (길면 자른다)
+#   API_LOG=body → 위 줄 + 요청·응답 JSON. 목록 응답은 한 건씩 한 줄로
+#   API_LOG_BODY_MAX → 한 줄 최대 글자 수 (기본 600, 0 이면 자르지 않는다)
 _log = logging.getLogger("dashboard.api")
 if config.API_LOG and not _log.handlers:  # Streamlit 이 모듈을 다시 읽어도 핸들러는 하나만
     _handler = logging.StreamHandler(sys.stderr)
@@ -31,8 +32,19 @@ if config.API_LOG and not _log.handlers:  # Streamlit 이 모듈을 다시 읽�
 
 
 def _short(data):
-    text = json.dumps(data, ensure_ascii=False)
-    return text if len(text) <= config.API_LOG_BODY_MAX else text[:config.API_LOG_BODY_MAX] + f"… ({len(text)}자)"
+    text = data if isinstance(data, str) else json.dumps(data, ensure_ascii=False)
+    limit = config.API_LOG_BODY_MAX
+    return text if limit <= 0 or len(text) <= limit else text[:limit] + f"… ({len(text)}자)"
+
+
+def _log_body(label, data):
+    """목록이면 '응답 목록 N건' 아래에 한 건씩, 아니면 한 줄."""
+    if isinstance(data, list):
+        _log.info("  %s 목록 %d건", label, len(data))
+        for i, item in enumerate(data, 1):
+            _log.info("    %d. %s", i, _short(item))
+    else:
+        _log.info("  %s %s", label, _short(data))
 
 
 def request(method, path, payload=None, timeout=None):
@@ -50,11 +62,11 @@ def request(method, path, payload=None, timeout=None):
         _log.info("%s %s %d (%dms)", method, path, r.status_code, (time.perf_counter() - started) * 1000)
         if config.API_LOG == "body":
             if payload is not None:
-                _log.info("  요청 %s", _short(payload))
+                _log_body("요청", payload)
             try:
-                _log.info("  응답 %s", _short(r.json()))
+                _log_body("응답", r.json())
             except ValueError:
-                _log.info("  응답 %s", r.text[:config.API_LOG_BODY_MAX])
+                _log_body("응답", r.text)
     r.raise_for_status()
     return r.json()
 
