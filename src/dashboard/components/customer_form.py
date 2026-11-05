@@ -239,7 +239,7 @@ def _reset_form():
     for field, _ in DELINQUENCY_FIELDS + EXTRA_FIELDS:
         ss[f"dlg_{field}"] = 0
     ss.dlg_missing, ss.dlg_error = [], None
-    st.toast("입력값을 모두 지웠어요", icon=":material/check_circle:")
+    ss.dlg_toast = "입력값을 모두 지웠어요"
 
 
 def _open_alt_inputs():
@@ -260,7 +260,7 @@ def _toggle_alt():
     ss = st.session_state
     if ss.dlg_alt_mode == "editing":
         ss.dlg_alt_mode = "edited"
-        st.toast("대안 데이터를 직접 입력한 값으로 바꿨어요", icon=":material/check_circle:")
+        ss.dlg_toast = "대안 데이터를 직접 입력한 값으로 바꿨어요"
     else:
         _open_alt_inputs()
 
@@ -300,6 +300,10 @@ def _dialog(on_screening):
     ss = st.session_state
     customer_id = ss.dlg_profile["customer_id"]
     st.html('<p class="dlg-sub">불러온 값은 그대로 두고 바뀐 항목만 수정하세요.</p>')
+    # 창 안 버튼 콜백에서 st.toast 를 부르면 창 밖에 쓰여 페이지 스타일이 지워지므로, 콜백은 글만 남기고 여기서 띄운다
+    toast = ss.pop("dlg_toast", None)
+    if toast:
+        st.toast(toast, icon=":material/check_circle:")
 
     if ss.dlg_loaded:
         with st.container(key="dlg-loaded", horizontal=True, vertical_alignment="center"):
