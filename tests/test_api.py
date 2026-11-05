@@ -39,6 +39,7 @@ def test_percent_inputs_are_divided_by_100():
     from src.api.schemas import CustomerInput
     f = CustomerInput(**{**CUSTOMER_EXAMPLE, 'DebtRatio': 35, 'telecom_payment_rate': 78, 'utility_payment_rate': 100}).features()
     assert (f['DebtRatio'], f['telecom_payment_rate'], f['utility_payment_rate']) == (0.35, 0.78, 1.0)
+    assert f['MonthlyIncome'] == CUSTOMER_EXAMPLE['MonthlyIncome'] / model.INCOME_KRW_PER_UNIT  # 원 → 모델 단위
     assert f['spending_consistency'] == CUSTOMER_EXAMPLE['spending_consistency']  # 점수는 그대로
 
 
@@ -98,3 +99,12 @@ def test_new_report_fields():
     assert 'evaluated_at' in client.get('/fairness').json()
     assert 'evaluated_at' in client.get('/fairness/mitigation').json()
     assert client.get('/anova').json()['source']['cv'] == {'n_splits': 5, 'n_repeats': 1}
+
+
+def test_income_is_won_outside_the_api():
+    c = client.get('/customers/C100001').json()
+    assert c['MonthlyIncome'] == 9120 * model.INCOME_KRW_PER_UNIT  # 파일은 모델 단위, 응답은 원
+    if model.ready():
+        r = client.post('/explain', json=c).json()
+        income = [x for x in r['rejection_reasons'] if x['feature'] == 'MonthlyIncome']
+        assert all(x['current_value'] == c['MonthlyIncome'] for x in income)

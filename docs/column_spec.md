@@ -367,7 +367,7 @@ Experian은 대출과 카드를 합친 활성 계좌가 1~2개이거나 5개 미
 | 항목 | 화면 입력 | 서버 변환 | 필수 여부 |
 |---|---|---|---|
 | 부채비율 (DebtRatio) | % (예: 35) | ÷100 → 0.35 | 필수 |
-| 월소득 (MonthlyIncome) | 원 | 그대로 | **필수** |
+| 월소득 (MonthlyIncome) | 원 | ÷ `INCOME_KRW_PER_UNIT` (기본 1000, 환경 변수) → 모델 단위(원본 GMSC) | **필수** |
 | 통신비 납부율 (TelecomPaymentRate) | % (0~100) | ÷100 → 0~1 | 필수 |
 | 공과금 납부율 (UtilityPaymentRate) | % (0~100) | ÷100 → 0~1 | 필수 |
 | 소비 일관성 (SpendingConsistency) | 점수 (0~100) | 그대로 | 필수 |
