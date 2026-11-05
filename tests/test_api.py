@@ -108,3 +108,11 @@ def test_income_is_won_outside_the_api():
         r = client.post('/explain', json=c).json()
         income = [x for x in r['rejection_reasons'] if x['feature'] == 'MonthlyIncome']
         assert all(x['current_value'] == c['MonthlyIncome'] for x in income)
+
+
+def test_metrics_has_cv_thin_filer_uplift():
+    # 씬파일러 향상 판정은 Train+Val 교차검증 값으로 한다 (#110, #120)
+    m = client.get('/metrics').json()
+    cv = m['thin_filer_uplift_cv']
+    assert cv['ci_low'] <= cv['uplift'] <= cv['ci_high']
+    assert m['pass']['thin_filer_uplift'] == cv['pass']
