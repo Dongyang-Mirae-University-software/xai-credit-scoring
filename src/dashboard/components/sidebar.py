@@ -36,12 +36,14 @@ def _status_box():
     if health is None:
         server, model = '<span class="sb-state fail">연결 안 됨</span>', "—"
     else:
-        server, model = '<span class="sb-state">정상</span>', escape(str(health.get("model_version") or "—"))
+        ok = health.get("status") == "healthy"
+        server = '<span class="sb-state">정상</span>' if ok else f'<span class="sb-state fail">{escape(str(health.get("status")))}</span>'
+        model = escape(str(health.get("model_version") or "—"))
     st.html(
         '<div class="sb-status">'
         '<span class="sb-status-head">시스템 상태</span>'
-        f'<span class="sb-row">API 서버{server}</span>'
-        f'<span class="sb-row">모델 버전<b title="{model}">{model}</b></span>'
+        f'<span class="sb-row"><span>API 서버</span>{server}</span>'
+        f'<span class="sb-row"><span>모델 버전</span><b>{model}</b></span>'
         "</div>"
     )
 

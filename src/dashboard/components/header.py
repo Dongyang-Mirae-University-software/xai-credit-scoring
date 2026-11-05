@@ -8,20 +8,10 @@ from pathlib import Path
 
 import streamlit as st
 
-import api_client
 from components import customer_form, ui
 
 CSS_PATH = Path(__file__).with_suffix(".css")
 SCREENING_PAGE = "views/screening.py"
-
-
-def _data_badge():
-    """리포트 중 하나라도 예시 값이면 '예시 데이터', 아니면 '교육용' (같은 모양)."""
-    try:
-        reports = api_client.health().get("reports", {})
-    except Exception:
-        return "API 오류"
-    return "예시 데이터" if "example" in reports.values() else "교육용"
 
 
 def go_start():
@@ -41,8 +31,8 @@ def render_header(current_page):
             <div><b>대안신용평가 심사 시스템</b><span>XAI 기반 씬파일러 대출 심사</span></div>
           </div>
           <div class="hdr-right">
-            <span class="hdr-badge">{_data_badge()}</span>
-            <span class="hdr-account" role="img" aria-label="계정">{ui.icon("account", "#FFFFFF", 20)}</span>
+            <span class="hdr-badge">교육용</span>
+            <span class="hdr-account" aria-hidden="true">{ui.icon("account", "#FFFFFF", 20)}</span>
           </div>
         </header>
         """)

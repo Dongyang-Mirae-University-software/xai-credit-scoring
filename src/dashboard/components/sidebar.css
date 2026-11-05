@@ -64,8 +64,10 @@ section[data-testid="stSidebar"] .stElementContainer:has(.sb-status) { position:
   font-size: 13px; color: var(--ink-2);
 }
 .sb-status-head { font-size: 12px; font-weight: 700; color: var(--ink-3); }
-.sb-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; white-space: nowrap; }
-.sb-row b { min-width: 0; overflow: hidden; text-overflow: ellipsis; font-weight: 700; color: var(--ink); }
+.sb-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
+.sb-row > :first-child, .sb-state { flex: none; white-space: nowrap; }
+/* 모델 버전은 길어도 자르지 않고 줄을 바꿔 다 보여 준다 (밑줄 이름이라 아무 곳에서나 줄바꿈) */
+.sb-row b { min-width: 0; text-align: right; overflow-wrap: anywhere; font-weight: 700; color: var(--ink); }
 .sb-state { display: inline-flex; align-items: center; gap: 6px; color: var(--ok-text); font-weight: 700; }
 .sb-state::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--ok); }
 .sb-state.fail { color: var(--fail-text); }
