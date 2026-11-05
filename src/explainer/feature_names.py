@@ -62,7 +62,7 @@ VALUE_FORMAT = {
     'utility_payment_rate': 'percent',
     'DebtRatio': 'ratio',
     'age': '세',
-    'MonthlyIncome': '',
+    'MonthlyIncome': '원',
     'spending_consistency': '점',
     'regular_payment_count': '건',
     'app_login_frequency': '회',

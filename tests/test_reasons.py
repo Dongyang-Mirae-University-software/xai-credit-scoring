@@ -44,7 +44,7 @@ def test_korean_particles():
         {'MonthlyIncome': 0.2, 'NumberOfTimes90DaysLate': 0.3},
         references={'_all': {'MonthlyIncome': 6418, 'NumberOfTimes90DaysLate': 0.27}})
     texts = {r['feature']: r['explanation'] for r in reasons}
-    assert texts['MonthlyIncome'].startswith('월소득이 5,400으로, 전체 평균(6,418) 대비 낮습니다')
+    assert texts['MonthlyIncome'].startswith('월소득이 5,400원으로, 전체 평균(6,418원) 대비 낮습니다')
     assert texts['NumberOfTimes90DaysLate'].startswith('90일 이상 연체 횟수가 3회로, 전체 평균(0.3회) 대비 높습니다')
 
 

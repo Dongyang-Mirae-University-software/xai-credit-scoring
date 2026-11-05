@@ -11,6 +11,7 @@ from typing import Optional
 
 from pydantic import BaseModel, ConfigDict, Field
 
+from src.api.model import INCOME_KRW_PER_UNIT
 from src.explainer.performance import DISCLAIMER
 
 EXAMPLES_DIR = Path(__file__).parent / 'examples'
@@ -43,7 +44,7 @@ PERCENT_FIELDS = ('DebtRatio', 'telecom_payment_rate', 'utility_payment_rate')
 class CustomerInput(BaseModel):
     """고객 1명의 입력 (전통 10개 + 대안 5개). 성별·연령대·민감정보는 받지 않는다.
 
-    단위는 docs/column_spec.md §9 (이슈 #70): 부채비율·납부율은 % 로 받고 서버가 ÷100 해서 모델에 넣는다."""
+    단위는 docs/column_spec.md §9 (이슈 #70): 부채비율·납부율은 % 로 받고 서버가 ÷100, 월소득은 원으로 받고 서버가 ÷INCOME_KRW_PER_UNIT 해서 모델에 넣는다."""
     model_config = ConfigDict(populate_by_name=True, json_schema_extra={'examples': [CUSTOMER_EXAMPLE]})
 
     customer_id: str = Field('C000000', description='고객 번호 (표시용)')
@@ -52,7 +53,7 @@ class CustomerInput(BaseModel):
     age: int = Field(..., ge=18, le=120, description='나이')
     past_due_30_59: int = Field(0, ge=0, alias='NumberOfTime30-59DaysPastDueNotWorse', description='최근 2년 30~59일 연체 횟수')
     DebtRatio: float = Field(..., ge=0, description='부채비율 % (월 대출 상환액 ÷ 월소득 × 100). 서버가 ÷100')
-    MonthlyIncome: float = Field(..., ge=0, description='월소득 (원)')
+    MonthlyIncome: float = Field(..., ge=0, description='월소득 (원). 서버가 INCOME_KRW_PER_UNIT(기본 1000)으로 나눠 모델 단위로 바꾼다')
     NumberOfOpenCreditLinesAndLoans: int = Field(0, ge=0, description='보유 대출·신용 한도 개수')
     NumberOfTimes90DaysLate: int = Field(0, ge=0, description='90일 이상 연체 횟수')
     NumberRealEstateLoansOrLines: int = Field(0, ge=0, description='부동산 담보대출 개수')
@@ -70,6 +71,7 @@ class CustomerInput(BaseModel):
         values = self.model_dump(by_alias=True, exclude={'customer_id'})
         for key in PERCENT_FIELDS:
             values[key] = values[key] / 100
+        values['MonthlyIncome'] = values['MonthlyIncome'] / INCOME_KRW_PER_UNIT
         return values
 
 
