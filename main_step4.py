@@ -17,6 +17,7 @@ Step 4: 공정성 검증 · Bias Mitigation (남궁명진 담당)
 """
 
 import argparse
+from datetime import datetime
 import logging
 import os
 from pathlib import Path
@@ -81,6 +82,7 @@ def main():
 
     report = fairness_report(test[TARGET], p, gender=gender, age_group=age)
     report['model'] = model_path.name
+    report['evaluated_at'] = datetime.now().astimezone().isoformat(timespec='seconds')
     report['disclaimer'] = DISCLAIMER
     logger.info(f"DI Ratio {report['di_ratio']:.3f} / EO TPR 차이 {report['equalized_odds_tpr_diff']:.3f} "
                 f"/ FPR 차이 {report['equalized_odds_fpr_diff']:.3f} → {save_json(report, out / 'fairness.json')}")
@@ -94,6 +96,7 @@ def main():
     ta = mt.mitigation_report(test[TARGET], p, gender=gender, age_group=age, method='threshold_adjustment',
                               fit_p_default=p_val, fit_gender=v_gender, fit_age_group=v_age)
     ta['disclaimer'] = DISCLAIMER
+    ta['evaluated_at'] = report['evaluated_at']
     save_json(ta, out / 'fairness_mitigation.json')
     (out / 'comparison_threshold_adjustment.md').write_text(mt.comparison_table(ta) + f"\n\n> {DISCLAIMER}\n", encoding='utf-8')
     logger.info("Threshold Adjustment 전/후:\n" + mt.comparison_table(ta))
