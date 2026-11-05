@@ -16,7 +16,7 @@ SCREENING_PAGE = "views/screening.py"
 
 def go_start():
     """로고 · 사이드바 '고객 심사': 고객 심사 첫 화면으로 (버튼 on_click 에서 부른다)."""
-    st.session_state.scr_current = None
+    customer_form.clear_result()
     st.session_state.hdr_go = True
 
 

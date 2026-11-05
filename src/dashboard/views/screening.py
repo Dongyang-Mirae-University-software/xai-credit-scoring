@@ -4,7 +4,7 @@
 - 첫 화면: 불러오기 · 시연용 샘플 칩 → 값이 채워진 입력 창 (제목 옆 고객 ID), 신규 고객 심사 → 빈 입력 창
 - 입력 창(components/customer_form)에서 심사 실행 → 결과 화면 (결과는 서버 이력에 바로 남는다)
 - 오늘 심사한 고객 줄 → 그 고객의 결과 화면 바로
-- 결과 화면: 정보 수정 → 입력 창, 새 심사 → 첫 화면
+- 결과 화면: 정보 수정 → 입력 창, 이전 → 첫 화면. 주소는 ?customer=<고객 ID> 라 새로고침·공유해도 그 결과가 열린다
 - 로고 · 사이드바 '고객 심사' → 언제나 첫 화면
 '불러오기'·샘플은 API 를 부르지 않고 로컬 고객 파일(samples.json)과 이번 세션에서 심사한 고객에서 찾는다.
 오늘 심사한 고객은 서버 이력(GET /screenings)과 이번 세션에서 심사한 것을 합쳐 보여 준다 (새로고침해도 남는다).
@@ -180,9 +180,25 @@ def _start_view():
 # ---------------------------------------------------------------------------
 # 결과 화면 (디자인 03 승인 / 04 거절)
 # ---------------------------------------------------------------------------
-def _new_screening():
-    st.session_state.scr_current = None
+def _back():
+    """이전: 결과 화면을 닫고 첫 화면으로 (주소의 ?customer= 도 지운다)."""
+    CF.clear_result()
     st.session_state.scr_load_invalid = False
+
+
+def _sync_query():
+    """결과 화면과 주소(?customer=)를 맞춘다.
+    - 주소에 고객 ID 가 있는데 지금 결과와 다르면 그 고객 결과를 연다 (이번 세션 결과 → 없으면 고객 파일 값으로 다시 심사)
+    - 결과를 보고 있으면 주소에 그 고객 ID 를 붙인다 (새로고침·공유해도 같은 결과)"""
+    ss = st.session_state
+    wanted = (st.query_params.get(CF.RESULT_QUERY) or "").strip().upper()
+    current = ss.scr_current["result"]["customer_id"] if ss.scr_current else None
+    if wanted and wanted != current:
+        _open_history(wanted)
+        if ss.scr_current is None or ss.scr_current["result"]["customer_id"] != wanted:
+            st.query_params.pop(CF.RESULT_QUERY, None)  # 열 수 없는 고객이면 첫 화면 (안내는 토스트)
+    if ss.scr_current:
+        st.query_params[CF.RESULT_QUERY] = ss.scr_current["result"]["customer_id"]
 
 
 def _completed_at(result):
@@ -359,7 +375,7 @@ def _result_view():
     with st.container(key="scr-result-head", horizontal=True, vertical_alignment="bottom"):
         st.html(f'<div class="ui-page-head"><div><h1>심사 결과</h1>'
                 f'<p>{_completed_at(result)} 심사 완료</p></div></div>')
-        st.button("새 심사", key="scr-new-screening", type="primary", on_click=_new_screening)
+        st.button("이전", key="scr-back", on_click=_back)
 
     with st.container(key="scr-summary-card", horizontal=True, vertical_alignment="center"):
         st.html(_summary_html(profile, result))
@@ -382,11 +398,12 @@ def _result_view():
 # ---------------------------------------------------------------------------
 st.html(f"<style>{CSS_PATH.read_text(encoding='utf-8')}{CF.CSS}"
         + ui.mask_css(".st-key-scr-new button::before", "plus", 16)
-        + ui.mask_css(".st-key-scr-new-screening button::before", "plus", 16)
+        + ui.mask_css(".st-key-scr-back button::before", "chevron", 16)
         + ui.mask_css(".st-key-scr-edit button::before", "pencil", 14)
         + "</style>")
 CF.init_state()
 
+_sync_query()
 toast = st.session_state.pop("scr_toast", None)
 if toast:
     st.toast(toast[0], icon=":material/error:" if toast[1] else ":material/check_circle:")

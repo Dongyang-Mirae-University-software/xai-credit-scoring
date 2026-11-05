@@ -4,12 +4,21 @@
    01 첫 화면
    ========================================================================= */
 .st-key-scr-start-head { justify-content: space-between; flex-wrap: nowrap; }
-.st-key-scr-new button, .st-key-scr-new-screening button {
+.st-key-scr-new button {
   display: inline-flex; align-items: center; gap: 8px;
   height: 44px; min-height: 44px; padding: 0 18px; border-radius: 10px; border: 0; background: var(--accent);
   color: #FFF;
 }
-.st-key-scr-new button p, .st-key-scr-new-screening button p { font-size: 15px; font-weight: 700; color: #FFF; }
+.st-key-scr-new button p { font-size: 15px; font-weight: 700; color: #FFF; }
+/* 결과 화면 '이전': 흰 바탕 테두리 버튼 + 왼쪽 화살표 (오른쪽 화살표 아이콘을 뒤집는다) */
+.st-key-scr-back button {
+  display: inline-flex; align-items: center; gap: 6px;
+  height: 44px; min-height: 44px; padding: 0 18px 0 14px; border-radius: 10px;
+  border: 1px solid var(--input); background: #FFF; color: var(--ink-2);
+}
+.st-key-scr-back button::before { transform: rotate(180deg); }
+.st-key-scr-back button p { font-size: 15px; font-weight: 700; color: var(--ink-2); }
+.st-key-scr-back button:hover { border-color: var(--accent); }
 
 /* 고객 불러오기 카드: 왼쪽 ID 입력, 오른쪽 시연용 샘플 */
 .st-key-scr-load-card {

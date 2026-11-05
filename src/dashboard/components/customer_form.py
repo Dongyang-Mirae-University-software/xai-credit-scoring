@@ -108,6 +108,15 @@ def find_customer(customer_id):
     return None
 
 
+RESULT_QUERY = "customer"  # 결과 화면 주소: 고객 심사?customer=C001234
+
+
+def clear_result():
+    """첫 화면으로: 보고 있던 결과와 주소의 ?customer= 를 지운다 (버튼 on_click 에서 불러도 된다)."""
+    st.session_state.scr_current = None
+    st.query_params.pop(RESULT_QUERY, None)
+
+
 def show_result(customer_id):
     """이미 심사한 고객의 결과를 고객 심사 화면에 띄운다. 심사한 적 없으면 False."""
     entry = st.session_state.customers.get(customer_id)
