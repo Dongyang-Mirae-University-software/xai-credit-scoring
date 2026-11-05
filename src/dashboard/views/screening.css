@@ -78,7 +78,7 @@
 .st-key-scr-history [class*="st-key-scr-hrow-"]:not(.st-key-scr-hrow-0):not([class*="btn"]) td { border-top: 1px solid var(--divider); }
 .scr-history-head th { border-bottom: 1px solid var(--border); }
 .st-key-scr-history [class*="st-key-scr-hrow-"]:not([class*="btn"]):hover td { background: var(--page); }
-.st-key-scr-history [class*="st-key-scr-hrow-btn-"] { position: absolute; inset: 0; margin: 0; }
+.st-key-scr-history [class*="st-key-scr-hrow-btn-"] { position: absolute; inset: 0; width: 100% !important; height: 100%; margin: 0; z-index: 1; }
 .st-key-scr-history [class*="st-key-scr-hrow-btn-"] button {
   width: 100%; height: 100%; min-height: 0; opacity: 0; cursor: pointer;
 }
@@ -203,7 +203,8 @@
 .scr-act span { font-size: 13px; color: var(--ink-3); }
 [class*="st-key-scr-act-"]:hover .scr-act { border-color: var(--accent); }
 .st-key-scr-act-saved .scr-act { border-color: #A8D9C3; background: #F3FAF6; }
-[class*="st-key-scr-act-btn"] { position: absolute; inset: 0; margin: 0 !important; }
+/* 버튼 칸은 Streamlit 이 내용 폭(fit-content)으로 잡으므로 카드 전체 폭으로 늘린다 */
+[class*="st-key-scr-act-btn"] { position: absolute; inset: 0; width: 100% !important; height: 100%; margin: 0 !important; z-index: 1; }
 [class*="st-key-scr-act-btn"] .stButton, [class*="st-key-scr-act-btn"] button {
   width: 100%; height: 100%; opacity: 0; cursor: pointer;
 }
