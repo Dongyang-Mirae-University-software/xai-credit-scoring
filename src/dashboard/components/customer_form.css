@@ -76,7 +76,7 @@ div[role="dialog"] [data-testid="InputInstructions"] { display: none; }
 }
 .st-key-dlg-unit-age [data-baseweb="input"]::after { content: "세"; }
 .st-key-dlg-unit-income [data-baseweb="input"]::after,
-.st-key-dlg-unit-repay [data-baseweb="input"]::after { content: "만원"; }
+.st-key-dlg-unit-repay [data-baseweb="input"]::after { content: "원"; }
 .st-key-dlg-unit-age, .st-key-dlg-unit-income, .st-key-dlg-unit-repay, .st-key-dlg-gender-box, .st-key-dlg-util { gap: 6px !important; }
 
 /* 성별: 두 칸 나눈 선택 상자 */

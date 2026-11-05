@@ -90,7 +90,7 @@ def _customer_strip(entry):
         ("고객 ID", result["customer_id"]),
         ("나이", f'{profile["age"]}세'),
         ("성별", profile.get("gender") or "—"),
-        ("월 소득", f'{profile["MonthlyIncome"] / 10_000:,.0f}만원'),
+        ("월 소득", F.income(profile["MonthlyIncome"])),
         ("고객 유형", "씬파일러" if result.get("is_thin_filer") else "일반 고객"),
         ("신용 점수", f'{result["credit_score"]}점'),
         ("등급", result["risk_grade"]),

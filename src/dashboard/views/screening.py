@@ -185,7 +185,7 @@ def _summary_html(profile, result):
         ("고객 ID", profile["customer_id"]),
         ("나이", f'{profile["age"]}세'),
         ("성별", profile.get("gender") or "—"),
-        ("월 소득", f'{profile["MonthlyIncome"] / 10_000:,.0f}만원'),
+        ("월 소득", F.income(profile["MonthlyIncome"])),
         ("부채비율", f'{profile["DebtRatio"]:.0f}%'),
         ("연체", f"{late}회" if late else "없음"),
         ("고객 유형", "씬파일러" if result.get("is_thin_filer") else "일반 고객"),

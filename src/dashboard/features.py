@@ -32,7 +32,7 @@ DELINQUENCY_FEATURES = [
     "NumberOfTime30-59DaysPastDueNotWorse", "NumberOfTime60-89DaysPastDueNotWorse", "NumberOfTimes90DaysLate",
 ]
 
-# 값 표시 형식: 비율(0~1 → %), 금액(원 → 만원), 횟수·건수 단위
+# 값 표시 형식: 비율(0~1 → %), 월 소득(API 값 그대로, 원), 횟수·건수 단위
 _RATE = {"RevolvingUtilizationOfUnsecuredLines", "DebtRatio", "telecom_payment_rate", "utility_payment_rate"}
 _UNITS = {
     "age": "{}세",
@@ -61,6 +61,11 @@ def _count(v):
     return f"{v:.0f}" if abs(v - round(v)) < 0.05 else f"{v:.1f}"
 
 
+def income(value):
+    """월 소득은 API(/customers · /predict) 값을 그대로, 단위는 API 스키마의 '원'."""
+    return f"{float(value):,.0f}원"
+
+
 def fmt_value(feature, value):
     """/explain 의 current_value·reference_value 를 화면 표기로 (비율 변수는 0~1 로 온다)."""
     if value is None:
@@ -68,7 +73,7 @@ def fmt_value(feature, value):
     if feature in _RATE:
         return f"{float(value) * 100:.0f}%"
     if feature == "MonthlyIncome":
-        return f"{float(value) / 10_000:,.0f}만원"
+        return income(value)
     return _UNITS.get(feature, "{}").format(_count(value))
 
 
