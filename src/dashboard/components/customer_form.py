@@ -21,10 +21,11 @@ CSS = Path(__file__).with_suffix(".css").read_text(encoding="utf-8")
 SCREENING_PAGE = "views/screening.py"
 HISTORY_LIMIT = 5
 
-# 요청 키·단위는 API 와 같다: 부채비율·통신비·공과금 납부율은 % (서버가 ÷100), 신용한도 사용률은 0~1.
-# 월 소득은 GET /customers 가 주는 값과 같은 규모 (고객 1000명 중앙값 5,500원, 모델 학습 데이터와 같은 단위)
+# 기본값은 백엔드 Swagger 예시 고객(src/api/schemas.py CUSTOMER_EXAMPLE)과 같다.
+# 요청 키·단위는 실제 API(CustomerInput)와 같다: 월 소득은 원 (서버가 ÷INCOME_KRW_PER_UNIT 해서 모델 단위로),
+# 부채비율·통신비·공과금 납부율은 % (서버가 ÷100), 신용한도 사용률은 0~1
 DEFAULT_CUSTOMER = {
-    "age": 45, "MonthlyIncome": 4_200, "DebtRatio": 32.0, "RevolvingUtilizationOfUnsecuredLines": 0.48,
+    "age": 45, "MonthlyIncome": 4_200_000, "DebtRatio": 32.0, "RevolvingUtilizationOfUnsecuredLines": 0.48,
     "NumberOfDependents": 2, "NumberOfTime30-59DaysPastDueNotWorse": 1, "NumberOfTime60-89DaysPastDueNotWorse": 0,
     "NumberOfTimes90DaysLate": 0, "NumberOfOpenCreditLinesAndLoans": 6, "NumberRealEstateLoansOrLines": 1,
     "telecom_payment_rate": 90.0, "utility_payment_rate": 93.0, "spending_consistency": 75.0,
@@ -34,18 +35,18 @@ DEFAULT_CUSTOMER = {
 # 샘플 고객 (첫 화면 '샘플로 바로 심사' · ID 불러오기). GET /customers 가 생기면 고객 DB 로 대체된다.
 SAMPLE_CUSTOMERS = {
     "C100001": ("일반 고객", "여성", {
-        **DEFAULT_CUSTOMER, "age": 42, "MonthlyIncome": 5_200, "DebtRatio": 25.0,
+        **DEFAULT_CUSTOMER, "age": 42, "MonthlyIncome": 5_200_000, "DebtRatio": 25.0,
         "RevolvingUtilizationOfUnsecuredLines": 0.15, "NumberOfTime30-59DaysPastDueNotWorse": 0,
         "NumberOfOpenCreditLinesAndLoans": 8, "telecom_payment_rate": 99.0, "utility_payment_rate": 99.0,
         "spending_consistency": 88.0, "regular_payment_count": 9, "app_login_frequency": 25}),
     "C100002": ("씬파일러", "남성", {
-        **DEFAULT_CUSTOMER, "age": 27, "MonthlyIncome": 2_800, "DebtRatio": 10.0,
+        **DEFAULT_CUSTOMER, "age": 27, "MonthlyIncome": 2_800_000, "DebtRatio": 10.0,
         "RevolvingUtilizationOfUnsecuredLines": 0.10, "NumberOfDependents": 0,
         "NumberOfTime30-59DaysPastDueNotWorse": 0, "NumberOfOpenCreditLinesAndLoans": 1,
         "NumberRealEstateLoansOrLines": 0, "telecom_payment_rate": 98.0, "utility_payment_rate": 97.0,
         "spending_consistency": 85.0, "regular_payment_count": 8, "app_login_frequency": 27}),
     "C100003": ("거절 예상", "남성", {
-        **DEFAULT_CUSTOMER, "age": 33, "MonthlyIncome": 1_800, "DebtRatio": 85.0,
+        **DEFAULT_CUSTOMER, "age": 33, "MonthlyIncome": 1_800_000, "DebtRatio": 85.0,
         "RevolvingUtilizationOfUnsecuredLines": 0.95, "NumberOfDependents": 3,
         "NumberOfTime30-59DaysPastDueNotWorse": 3, "NumberOfTime60-89DaysPastDueNotWorse": 1,
         "NumberOfTimes90DaysLate": 1, "NumberOfOpenCreditLinesAndLoans": 4, "NumberRealEstateLoansOrLines": 0,
@@ -157,14 +158,14 @@ def thin_filer(open_lines, real_estate, late_total):
 # 입력 창
 # ---------------------------------------------------------------------------
 def _fill_form(profile, loaded):
-    income = float(profile["MonthlyIncome"])  # API 값 그대로 (원)
+    income = profile["MonthlyIncome"] / 10_000
     ss = st.session_state
     ss.dlg_profile, ss.dlg_loaded, ss.dlg_alt_edit, ss.dlg_error = profile, loaded, False, None
     ss.dlg_age = int(profile["age"])
     ss.dlg_gender = profile.get("gender")
     ss.dlg_income = int(round(income))
     ss.dlg_repay = int(round(profile["DebtRatio"] / 100 * income))
-    ss.dlg_shown = (ss.dlg_income, ss.dlg_repay)  # 창에 보여 준 정수 값 (고치지 않으면 원래 값을 그대로 보낸다)
+    ss.dlg_shown = (ss.dlg_income, ss.dlg_repay)  # 창에 보여 준 만원 단위 값 (고치지 않으면 원래 값을 그대로 보낸다)
     ss.dlg_util = int(round(min(profile["RevolvingUtilizationOfUnsecuredLines"], 1.0) * 100))
     for field, *_ in DELINQUENCY_FIELDS + EXTRA_FIELDS + ALT_FIELDS:
         ss[f"dlg_{field}"] = int(profile[field]) if field in INT_FIELDS else float(profile[field])
@@ -175,10 +176,10 @@ def _form_profile():
     income = ss.dlg_income or 0
     original = ss.dlg_profile
     if (ss.dlg_income, ss.dlg_repay) == ss.dlg_shown and "MonthlyIncome" in original:
-        # 월 소득·상환액을 고치지 않았으면 반올림한 값이 아니라 불러온 원래 값을 보낸다
+        # 월 소득·상환액을 고치지 않았으면 만원 단위로 반올림한 값이 아니라 불러온 원래 값을 보낸다
         monthly_income, debt_ratio = float(original["MonthlyIncome"]), float(original["DebtRatio"])
     else:
-        monthly_income = float(income)
+        monthly_income = float(income * 10_000)
         # 부채비율 = 월 상환액 ÷ 월 소득 (API 는 % 로 받는다)
         debt_ratio = round(ss.dlg_repay / income * 100, 1) if income else 0.0
     util = original.get("RevolvingUtilizationOfUnsecuredLines")
@@ -265,7 +266,7 @@ def _dialog(on_screening):
             st.radio("성별", ["여성", "남성"], index=None, horizontal=True, key="dlg_gender")
             st.html('<span class="dlg-hint">공정성 점검용이며 심사 점수에는 쓰지 않아요</span>')
         with c3, st.container(key="dlg-unit-income"):
-            st.number_input("월 소득", min_value=0, step=100, key="dlg_income")
+            st.number_input("월 소득", min_value=0, step=10, key="dlg_income")
 
     # 금융 이력
     with st.container(key="dlg-finance"):
@@ -274,7 +275,7 @@ def _dialog(on_screening):
         _group_head("금융 이력", f'<em>씬파일러 자동 판정 <b>{"해당" if thin else "해당 없음"}</b></em>')
         c1, c2 = st.columns(2, gap="medium")
         with c1, st.container(key="dlg-unit-repay"):
-            st.number_input("월 대출 상환액", min_value=0, step=10, key="dlg_repay")
+            st.number_input("월 대출 상환액", min_value=0, step=1, key="dlg_repay")
             ratio = f"{ss.dlg_repay / ss.dlg_income * 100:.0f}%" if ss.dlg_income else "—"
             st.html(f'<span class="dlg-hint">부채비율 <b>{ratio}</b> 자동 계산</span>')
         with c2, st.container(key="dlg-util"):
