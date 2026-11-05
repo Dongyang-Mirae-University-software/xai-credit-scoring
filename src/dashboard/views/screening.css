@@ -199,3 +199,13 @@
 [class*="st-key-scr-act-btn"] .stButton, [class*="st-key-scr-act-btn"] button {
   width: 100%; height: 100%; opacity: 0; cursor: pointer;
 }
+
+/* API 연결 실패: 심사로 이어지는 버튼을 끈다 (시안 #api-down: 회색 버튼, 샘플 칩은 반투명) */
+.st-key-scr-new button:disabled,
+.st-key-scr-load [data-testid="stFormSubmitButton"] button:disabled {
+  background: var(--input) !important; border: 0; color: #FFF; cursor: not-allowed; opacity: 1;
+}
+.st-key-scr-new button:disabled p,
+.st-key-scr-load [data-testid="stFormSubmitButton"] button:disabled p { color: #FFF !important; }
+.st-key-scr-sample-chips button:disabled { opacity: .5; cursor: not-allowed; background: #FFF; border-color: var(--input); }
+.st-key-scr-sample-chips button:disabled p { color: var(--ink-2) !important; }

@@ -56,7 +56,8 @@ section[data-testid="stSidebar"] [class*="-active"] a[data-testid="stPageLink-Na
 section[data-testid="stSidebar"] [class*="-active"] a[data-testid="stPageLink-NavLink"] span { font-weight: 700; }
 
 /* 하단 시스템 상태: 사이드바 바닥에 고정 */
-section[data-testid="stSidebar"] .stElementContainer:has(.sb-status) { position: static; }
+section[data-testid="stSidebar"] .stElementContainer:has(.sb-status),
+section[data-testid="stSidebar"] [data-testid="stElementContainer"]:has(.sb-status) { position: static; }
 .sb-status {
   position: absolute; left: 14px; right: 14px; bottom: 24px;
   display: flex; flex-direction: column; gap: 12px;
@@ -72,6 +73,9 @@ section[data-testid="stSidebar"] .stElementContainer:has(.sb-status) { position:
 .sb-state::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--ok); }
 .sb-state.fail { color: var(--fail-text); }
 .sb-state.fail::before { background: var(--fail); }
+.sb-state.wait { color: #163A9E; }
+.sb-state.wait::before { background: var(--accent); }
+.sb-row b.muted { color: var(--ink-3); }
 
 /* 헤더(고정 배치) 조각은 사이드바 흐름에서 빼서 메뉴 위에 간격이 생기지 않게 */
 section[data-testid="stSidebar"] .stElementContainer:has(.hdr),

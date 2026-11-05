@@ -8,6 +8,7 @@ from pathlib import Path
 
 import streamlit as st
 
+from components import connection
 from components.header import render_header
 from components.sidebar import render_sidebar
 from config import DISCLAIMER
@@ -32,7 +33,8 @@ if st.session_state.get("_page") not in (None, pg.url_path):
         st.session_state.pop(key, None)
 st.session_state._page = pg.url_path
 render_header(pg)
-render_sidebar(pages, pg)
+status_slot = render_sidebar(pages, pg)
+connection.check(pg, status_slot)  # 첫 진입·재연결이면 /health 를 기다리는 동안 스켈레톤, 실패하면 경고 띠
 
 pg.run()
 

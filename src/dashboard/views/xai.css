@@ -174,10 +174,11 @@ strong.wf-label { color: var(--ink); font-weight: 700; }
 
 /* 고객이 없을 때 */
 .st-key-xai-empty-box {
-  background: var(--card); border: 1px solid var(--border); border-radius: 16px;
-  padding: 48px 32px; gap: 12px; align-items: center; text-align: center;
+  background: var(--card); border: 1px solid var(--border); border-radius: 14px;
+  padding: 64px 32px; gap: 18px; align-items: center; text-align: center;
 }
-.st-key-xai-empty-box h2 { margin: 8px 0 0; padding: 0; font-size: 20px; font-weight: 700; color: var(--ink); }
+.xai-empty-text { display: flex; flex-direction: column; gap: 6px; margin-top: 18px; }
+.st-key-xai-empty-box h2 { margin: 0; padding: 0; font-size: 20px; font-weight: 700; line-height: 1.45; color: var(--ink); }
 .st-key-xai-empty-box p { margin: 0; font-size: 14px; color: var(--ink-3); }
 .xai-empty-icon {
   width: 64px; height: 64px; border-radius: 50%; background: var(--accent-bg); margin: 0 auto;

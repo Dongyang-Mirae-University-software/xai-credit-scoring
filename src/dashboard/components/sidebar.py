@@ -1,15 +1,12 @@
-"""사이드바 240px: 묶음별 메뉴(심사 업무 / 모델 검증)와 하단 시스템 상태 (GET /health).
+"""사이드바 240px: 묶음별 메뉴(심사 업무 / 모델 검증)와 하단 시스템 상태 (GET /health, components/connection 이 채운다).
 
 '고객 심사' 는 언제 눌러도 고객 심사 첫 화면으로 간다 (디자인 프로토타입 동작).
 page_link 는 누른 것을 알 수 없어, 이 메뉴만 같은 모양의 버튼으로 그린다."""
 from html import escape
 from pathlib import Path
 
-import requests
 import streamlit as st
 
-import api_client
-import config
 from components import ui
 from components.header import go_start
 
@@ -22,30 +19,20 @@ NAV_GROUPS = [
 ]
 
 
-@st.cache_data(ttl=config.HEALTH_CACHE_TTL, show_spinner=False)
-def _fetch_health(base_url):
-    """/health 응답을 dict로 반환한다. 연결 실패 시 None."""
-    try:
-        return api_client.request("GET", "/health", timeout=config.HEALTH_TIMEOUT)
-    except requests.RequestException:
-        return None
-
-
-def _status_box():
-    health = _fetch_health(config.API_BASE_URL)
-    if health is None:
-        server, model = '<span class="sb-state fail">연결 안 됨</span>', "—"
+def status_html(state, health=None):
+    """하단 시스템 상태. state: loading(연결 중) / ok / down(연결 안 됨). 값은 GET /health 의 status, model_version."""
+    if state == "loading":
+        server, model = '<span class="sb-state wait">연결 중</span>', '<b class="muted">확인 중</b>'
+    elif state == "down":
+        server, model = '<span class="sb-state fail">연결 안 됨</span>', '<b class="muted">확인 불가</b>'
     else:
-        ok = health.get("status") == "healthy"
-        server = '<span class="sb-state">정상</span>' if ok else f'<span class="sb-state fail">{escape(str(health.get("status")))}</span>'
-        model = escape(str(health.get("model_version") or "—"))
-    st.html(
-        '<div class="sb-status">'
-        '<span class="sb-status-head">시스템 상태</span>'
-        f'<span class="sb-row"><span>API 서버</span>{server}</span>'
-        f'<span class="sb-row"><span>모델 버전</span><b>{model}</b></span>'
-        "</div>"
-    )
+        status = health.get("status")
+        server = ('<span class="sb-state">정상</span>' if status == "healthy"
+                  else f'<span class="sb-state fail">{escape(str(status))}</span>')
+        model = f'<b>{escape(str(health.get("model_version") or "—"))}</b>'
+    return ('<div class="sb-status"><span class="sb-status-head">시스템 상태</span>'
+            f'<span class="sb-row"><span>API 서버</span>{server}</span>'
+            f'<span class="sb-row"><span>모델 버전</span>{model}</span></div>')
 
 
 def _icon_css():
@@ -56,7 +43,8 @@ def _icon_css():
 
 
 def render_sidebar(pages, current):
-    """pages 는 app.py 의 st.Page 목록. 메뉴 묶음과 아이콘은 NAV_GROUPS 에서 정한다."""
+    """pages 는 app.py 의 st.Page 목록. 메뉴 묶음과 아이콘은 NAV_GROUPS 에서 정한다.
+    하단 시스템 상태 자리(st.empty)를 돌려준다 → components/connection 이 연결 확인 결과로 채운다."""
     by_title = {page.title: page for page in pages}
     with st.sidebar:
         # 스타일만 있는 블록도 간격(24px)을 차지하므로 첫 묶음 이름과 함께 넣는다
@@ -72,4 +60,4 @@ def render_sidebar(pages, current):
                             st.button(title, key="nav-start", on_click=go_start, width="stretch")
                         else:
                             st.page_link(page, label=title)
-        _status_box()
+        return st.empty()

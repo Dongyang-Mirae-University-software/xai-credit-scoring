@@ -19,6 +19,7 @@ import streamlit as st
 import api_client
 import config
 import features as F
+from components import connection
 from components import customer_form as CF
 from components import ui
 from components.api_error import api_error_html
@@ -149,10 +150,11 @@ def _history():
 
 
 def _start_view():
+    down = connection.is_down()  # API 가 꺼져 있으면 심사로 이어지는 버튼을 끈다 (시안 #api-down)
     with st.container(key="scr-start-head", horizontal=True, vertical_alignment="bottom"):
         st.html('<div class="ui-page-head"><div><h1>고객 심사</h1>'
                 '<p>기존 고객은 ID로 불러오고, 처음 오신 고객은 신규 심사로 시작하세요.</p></div></div>')
-        st.button("신규 고객 심사", key="scr-new", type="primary",
+        st.button("신규 고객 심사", key="scr-new", type="primary", disabled=down,
                   on_click=lambda: CF.open_form(CF.new_profile(), loaded=False))
     if st.session_state.get("scr_load_invalid"):
         st.html("<style>.st-key-scr-load [data-baseweb=\"input\"]{border-color:var(--fail)!important;"
@@ -165,12 +167,13 @@ def _start_view():
                 with st.container(key="scr-load", horizontal=True, gap="small"):
                     st.text_input("고객 ID", key="scr_load_id", label_visibility="collapsed",
                                   placeholder=f"고객 ID 입력 (예: {CF.SAMPLE_CHIPS[0][0]})")
-                    st.form_submit_button("불러오기", on_click=_load_by_id)
+                    st.form_submit_button("불러오기", on_click=_load_by_id, disabled=down)
         with st.container(key="scr-samples"):
             st.html('<span class="scr-samples-label">시연용 샘플 불러오기</span>')
             with st.container(key="scr-sample-chips", horizontal=True, gap="small"):
                 for customer_id, label in CF.SAMPLE_CHIPS:
-                    st.button(label, key=f"scr-sample-{customer_id}", on_click=_open_sample, args=(customer_id,))
+                    st.button(label, key=f"scr-sample-{customer_id}", on_click=_open_sample, args=(customer_id,),
+                              disabled=down)
 
     _history()
 
@@ -316,7 +319,8 @@ def _result_view():
 
     with st.container(key="scr-summary-card", horizontal=True, vertical_alignment="center"):
         st.html(_summary_html(profile, result))
-        st.button("정보 수정", key="scr-edit", on_click=CF.open_form, args=(profile, True))
+        st.button("정보 수정", key="scr-edit", on_click=CF.open_form, args=(profile, True),
+                  disabled=connection.is_down())
 
     st.html(_decision_html(result))
 
