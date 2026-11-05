@@ -95,7 +95,7 @@ def _summary(now, before, mitigated):
                if failed_before else "보정 전후 모두 기준을 충족했어요.")
     else:
         failed = [m[1] for m in now if m[5] is False]
-        title = f"공정성 점검 {len(now)}개 중 {len(failed)}개 항목이 기준에 못 미쳐요"
+        title = f"공정성 점검 {len(now)}개 중 {len(failed)}개 항목이 미달이에요"
         sub = f"{_josa_list(failed)} 기준을 벗어났어요." + ("" if mitigated else " 보정 결과가 아직 없어요.")
     cells = "".join(
         f'<div class="fa-metric"><span>{name}</span>'
@@ -115,24 +115,53 @@ def _summary(now, before, mitigated):
 # ---------------------------------------------------------------------------
 # 근거: 집단별 승인율 막대
 # ---------------------------------------------------------------------------
+def _baseline(rates, criteria):
+    """기준선 = 가장 높은 집단 승인율 × DI 최소 기준 (0.8). 승인율과 같은 0~1."""
+    return max(rates.values()) * criteria["di_min"] if rates else 0
+
+
+def _below(attrs, criteria):
+    """기준선보다 승인율이 낮은 집단: [(속성 이름, [집단 이름…])]."""
+    found = []
+    for attr, label in ATTRIBUTES:
+        rates = (attrs.get(attr) or {}).get("approval_rates", {})
+        line = _baseline(rates, criteria)
+        low = [_group_label(g) for g in _ordered(attr, rates) if rates[g] < line]
+        if low:
+            found.append((label, low))
+    return found
+
+
+def _state_strip(view, attrs, criteria, mitigated):
+    """패널 위 한 줄: 기준선 아래 집단이 있으면 빨강(어느 집단·어느 항목이 미달), 없으면 초록."""
+    below = _below(attrs, criteria)
+    if below:
+        groups = ", ".join(g for _, low in below for g in low)
+        items = ", ".join(label for label, _ in below)
+        return (f'<p class="fa-state fail">{view}: {escape(groups)} 승인율이 기준선보다 낮아 {escape(items)} 항목이 미달이에요. '
+                '빨간 막대가 기준선 아래 집단이에요.</p>')
+    how = "집단별 승인 기준선을 조정해 " if view == "보정 후" and mitigated else ""
+    return f'<p class="fa-state ok">{view}: {how}모든 집단이 기준선을 넘었어요.</p>'
+
+
 def _group_card(attr, label, info, criteria):
     rates = info.get("approval_rates", {})
     groups = _ordered(attr, rates)
     di = _di(info)
-    line = max(rates.values()) * criteria["di_min"] * 100 if rates else 0
+    line = _baseline(rates, criteria)
     rows = "".join(
-        f'<div class="fa-bar-row"><span>{escape(_group_label(g))}</span>'
+        f'<div class="fa-bar-row{" low" if rates[g] < line else ""}"><span>{escape(_group_label(g))}</span>'
         f'<span class="fa-bar"><i style="width:{rates[g] * 100:.1f}%"></i></span>'
         f'<strong>{rates[g] * 100:.1f}%</strong></div>' for g in groups)
     ok = None if di is None else di >= criteria["di_min"]
     return f"""
     <div class="fa-card">
       <div class="fa-card-head"><h3>{label}</h3>
-        <span>승인율 비율<strong>{_v(di)}</strong>{_pass_pill(ok)}</span></div>
+        <span>승인율 비율<strong class="{"fail" if ok is False else ""}">{_v(di)}</strong>{_pass_pill(ok)}</span></div>
       <div class="fa-bars" role="img" aria-label="{label}별 승인율">
-        {rows}<i class="fa-line" style="left:calc(86px + (100% - 156px) * {line / 100:.4f})"></i>
+        {rows}<i class="fa-line" style="left:calc(86px + (100% - 156px) * {line:.4f})"></i>
       </div>
-      <div class="fa-line-note"><i></i>가장 높은 집단 승인율의 {criteria["di_min"]:.0%} 선. 모든 막대가 이 선을 넘으면 통과예요.</div>
+      <div class="fa-line-note"><i></i>기준선: 가장 높은 집단 승인율의 {criteria["di_min"]:.0%} ({line * 100:.1f}%)</div>
     </div>"""
 
 
@@ -210,6 +239,14 @@ def _change_card(mitigation, auc_target):
 st.html(f"<style>{CSS_PATH.read_text(encoding='utf-8')}</style>")
 
 
+# 기준선 조정 방식의 한계 (시안 하단 안내 박스). 보정 방식이 threshold_adjustment 일 때 보여 준다
+LIMIT_NOTE = (
+    '<div class="fa-limit"><div><strong>보정 방식의 한계</strong>'
+    '<span>기준선 조정(Threshold Adjustment)은 심사 시점에 성별과 연령대를 사용해요. 실제 금융에서는 이것 자체가 '
+    '차별 소지가 될 수 있어서, 학습 단계에서 보정하는 Reweighting이 더 적합해요. '
+    '성별은 원본 데이터에 없어 시뮬레이터로 생성한 변수예요.</span></div></div>')
+
+
 def _main():
     try:
         fairness = api_client.fairness()
@@ -244,7 +281,8 @@ def _main():
 
     # 집단별 승인율 (보정 전 / 후 전환)
     with st.container(key="fa-groups-head", horizontal=True, vertical_alignment="bottom"):
-        st.html(ui.section_head("집단별 승인율", "같은 조건이라면 성별이나 나이와 상관없이 비슷한 비율로 승인되어야 해요."))
+        st.html(ui.section_head("집단별 승인율", "같은 조건이라면 성별이나 나이와 상관없이 비슷한 비율로 승인되어야 해요."
+                                + (" 버튼으로 보정 전후를 비교해 보세요." if after_block else "")))
         if after_block:
             view = st.radio("보정 상태", ["보정 전", "보정 후"], index=1, horizontal=True, key="fa_view",
                             label_visibility="collapsed")
@@ -252,8 +290,10 @@ def _main():
             view = "보정 전"
     block = after_block if view == "보정 후" and after_block else before_block
     attrs = block.get("by_attribute", {})
-    st.html('<div class="fa-groups">' + "".join(
-        _group_card(attr, label, attrs[attr], criteria) for attr, label in ATTRIBUTES if attr in attrs) + "</div>")
+    st.html('<div class="fa-panel">' + _state_strip(view, attrs, criteria, after_block is not None)
+            + '<div class="fa-groups">' + "".join(
+                _group_card(attr, label, attrs[attr], criteria) for attr, label in ATTRIBUTES if attr in attrs)
+            + "</div></div>")
 
     # 보정 전후 비교
     if after_block:
@@ -265,7 +305,8 @@ def _main():
         except Exception:
             auc_target = None
         st.html(f'<section class="fa-compare">{ui.section_head("보정 전후 비교", method_text)}'
-                f'{_compare_table(before, after, criteria)}{_change_card(mitigation, auc_target)}</section>')
+                f'{_compare_table(before, after, criteria)}{_change_card(mitigation, auc_target)}'
+                f'{LIMIT_NOTE if method == "threshold_adjustment" else ""}</section>')
     else:
         render_no_report("fairness_mitigation")
 

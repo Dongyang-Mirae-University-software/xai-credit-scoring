@@ -6,6 +6,9 @@ MSA 제약: 대시보드는 모델 파일을 직접 로드하지 않고 이 모�
 없으면 서버가 예시(src/api/examples/) 값을 대신 돌려준다. 예시 값을 실제 결과처럼 보여 주지 않도록,
 /health 의 reports 에서 'example' / 'missing' 이면 호출하지 않고 None 을 돌려준다 → 화면은 '데이터 없음' 안내.
 """
+import json
+import logging
+import sys
 import time
 
 import requests
@@ -15,17 +18,65 @@ import config
 NO_DATA = {"example", "missing"}
 _health_cache = {"at": 0.0, "data": None}
 
+# API 호출 로그 (Streamlit 은 서버에서 API 를 부르므로 브라우저 네트워크 탭에 안 보인다 → 터미널에 찍는다)
+#   API_LOG=1    → POST /predict 200 (85ms)
+#   API_LOG=body → 위 줄 + 요청·응답 JSON. 목록 응답은 한 건씩 한 줄로
+#   API_LOG_BODY_MAX → 한 줄 최대 글자 수 (기본 600, 0 이면 자르지 않는다)
+_log = logging.getLogger("dashboard.api")
+if config.API_LOG and not _log.handlers:  # Streamlit 이 모듈을 다시 읽어도 핸들러는 하나만
+    _handler = logging.StreamHandler(sys.stderr)
+    _handler.setFormatter(logging.Formatter("%(asctime)s [API] %(message)s", "%H:%M:%S"))
+    _log.addHandler(_handler)
+    _log.setLevel(logging.INFO)
+    _log.propagate = False
 
-def _get(path):
-    r = requests.get(f"{config.API_BASE_URL}{path}", timeout=config.API_TIMEOUT)
+
+def _short(data):
+    text = data if isinstance(data, str) else json.dumps(data, ensure_ascii=False)
+    limit = config.API_LOG_BODY_MAX
+    return text if limit <= 0 or len(text) <= limit else text[:limit] + f"… ({len(text)}자)"
+
+
+def _log_body(label, data):
+    """목록이면 '응답 목록 N건' 아래에 한 건씩, 아니면 한 줄."""
+    if isinstance(data, list):
+        _log.info("  %s 목록 %d건", label, len(data))
+        for i, item in enumerate(data, 1):
+            _log.info("    %d. %s", i, _short(item))
+    else:
+        _log.info("  %s %s", label, _short(data))
+
+
+def request(method, path, payload=None, timeout=None):
+    """API 호출 하나. 실패하면 requests 예외를 그대로 올린다. API_LOG 가 켜져 있으면 결과를 터미널에 남긴다."""
+    started = time.perf_counter()
+    try:
+        r = requests.request(method, f"{config.API_BASE_URL}{path}", json=payload,
+                             timeout=timeout or config.API_TIMEOUT)
+    except requests.RequestException as e:
+        if config.API_LOG:
+            _log.info("%s %s 연결 실패 (%dms) %s", method, path, (time.perf_counter() - started) * 1000,
+                      type(e).__name__)
+        raise
+    if config.API_LOG:
+        _log.info("%s %s %d (%dms)", method, path, r.status_code, (time.perf_counter() - started) * 1000)
+        if config.API_LOG == "body":
+            if payload is not None:
+                _log_body("요청", payload)
+            try:
+                _log_body("응답", r.json())
+            except ValueError:
+                _log_body("응답", r.text)
     r.raise_for_status()
     return r.json()
+
+
+def _get(path):
+    return request("GET", path)
 
 
 def _post(path, payload):
-    r = requests.post(f"{config.API_BASE_URL}{path}", json=payload, timeout=config.API_TIMEOUT)
-    r.raise_for_status()
-    return r.json()
+    return request("POST", path, payload)
 
 
 def health():
@@ -89,24 +140,14 @@ def anova():
 
 
 # ---------------------------------------------------------------------------
-# 고객 조회 · 심사 이력 (서버가 예전 버전이라 없으면 404 → None / False / [] 로 대비)
+# 심사 이력 (오늘 심사한 고객이 새로고침해도 남도록). 서버가 예전 버전이라 없으면 404 → False / [] 로 대비
 # ---------------------------------------------------------------------------
 def _missing(exc):
     return isinstance(exc, requests.HTTPError) and exc.response is not None and exc.response.status_code in (404, 405)
 
 
-def customer(customer_id):
-    """GET /customers/{id}: 고객 입력값 15개 + gender. 없는 고객이거나 API 가 아직 없으면 None."""
-    try:
-        return _get(f"/customers/{customer_id}")
-    except requests.HTTPError as e:
-        if _missing(e):
-            return None
-        raise
-
-
 def save_screening(record):
-    """POST /screenings: 심사 결과 저장. API 가 아직 없으면 False."""
+    """POST /screenings: 심사 결과 저장 ({input, result}). API 가 아직 없으면 False."""
     try:
         _post("/screenings", record)
         return True
@@ -116,7 +157,7 @@ def save_screening(record):
         raise
 
 
-def screenings(limit=5):
+def screenings(limit=20):
     """GET /screenings?limit=: 저장된 최근 심사 (최신순, 고객당 1건). API 가 아직 없으면 [].
     항목: {screening_id, customer_id, approval_status, risk_grade, credit_score, screened_at(ISO)}"""
     try:

@@ -15,6 +15,7 @@ import streamlit as st
 import api_client
 import config
 import features as F
+from components import connection
 from components import customer_form as CF
 from components import ui
 from components.api_error import api_error_html, render_api_error
@@ -48,10 +49,8 @@ def _init_state():
 
 
 def _get_explain(customer_id):
-    cache = st.session_state.xai_explain
-    if customer_id not in cache:
-        cache[customer_id] = api_client.explain(st.session_state.customers[customer_id]["payload"])
-    return cache[customer_id]
+    """심사 실행 때 받아 둔 /explain 응답 (이 화면은 API 를 다시 부르지 않는다)."""
+    return CF.get_explain(customer_id)
 
 
 # ---------------------------------------------------------------------------
@@ -79,7 +78,7 @@ def _head(ids):
             st.html('<span class="xai-pick-label">분석 대상</span>')
             customer_id = st.selectbox("분석 대상", ids, key="xai_customer", format_func=_option_label,
                                        label_visibility="collapsed")
-            st.button("조건 바꿔 재심사", key="xai-rescreen", on_click=_rescreen)
+            st.button("조건 바꿔 재심사", key="xai-rescreen", on_click=_rescreen, disabled=connection.is_down())
     return customer_id
 
 
@@ -174,7 +173,7 @@ def _reasons(explain, result):
     rows = "".join(f"""
       <div class="xai-rr-row">
         <span><i class="xai-rank">{r.get("rank", i)}</i></span>
-        <span class="xai-rr-name"><strong title="{escape(r["feature"])}">{escape(F.label(r["feature"]))}</strong>{_tag(r["feature"])}</span>
+        <span class="xai-rr-name"><span><strong>{escape(F.label(r["feature"]))}</strong>{_tag(r["feature"])}</span><code>{escape(r["feature"])}</code></span>
         <span class="xai-rr-text">{escape(CONTRIBUTION_SUFFIX.sub("", r.get("explanation") or ""))}</span>
         <b class="num">{F.fmt_value(r["feature"], r.get("current_value"))}</b>
         <span class="num xai-rr-ref">{F.fmt_value(r["feature"], r.get("reference_value"))}</span>
@@ -369,8 +368,9 @@ customer_id = _head(ids)
 if customer_id is None:
     with st.container(key="xai-empty-box"):
         st.html(f'<div class="xai-empty-icon">{ui.icon("xai", "#1F4FD8", 28)}</div>'
-                '<h2>분석할 고객이 없어요</h2><p>고객 심사에서 심사를 실행하면 이곳에서 판단 근거를 볼 수 있어요.</p>')
-        if st.button("고객 심사로 이동", key="xai-go", type="primary"):
+                '<div class="xai-empty-text"><h2>아직 분석할 고객이 없어요</h2>'
+                '<p>고객 심사에서 심사를 실행하면, 그 고객의 판단 근거가 여기에 표시돼요.</p></div>')
+        if st.button("고객 심사로 가기", key="xai-go", type="primary"):
             st.switch_page("views/screening.py")
 else:
     entry = st.session_state.customers[customer_id]

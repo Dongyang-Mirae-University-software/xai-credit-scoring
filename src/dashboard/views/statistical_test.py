@@ -81,7 +81,8 @@ def _summary(anova):
         sub = (f"p값이 {alpha:g}보다 작아 그룹 간 AUC 차이가 우연이 아니에요. "
                "어느 그룹끼리 다른지는 아래 사후 검정(Tukey HSD)에서 확인해요.")
     else:
-        tone, title = "mid", f"{len(tests)}개 검증 중 {len(sig)}개만 유의한 차이가 있어요"
+        # 유의하지 않은 검증이 있으면 빨간 띠 (결론 문장과 색은 API 의 is_significant 로 정한다)
+        tone, title = "fail", f"{len(tests)}개 검증 중 {len(tests) - len(sig)}개는 유의한 차이가 없어요"
         sub = f"p값이 {alpha:g} 이상인 검증은 그룹 간 AUC 차이를 우연과 구분할 수 없어요."
     rows = "".join(f"""
       <div class="stt-row">

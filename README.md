@@ -24,6 +24,19 @@ Give Me Some Credit(GMSC) 데이터에 대안 데이터 시뮬레이터를 결�
 - 기준 1: 연체 컬럼 2개 이상 결측
 - 기준 2: 보유 대출·신용 한도 1개 이하 **이고** 부동산 담보대출 0개 **이고** 연체 기록 0회
 
+### 점수와 등급 기준
+신용 점수는 `credit_score = round((1 - default_probability) * 1000)` 입니다 (0~1000).
+
+| 등급 | 점수 | 위험도 | 심사 결과 |
+|---|---|---|---|
+| A | 900 이상 | 저위험 | 승인 |
+| B | 800 ~ 899 | 저위험 | 승인 |
+| C | 650 ~ 799 | 중위험 | 승인 |
+| D | 450 ~ 649 | 고위험 | 거절 |
+| E | 450 미만 | 고위험 | 거절 |
+
+650점 이상(A~C)이면 승인입니다. 대시보드 결과 화면의 등급 막대는 칸 폭이 점수 구간 길이 그대로(E:D:C:B:A = 45:20:15:10:10)이고, 점선이 승인 기준 650점입니다 (`src/dashboard/config.py` `GRADE_SCALE`, `APPROVAL_SCORE`).
+
 ### 모델과 검증
 - 모델: Logistic Regression · XGBoost · LightGBM × 불균형 처리(class_weight / SMOTE) × 데이터(전통 / 대안 / 통합), 5-Fold Stratified CV
 - 최종 모델 선택: Validation AUC 최고 모델 → Test에서 1회만 평가 (현재 결과는 [`models/README.md`](models/README.md))
@@ -147,7 +160,10 @@ xai-credit-scoring/
 |---|---|---|
 | `API_BASE_URL` | `http://localhost:8000` | 대시보드가 부를 API 주소 (Docker Compose에서는 자동으로 `http://api:8000`) |
 | `API_TIMEOUT` / `HEALTH_TIMEOUT` | 5 / 2 | API 응답 대기 시간(초) |
+| `API_LOG` | (끔) | 대시보드의 API 호출을 터미널에 기록. `1` 은 `POST /predict 200 (24ms)` 한 줄, `body` 는 요청·응답 JSON 까지 (목록은 한 건씩 한 줄) |
+| `API_LOG_BODY_MAX` | 600 | `API_LOG=body` 에서 한 줄 최대 글자 수. `0` 이면 자르지 않음 |
 | `HEALTH_CACHE_TTL` | 10 | 서버 상태 카드 새로고침 간격(초) |
+| `APPROVAL_SCORE` | 650 | 결과 화면 등급 막대의 승인 기준 점선 (점수와 등급 기준 참고) |
 | `XAI_RISK_HIGH` / `XAI_RISK_MID` | 0.7 / 0.4 | 거절 사유 카드의 고·중위험 표시 기준 (SHAP 값) |
 | `WATERFALL_MAX_DISPLAY` | 8 | Waterfall에 따로 보여 줄 변수 수 |
 | `ADDITIVITY_TOLERANCE` | 0.005 | SHAP 가법성 검증 허용 오차 |

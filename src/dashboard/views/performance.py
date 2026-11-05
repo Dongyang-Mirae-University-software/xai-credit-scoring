@@ -71,7 +71,7 @@ def _summary(m):
     else:
         sub = f"{first}지만, 씬파일러 고객의 AUC 향상은 {uplift:+.3f}로 목표(+{t['thin_filer_uplift']:.2f})에 못 미쳐요."
     title = (f"성능 목표 {len(items)}개를 모두 달성했어요" if all_ok
-             else f"성능 목표 {len(items)}개 중 {len(done)}개를 달성했어요")
+             else f"성능 목표 {len(items)}개 중 {len(items) - len(done)}개가 미달이에요")
     cells = "".join(
         f'<div class="pf-metric"><span>{label}</span><div><strong>{text}</strong>'
         f'{ui.pill("달성" if ok else "미달", "ok" if ok else "fail")}</div><small>{rule}</small></div>'

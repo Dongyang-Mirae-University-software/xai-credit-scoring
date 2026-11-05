@@ -8,14 +8,20 @@ API_BASE_URL = os.getenv("API_BASE_URL", "http://localhost:8000")
 HEALTH_TIMEOUT = float(os.getenv("HEALTH_TIMEOUT", "2"))
 HEALTH_CACHE_TTL = int(os.getenv("HEALTH_CACHE_TTL", "10"))
 API_TIMEOUT = float(os.getenv("API_TIMEOUT", "5"))
-# 사이드바 "MLflow 실험 기록 열기" 링크 (docker-compose 의 MLflow UI 포트)
-MLFLOW_UI_URL = os.getenv("MLFLOW_UI_URL", "http://localhost:5000")
+# API 호출 로그: "" 끔 / "1" 한 줄 요약 / "body" 요청·응답 JSON 까지 (api_client.request)
+API_LOG = os.getenv("API_LOG", "").strip().lower()
+API_LOG = "" if API_LOG in ("", "0", "false", "off") else ("body" if API_LOG == "body" else "1")
+API_LOG_BODY_MAX = int(os.getenv("API_LOG_BODY_MAX", "600"))
 
 # ---- 고객 심사 화면 표시용 값 (미션 문서에 정의 없음 → 백엔드 확정 시 동기화) ----
 # 승인 임계값: 부도 확률이 이 값 미만이면 승인
 APPROVAL_THRESHOLD = float(os.getenv("APPROVAL_THRESHOLD", "0.5"))
-# 신용점수 막대 아래 표시하는 등급 구간 (등급, 구간 상한 점수)
-GRADE_SCALE = [("E", 300), ("D", 500), ("C", 650), ("B", 800), ("A", 1000)]
+# 점수·등급 기준 (README '점수와 등급 기준'): credit_score = round((1 - 부도 확률) × 1000)
+# 등급 구간 (등급, 구간 상한 점수): E 450 미만 · D 450~649 · C 650~799 · B 800~899 · A 900 이상
+# 결과 화면 등급 막대의 칸 폭(45:20:15:10:10)은 이 구간 길이를 그대로 쓴다
+GRADE_SCALE = [("E", 450), ("D", 650), ("C", 800), ("B", 900), ("A", 1000)]
+# 승인 기준 점수 (A~C 승인). 등급 막대의 점선 위치
+APPROVAL_SCORE = int(os.getenv("APPROVAL_SCORE", "650"))
 
 # ---- XAI 분석 화면 표시용 값 ----
 # 거절 사유 카드의 위험 표시: 부도 쪽 SHAP 값(log-odds)이 이 값 이상이면 고위험 / 중위험, 그 아래는 저위험

@@ -6,15 +6,18 @@
 .stt-banner { display: flex; align-items: center; gap: 16px; padding: 20px 28px; }
 .stt-banner.ok { background: var(--ok-bg); border-bottom: 1px solid #D3E8DC; }
 .stt-banner.mid { background: var(--mid-bg); border-bottom: 1px solid #F3E0BD; }
+.stt-banner.fail { background: var(--fail-bg); border-bottom: 1px solid #F3D0D0; }
 .stt-mark { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex: none; }
 .stt-banner.ok .stt-mark { background: var(--ok); }
 .stt-banner.mid .stt-mark { background: var(--mid); }
+.stt-banner.fail .stt-mark { background: var(--fail); }
 .stt-banner > div { display: flex; flex-direction: column; gap: 2px; }
 .stt-banner strong { font-size: 20px; font-weight: 700; }
 .stt-banner span { font-size: 14px; }
 .stt-banner.ok strong { color: var(--ok-text); }
 .stt-banner.ok span { color: #2F5E4C; }
 .stt-banner.mid strong, .stt-banner.mid span { color: var(--mid-text); }
+.stt-banner.fail strong, .stt-banner.fail span { color: var(--fail-text); }
 .stt-row {
   display: grid; grid-template-columns: minmax(0, 1.6fr) 110px 110px 110px 120px 120px; column-gap: 24px;
   align-items: center; padding: 0 24px; min-height: 64px;
