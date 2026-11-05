@@ -13,17 +13,6 @@ from src.api.routers import anova, customers, explain, fairness, health, metrics
 
 DESCRIPTION = """
 XAI 기반 대안신용평가 시스템 API. 대시보드는 모델 파일을 직접 열지 않고 이 API 로만 통신한다.
-
-| 화면 | 엔드포인트 | 데이터 출처 |
-|---|---|---|
-| 사이드바 | `GET /health` | 모델 파일 존재 여부, 리포트 출처 |
-| 01 고객 심사 | `POST /predict`, `POST·GET /screenings`, `GET /customers/{id}` | 최종 모델 즉시 계산 / 심사 이력 SQLite / `data/customers.json` |
-| 02 XAI 분석 | `POST /explain`, `GET /explain/summary` | SHAP 즉시 계산 / `outputs/evaluation/shap_summary.json` |
-| 03 공정성 | `GET /fairness`, `GET /fairness/mitigation` | `outputs/fairness/*.json` |
-| 04 모델 성능 | `GET /metrics`, `GET /metrics/comparison` | `outputs/evaluation/metrics_*.json`, `models/model_metadata.json` |
-| 05 통계 검증 | `GET /anova` | `outputs/statistics/anova.json` |
-
-> 본 시스템은 교육 목적으로 개발되었으며, 실제 금융 의사결정에 사용할 수 없습니다.
 """
 
 TAGS = [
