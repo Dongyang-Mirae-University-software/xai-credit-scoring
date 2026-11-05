@@ -1,0 +1,148 @@
+/* 고객 정보 입력 창 (디자인 02, st.dialog). 고객 심사·XAI 분석 두 화면에서 쓴다 */
+div[role="dialog"]:has(.dlg-sub) {
+  width: 760px !important; max-width: calc(100vw - 32px) !important;
+  border-radius: 16px; padding: 0 !important; overflow: hidden;
+  font-family: var(--font);
+}
+div[role="dialog"]:has(.dlg-sub) > div:first-child { padding: 24px 28px 4px !important; }
+div[role="dialog"]:has(.dlg-sub) > div:first-child p {
+  margin: 0; font-size: 20px; font-weight: 700; line-height: 28px; color: var(--ink);
+}
+div[role="dialog"]:has(.dlg-sub) > button {
+  top: 24px; right: 28px; width: 40px; height: 40px; border-radius: 8px; color: var(--ink-2);
+}
+div[role="dialog"]:has(.dlg-sub) > div:nth-child(2) { padding: 0 28px !important; }
+div[role="dialog"]:has(.dlg-sub) [data-testid="stVerticalBlock"] { gap: 24px; }
+.dlg-sub {
+  margin: 0 -28px; padding: 0 28px 20px; border-bottom: 1px solid var(--divider);
+  font-size: 14px; line-height: 1.5; color: var(--ink-3);
+}
+/* 위젯 라벨: 13px, 입력칸과 6px */
+div[role="dialog"]:has(.dlg-sub) [data-testid="stWidgetLabel"] { margin: 0; min-height: 0; height: auto; }
+div[role="dialog"]:has(.dlg-sub) [data-testid="stWidgetLabel"] p { font-size: 13px; line-height: 1.5; color: var(--ink-2); }
+div[role="dialog"] [data-testid="stNumberInputContainer"] { border: 0; height: 44px; background: none; }
+div[role="dialog"] [data-testid="stNumberInputContainer"] > [data-baseweb="input"] { flex: 1 1 auto; }
+
+/* 불러옴 안내 */
+.st-key-dlg-loaded {
+  padding: 12px 16px; border-radius: 10px; background: var(--ok-bg); gap: 12px; flex-wrap: nowrap;
+}
+.dlg-loaded-text { display: inline-flex; align-items: center; gap: 8px; font-size: 14px; color: var(--ok-text); white-space: nowrap; }
+.dlg-loaded-text b { font-weight: 700; }
+.st-key-dlg-loaded .stButton { margin-left: auto; }
+.st-key-dlg-loaded button { height: 32px; min-height: 32px; padding: 0 10px; }
+.st-key-dlg-loaded button p { font-size: 13px; font-weight: 700; color: var(--ok-text); }
+/* 신규 고객 안내 (회색, 버튼은 파란 글씨) */
+.st-key-dlg-new {
+  padding: 12px 16px; border-radius: 10px; background: var(--page); gap: 12px; flex-wrap: nowrap;
+}
+.dlg-new-text { font-size: 14px; color: var(--ink-2); white-space: nowrap; }
+.st-key-dlg-new .stButton { margin-left: auto; }
+.st-key-dlg-new button { height: 32px; min-height: 32px; padding: 0 10px; }
+.st-key-dlg-new button p { font-size: 13px; font-weight: 700; color: var(--accent); }
+
+/* 묶음 머리 (기본 정보 / 금융 이력 / 추가 정보 / 대안 데이터) */
+.st-key-dlg-basic, .st-key-dlg-finance, .st-key-dlg-extra, .st-key-dlg-alt { gap: 12px !important; }
+.dlg-group-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.dlg-group-head > span {
+  display: inline-flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 700; color: var(--ink-3);
+}
+.dlg-group-head em { font-style: normal; font-size: 12px; color: var(--ink-3); }
+.dlg-group-head em b { color: var(--ink); font-weight: 700; }
+.dlg-tag {
+  font-style: normal; padding: 2px 8px; border-radius: 999px;
+  background: var(--ok-bg); color: var(--ok-text); font-size: 12px; font-weight: 700;
+}
+.dlg-label { font-size: 13px; color: var(--ink-2); }
+.dlg-hint { display: block; font-size: 12px; color: var(--ink-3); }
+.dlg-hint b { color: var(--ink); font-weight: 700; }
+
+/* 입력칸: 44px, 오른쪽 정렬 숫자 + 단위, 증감 버튼 숨김 */
+div[role="dialog"] .stNumberInput label p,
+div[role="dialog"] .stRadio > label p { font-size: 13px; color: var(--ink-2); }
+div[role="dialog"] .stNumberInput [data-baseweb="input"] {
+  height: 44px; border: 1px solid var(--input) !important; border-radius: 8px; background: #FFF;
+  padding-right: 12px;
+}
+div[role="dialog"] .stNumberInput [data-baseweb="base-input"] { background: #FFF; }
+div[role="dialog"] .stNumberInput input { text-align: right; font-size: 15px; padding: 0 12px; color: var(--ink); }
+div[role="dialog"] .stNumberInput [data-testid="stNumberInputStepDown"],
+div[role="dialog"] .stNumberInput [data-testid="stNumberInputStepUp"],
+div[role="dialog"] [data-testid="InputInstructions"] { display: none; }
+.st-key-dlg-unit-age [data-baseweb="input"]::after,
+.st-key-dlg-unit-income [data-baseweb="input"]::after,
+.st-key-dlg-unit-repay [data-baseweb="input"]::after {
+  align-self: center; font-size: 14px; color: var(--ink-3); white-space: nowrap;
+}
+.st-key-dlg-unit-age [data-baseweb="input"]::after { content: "세"; }
+.st-key-dlg-unit-income [data-baseweb="input"]::after,
+.st-key-dlg-unit-repay [data-baseweb="input"]::after { content: "만원"; }
+.st-key-dlg-unit-age, .st-key-dlg-unit-income, .st-key-dlg-unit-repay, .st-key-dlg-gender-box, .st-key-dlg-util { gap: 6px !important; }
+
+/* 성별: 두 칸 나눈 선택 상자 */
+.st-key-dlg-gender-box .stElementContainer:has(.stRadio),
+.st-key-dlg-gender-box .stRadio, .st-key-dlg-gender-box .stRadio > div { width: 100% !important; }
+.st-key-dlg-gender-box .stRadio [role="radiogroup"] {
+  width: 100%; box-sizing: border-box; display: grid; grid-template-columns: 1fr 1fr; gap: 0; height: 44px;
+  border: 1px solid var(--input); border-radius: 8px; overflow: hidden;
+}
+.st-key-dlg-gender-box .stRadio [role="radiogroup"] > label {
+  margin: 0; padding: 0; width: 100%; height: 100%; box-sizing: border-box; display: flex; align-items: center; justify-content: center; gap: 6px; cursor: pointer;
+}
+.st-key-dlg-gender-box .stRadio [role="radiogroup"] > label + label { border-left: 1px solid var(--input); }
+.st-key-dlg-gender-box .stRadio [role="radiogroup"] > label p { font-size: 14px; color: var(--ink-2); }
+.st-key-dlg-gender-box .stRadio [role="radiogroup"] > label:has(input:checked) { background: var(--accent-bg); }
+.st-key-dlg-gender-box .stRadio [role="radiogroup"] > label:has(input:checked) p { color: var(--accent); font-weight: 700; }
+
+/* 신용한도 사용률 */
+.dlg-util-head { display: flex; justify-content: space-between; font-size: 13px; color: var(--ink-2); }
+.dlg-util-head b { font-size: 14px; color: var(--ink); font-weight: 700; }
+.st-key-dlg-util .stSlider { padding: 0 6px; }
+.st-key-dlg-util [data-testid="stSliderThumbValue"],
+.st-key-dlg-util [data-testid="stSliderTickBarMin"],
+.st-key-dlg-util [data-testid="stSliderTickBarMax"] { display: none; }
+
+/* 증감 칸 */
+[class*="st-key-dlg-steps-"] { gap: 8px !important; flex-wrap: nowrap; }
+[class*="st-key-dlg-step-"] {
+  flex: 1 1 0; min-width: 0; gap: 10px !important; flex-wrap: nowrap;
+  padding: 8px 10px; border: 1px solid var(--border); border-radius: 8px;
+}
+.dlg-step-label { font-size: 13px; color: var(--ink-3); white-space: nowrap; }
+.dlg-step-value { display: inline-block; min-width: 20px; text-align: center; font-size: 16px; font-weight: 700; color: var(--ink); }
+.st-key-dlg-steps-extra .dlg-step-value { min-width: 32px; }
+[class*="st-key-dlg-step-"] button {
+  width: 32px; height: 32px; min-height: 32px; padding: 0;
+  border: 1px solid var(--input); border-radius: 6px; background: #FFF;
+}
+[class*="st-key-dlg-step-"] button p { font-size: 15px; line-height: 1; color: var(--ink); }
+[class*="st-key-dlg-step-"] .stElementContainer { height: 32px; display: flex; align-items: center; }
+
+/* 대안 데이터 */
+.st-key-dlg-alt-head { justify-content: space-between; flex-wrap: nowrap; }
+.st-key-dlg-alt-head .stButton { margin-left: auto; }
+.st-key-dlg-alt-head button { height: 32px; min-height: 32px; padding: 0 10px; }
+.st-key-dlg-alt-head button p { font-size: 13px; font-weight: 700; color: var(--accent); }
+.dlg-alt-list {
+  display: grid; grid-template-columns: 1fr 1fr; column-gap: 24px;
+  border: 1px solid var(--border); border-radius: 10px; padding: 4px 16px; font-size: 14px;
+}
+.dlg-alt-list > div { display: flex; justify-content: space-between; padding: 10px 0; line-height: 1.5; border-bottom: 1px solid var(--divider); }
+.dlg-alt-list > div:nth-last-child(1) { border-bottom: 0; }
+.dlg-alt-list span { color: var(--ink-2); }
+.dlg-alt-list b { font-weight: 700; color: var(--ink); }
+
+/* 창 아래 버튼 줄 (창 바닥에 붙는다) */
+div[role="dialog"] [data-testid="stLayoutWrapper"]:has(> .st-key-dlg-foot) {
+  position: sticky; bottom: 0; z-index: 2;
+  width: calc(100% + 56px) !important; max-width: none !important; margin: 0 -28px;
+}
+.st-key-dlg-foot {
+  background: #FFF; padding: 16px 28px; border-top: 1px solid var(--divider); gap: 8px; flex-wrap: nowrap;
+}
+.st-key-dlg-foot button { height: 48px; min-height: 48px; padding: 0 18px; border-radius: 10px; }
+.st-key-dlg-foot button p { font-size: 15px; }
+.st-key-dlg-reset button { border: 1px solid var(--input); background: #FFF; }
+.st-key-dlg-reset button p, .st-key-dlg-cancel button p { color: var(--ink-2); }
+.st-key-dlg-submit button { padding: 0 28px; background: var(--accent); border: 0; }
+.st-key-dlg-submit button p { color: #FFF; font-weight: 700; }

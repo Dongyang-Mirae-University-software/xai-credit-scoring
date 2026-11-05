@@ -8,6 +8,8 @@ API_BASE_URL = os.getenv("API_BASE_URL", "http://localhost:8000")
 HEALTH_TIMEOUT = float(os.getenv("HEALTH_TIMEOUT", "2"))
 HEALTH_CACHE_TTL = int(os.getenv("HEALTH_CACHE_TTL", "10"))
 API_TIMEOUT = float(os.getenv("API_TIMEOUT", "5"))
+# 사이드바 "MLflow 실험 기록 열기" 링크 (docker-compose 의 MLflow UI 포트)
+MLFLOW_UI_URL = os.getenv("MLFLOW_UI_URL", "http://localhost:5000")
 
 # ---- 고객 심사 화면 표시용 값 (미션 문서에 정의 없음 → 백엔드 확정 시 동기화) ----
 # 승인 임계값: 부도 확률이 이 값 미만이면 승인
