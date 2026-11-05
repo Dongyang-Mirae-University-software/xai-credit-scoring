@@ -25,13 +25,26 @@ section[data-testid="stSidebar"] [class*="st-key-nav-group-"] { gap: 4px; }
 .sb-group { display: block; padding: 0 12px 6px; font-size: 12px; font-weight: 700; color: var(--ink-3); }
 
 /* 메뉴 링크 */
-section[data-testid="stSidebar"] a[data-testid="stPageLink-NavLink"] {
+section[data-testid="stSidebar"] a[data-testid="stPageLink-NavLink"],
+section[data-testid="stSidebar"] .st-key-nav-start button {
   display: flex; align-items: center; gap: 12px;
   height: 44px; padding: 0 12px; margin: 0;
   border-radius: 8px; background: transparent;
   color: var(--ink-2); text-decoration: none;
 }
-section[data-testid="stSidebar"] a[data-testid="stPageLink-NavLink"]:hover { background: var(--page); }
+section[data-testid="stSidebar"] a[data-testid="stPageLink-NavLink"]:hover,
+section[data-testid="stSidebar"] .st-key-nav-start button:hover { background: var(--page); }
+/* '고객 심사' 버튼: page_link 와 같은 모양 (왼쪽 정렬, 테두리 없음) */
+section[data-testid="stSidebar"] .st-key-nav-start button {
+  width: 100%; min-height: 44px; justify-content: flex-start; border: 0; box-shadow: none;
+}
+section[data-testid="stSidebar"] .st-key-nav-start button:focus:not(:focus-visible) { box-shadow: none; }
+section[data-testid="stSidebar"] .st-key-nav-start button p,
+section[data-testid="stSidebar"] .st-key-nav-start button div {
+  color: inherit !important; font-size: 15px; font-weight: 400; line-height: 1.4;
+}
+section[data-testid="stSidebar"] [class*="-active"] .st-key-nav-start button { background: var(--accent-bg); color: var(--accent); }
+section[data-testid="stSidebar"] [class*="-active"] .st-key-nav-start button p { font-weight: 700; }
 section[data-testid="stSidebar"] a[data-testid="stPageLink-NavLink"] p,
 section[data-testid="stSidebar"] a[data-testid="stPageLink-NavLink"] span {
   color: inherit !important; font-size: 15px; font-weight: 400; line-height: 1.4;
@@ -57,14 +70,12 @@ section[data-testid="stSidebar"] .stElementContainer:has(.sb-status) { position:
 .sb-state::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--ok); }
 .sb-state.fail { color: var(--fail-text); }
 .sb-state.fail::before { background: var(--fail); }
-.sb-status a { font-weight: 700; color: var(--accent) !important; text-decoration: none; }
-.sb-status a:hover { text-decoration: underline; }
 
 /* 헤더(고정 배치) 조각은 사이드바 흐름에서 빼서 메뉴 위에 간격이 생기지 않게 */
 section[data-testid="stSidebar"] .stElementContainer:has(.hdr),
-section[data-testid="stSidebar"] [data-testid="stLayoutWrapper"]:has(.st-key-hdr-search),
 section[data-testid="stSidebar"] .stElementContainer.st-key-hdr-home { position: absolute; }
 /* page_link 의 기본 위아래 음수 여백·높이 제거 → 메뉴 한 칸 44px, 칸 사이 4px */
 section[data-testid="stSidebar"] .stElementContainer:has(> .stPageLink),
 section[data-testid="stSidebar"] .stPageLink { margin: 0 !important; height: 44px; }
+section[data-testid="stSidebar"] .stElementContainer.st-key-nav-start { margin: 0 !important; height: 44px; }
 section[data-testid="stSidebar"] [class*="st-key-nav-"]:not([class*="st-key-nav-group"]) { gap: 0; }

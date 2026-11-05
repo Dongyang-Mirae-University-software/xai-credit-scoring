@@ -1,4 +1,7 @@
-"""사이드바 240px: 묶음별 메뉴(심사 업무 / 모델 검증)와 하단 시스템 상태 (GET /health)."""
+"""사이드바 240px: 묶음별 메뉴(심사 업무 / 모델 검증)와 하단 시스템 상태 (GET /health).
+
+'고객 심사' 는 언제 눌러도 고객 심사 첫 화면으로 간다 (디자인 프로토타입 동작).
+page_link 는 누른 것을 알 수 없어, 이 메뉴만 같은 모양의 버튼으로 그린다."""
 from html import escape
 from pathlib import Path
 
@@ -7,6 +10,7 @@ import streamlit as st
 
 import config
 from components import ui
+from components.header import go_start
 
 CSS_PATH = Path(__file__).with_suffix(".css")
 
@@ -39,14 +43,14 @@ def _status_box():
         '<span class="sb-status-head">시스템 상태</span>'
         f'<span class="sb-row">API 서버{server}</span>'
         f'<span class="sb-row">모델 버전<b title="{model}">{model}</b></span>'
-        f'<a href="{escape(config.MLFLOW_UI_URL)}" target="_blank" rel="noopener">MLflow 실험 기록 열기</a>'
         "</div>"
     )
 
 
 def _icon_css():
-    rules = [ui.mask_css(f'[class*="st-key-nav-{name}"] a[data-testid="stPageLink-NavLink"]::before', name)
-             for _, items in NAV_GROUPS for _, name in items]
+    rules = [ui.mask_css(f'[class*="st-key-nav-{name}"] {target}::before', name)
+             for _, items in NAV_GROUPS for _, name in items
+             for target in ('a[data-testid="stPageLink-NavLink"]', "button")]
     return "".join(rules)
 
 
@@ -63,5 +67,8 @@ def render_sidebar(pages, current):
                     page = by_title[title]
                     active = page.url_path == current.url_path
                     with st.container(key=f"nav-{name}" + ("-active" if active else "")):
-                        st.page_link(page, label=title)
+                        if title == "고객 심사":
+                            st.button(title, key="nav-start", on_click=go_start, width="stretch")
+                        else:
+                            st.page_link(page, label=title)
         _status_box()
