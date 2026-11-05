@@ -68,7 +68,6 @@ def main():
     from src.explainer import shap_explainer as sx
 
     raw = load_gmsc(str(ROOT / 'data/raw/cs-training.csv'))
-    raw = raw[0] if isinstance(raw, tuple) else raw   # #113 머지 전(튜플)·후(데이터프레임) 모두 지원
     raw = generate_alternative_data(raw, target_col='SeriousDlqin2yrs', thin_filer_ratio=None, bias_ratio=0, random_seed=42)
     train_idx = get_train_index(raw)
     processed, _ = preprocess(raw, fit_index=train_idx)
