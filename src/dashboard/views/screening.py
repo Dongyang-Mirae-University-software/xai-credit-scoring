@@ -146,18 +146,20 @@ def _preset_range(days):
 
 
 def _history_range():
-    """적용 중인 조회 기간 (시작, 끝). 처음엔 오늘. 화면을 옮겨도 남도록 위젯이 아닌 키(scr_range)에 둔다."""
+    """적용 중인 조회 기간 (시작, 끝). 처음엔 오늘.
+    화면을 옮겨도 남도록 위젯이 아닌 키(scr_period_sel, scr_range)에 둔다. 위젯 키(scr_period_w)와 이름을 겹치지 않는다
+    (위젯 키였던 이름은 그 위젯이 안 그려지면 Streamlit 이 지운다). 둘 중 하나만 없어도 각각 채운다."""
     ss = st.session_state
-    if "scr_range" not in ss:
-        ss.scr_period, ss.scr_range = HISTORY_PRESETS[0][0], _preset_range(HISTORY_PRESETS[0][1])
+    ss.setdefault("scr_period_sel", HISTORY_PRESETS[0][0])
+    ss.setdefault("scr_range", _preset_range(HISTORY_PRESETS[0][1]))
     return ss.scr_range
 
 
 def _pick_period():
     """기간 버튼: 오늘·최근 7일·최근 30일은 바로 적용, 직접 설정은 날짜 칸만 연다 (조회를 눌러야 적용)."""
     ss = st.session_state
-    ss.scr_period = ss.scr_period_w
-    days = dict(HISTORY_PRESETS).get(ss.scr_period)
+    ss.scr_period_sel = ss.scr_period_w
+    days = dict(HISTORY_PRESETS).get(ss.scr_period_sel)
     if days:
         ss.scr_range = _preset_range(days)
 
@@ -191,7 +193,7 @@ def _history():
             st.html(f'<div class="scr-history-title"><h2>심사 이력 <span>{len(entries)}건</span></h2>'
                     '<p>줄을 누르면 심사 결과를 다시 볼 수 있어요</p></div>')
             st.html(f'<span class="scr-history-range">{_range_label(start, end)}</span>')
-            if ss.scr_period == HISTORY_CUSTOM:
+            if ss.scr_period_sel == HISTORY_CUSTOM:
                 # 날짜 칸 처음 값: 적용 중인 기간. 하루짜리(오늘)면 최근 7일로 채워 둔다 (시안)
                 pick_from, pick_to = (start, end) if start != end else _preset_range(7)
                 st.date_input("시작일", value=pick_from, max_value=date.today(), key="scr_from_w",
@@ -200,7 +202,7 @@ def _history():
                 st.date_input("종료일", value=pick_to, max_value=date.today(), key="scr_to_w",
                               format="YYYY.MM.DD", label_visibility="collapsed")
                 st.button("조회", key="scr-range-go", on_click=_apply_custom)
-            st.radio("조회 기간", names, index=names.index(ss.scr_period), key="scr_period_w",
+            st.radio("조회 기간", names, index=names.index(ss.scr_period_sel) if ss.scr_period_sel in names else 0, key="scr_period_w",
                      horizontal=True, label_visibility="collapsed", on_change=_pick_period)
         with st.container(key="scr-history-card"):
             st.html(f'<table class="scr-htable">{colgroup}<thead><tr><th>고객 ID</th><th>고객 유형</th><th>결과</th>'
