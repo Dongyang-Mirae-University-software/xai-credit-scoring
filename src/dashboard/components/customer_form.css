@@ -11,7 +11,14 @@ div[role="dialog"]:has(.dlg-sub) > div:first-child p {
 div[role="dialog"]:has(.dlg-sub) > button {
   top: 24px; right: 28px; width: 40px; height: 40px; border-radius: 8px; color: var(--ink-2);
 }
-div[role="dialog"]:has(.dlg-sub) > div:nth-child(2) { padding: 0 28px !important; }
+/* 창이 화면보다 길면 딤드가 아니라 창 안(본문)이 스크롤된다. 제목은 위, 버튼 줄(sticky)은 아래에 남는다 */
+div[role="dialog"]:has(.dlg-sub) {
+  display: flex; flex-direction: column; max-height: calc(100vh - 96px);
+}
+div[role="dialog"]:has(.dlg-sub) > div:first-child { flex: none; }
+div[role="dialog"]:has(.dlg-sub) > div:nth-child(2) {
+  padding: 0 28px !important; flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain;
+}
 div[role="dialog"]:has(.dlg-sub) [data-testid="stVerticalBlock"] { gap: 24px; }
 .dlg-sub {
   margin: 0 -28px; padding: 0 28px 20px; border-bottom: 1px solid var(--divider);
