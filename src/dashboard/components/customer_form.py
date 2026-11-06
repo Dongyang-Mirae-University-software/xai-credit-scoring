@@ -23,6 +23,7 @@ from components.api_error import api_error_html
 CSS = Path(__file__).with_suffix(".css").read_text(encoding="utf-8")
 SCREENING_PAGE = "views/screening.py"
 HISTORY_LIMIT = 5
+NEW_ID_LOOKUP = 100  # 신규 고객 ID 를 고를 때 피할 서버 이력 수 (GET /screenings 최대치)
 
 # 기본값은 백엔드 Swagger 예시 고객(src/api/schemas.py CUSTOMER_EXAMPLE)과 같다.
 # 요청 키·단위는 실제 API(CustomerInput)와 같다: 월 소득은 원 (서버가 ÷INCOME_KRW_PER_UNIT 해서 모델 단위로),
@@ -77,7 +78,6 @@ INT_FIELDS = ({f for f, _ in DELINQUENCY_FIELDS + EXTRA_FIELDS}
 # ---------------------------------------------------------------------------
 def init_state():
     ss = st.session_state
-    ss.setdefault("scr_seq", 1)
     ss.setdefault("scr_current", None)   # 지금 보고 있는 심사 결과 {profile, result}. 있으면 고객 심사 = 결과 화면
     ss.setdefault("scr_history", [])     # 이번 세션에서 심사한 것 [{profile, result, at}]. 서버 이력(GET /screenings)과 합쳐 보인다
     ss.setdefault("customers", {})       # 심사한 고객 {id: {payload, result, profile}} (XAI 분석 고객 목록)
@@ -85,7 +85,18 @@ def init_state():
 
 
 def new_id():
-    return f"C{st.session_state.scr_seq:06d}"
+    """신규 고객 ID: 아직 아무도 안 쓴 가장 작은 C000001 형식 번호.
+    고객 파일, 이번 세션에서 심사한 고객, 서버 이력(GET /screenings)의 ID 를 모두 피한다.
+    (세션마다 1부터 세면 새로고침할 때마다 C000001 이 다시 나와, 서버 이력에서 다른 사람끼리 덮어쓴다)"""
+    used = set(CUSTOMERS) | set(st.session_state.customers)
+    try:
+        used |= {r.get("customer_id") for r in api_client.screenings(NEW_ID_LOOKUP)}
+    except Exception:
+        pass  # 이력을 못 읽어도 창은 연다 (파일·세션 ID 는 피한다)
+    n = 1
+    while f"C{n:06d}" in used:
+        n += 1
+    return f"C{n:06d}"
 
 
 def new_profile():
@@ -159,8 +170,6 @@ def run_predict(profile, record=True):
         _save(payload, result)
         history = [h for h in ss.scr_history if h["result"]["customer_id"] != customer_id]
         ss.scr_history = ([{"profile": profile, "result": result, "at": datetime.now()}] + history)[:HISTORY_LIMIT]
-    if customer_id == new_id():
-        ss.scr_seq += 1
 
 
 # ---------------------------------------------------------------------------
