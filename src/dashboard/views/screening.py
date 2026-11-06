@@ -255,9 +255,11 @@ def _back():
 
 
 def _sync_query():
-    """결과 화면과 주소(?customer=)를 맞춘다.
+    """결과 화면과 주소(?customer=)를 맞춘다. 브라우저 뒤로·앞으로 가기도 이걸로 따라간다.
     - 주소에 고객 ID 가 있는데 지금 결과와 다르면 그 고객 결과를 연다 (이번 세션 결과 → 없으면 고객 파일 값으로 다시 심사)
-    - 결과를 보고 있으면 주소에 그 고객 ID 를 붙인다 (새로고침·공유해도 같은 결과)"""
+    - 주소에서 고객 ID 가 빠졌는데 직전에 주소에 붙여 둔 결과를 보고 있으면 = 뒤로 가기 → 첫 화면
+    - 결과를 보고 있으면 주소에 그 고객 ID 를 붙인다 (새로고침·공유해도 같은 결과)
+    st.query_params 에 값을 넣을 때마다 브라우저 기록이 하나 쌓이므로 (pushState), 주소와 다를 때만 넣는다."""
     ss = st.session_state
     wanted = (st.query_params.get(CF.RESULT_QUERY) or "").strip().upper()
     current = ss.scr_current["result"]["customer_id"] if ss.scr_current else None
@@ -265,8 +267,17 @@ def _sync_query():
         _open_history(wanted)
         if ss.scr_current is None or ss.scr_current["result"]["customer_id"] != wanted:
             st.query_params.pop(CF.RESULT_QUERY, None)  # 열 수 없는 고객이면 첫 화면 (안내는 토스트)
+    elif not wanted and current and ss.get("scr_query_synced") == current:
+        CF.clear_result()  # 뒤로 가기로 주소의 ?customer= 가 빠졌다
+        ss.scr_query_synced = None
+        st.rerun()
     if ss.scr_current:
-        st.query_params[CF.RESULT_QUERY] = ss.scr_current["result"]["customer_id"]
+        customer_id = ss.scr_current["result"]["customer_id"]
+        if st.query_params.get(CF.RESULT_QUERY) != customer_id:
+            st.query_params[CF.RESULT_QUERY] = customer_id
+        ss.scr_query_synced = customer_id
+    else:
+        ss.scr_query_synced = None
 
 
 def _completed_at(result):
