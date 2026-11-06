@@ -1,4 +1,4 @@
-/* 앱 전역 테마 (디자인 토큰) — 헤더는 components/header.css, 사이드바는 components/sidebar.css */
+/* 앱 전역 테마 (디자인 토큰) - 헤더는 components/header.css, 사이드바는 components/sidebar.css */
 @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap');
 
 :root {

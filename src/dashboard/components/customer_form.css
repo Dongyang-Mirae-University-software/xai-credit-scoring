@@ -102,7 +102,7 @@ div[role="dialog"] [data-testid="InputInstructions"] { display: none; }
 .dlg-step-value { display: inline-block; min-width: 20px; text-align: center; font-size: 16px; font-weight: 700; color: var(--ink); }
 [class*="st-key-dlg-steps-extra"] .dlg-step-value { min-width: 32px; }
 
-/* 연체 칸: 증감 줄 + '기록 없음' 체크 (체크하면 값 대신 '–', 칸 배경 회색) */
+/* 연체 칸: 증감 줄 + '기록 없음' 체크 (체크하면 값 대신 '-', 칸 배경 회색) */
 [class*="st-key-dlg-due-"] {
   flex: 1 1 0; min-width: 0; gap: 8px !important;
   padding: 10px; border: 1px solid var(--border); border-radius: 8px;
@@ -163,7 +163,7 @@ div[role="dialog"] [data-testid="stLayoutWrapper"]:has(> .st-key-dlg-foot) {
 .st-key-dlg-reset button p, .st-key-dlg-cancel button p { color: var(--ink-2); }
 .st-key-dlg-submit button { padding: 0 28px; background: var(--accent); border: 0; }
 .st-key-dlg-submit button p { color: #FFF; font-weight: 700; }
-/* 증감 줄: 라벨은 왼쪽, '− 값 +' 은 오른쪽에 붙여 모은다 (칸이 넓어도 벌어지지 않게) */
+/* 증감 줄: 라벨은 왼쪽, '- 값 +' 은 오른쪽에 붙여 모은다 (칸이 넓어도 벌어지지 않게) */
 [class*="st-key-dlg-step-"] > .stElementContainer { flex: 0 0 auto; width: auto !important; }
 [class*="st-key-dlg-step-"] > .stElementContainer:has(.dlg-step-value) { margin: 0 10px; }
 [class*="st-key-dlg-step-"] > [data-testid="stSpace"], [class*="st-key-dlg-step-"] > .stElementContainer:has([data-testid="stSpace"]) { flex: 1 1 auto; }

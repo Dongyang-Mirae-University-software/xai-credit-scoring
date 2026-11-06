@@ -12,7 +12,7 @@ from components.header import go_start
 
 CSS_PATH = Path(__file__).with_suffix(".css")
 
-# 메뉴 묶음: (묶음 이름, [(페이지 제목, 아이콘 이름 — components/ui.py ICONS)])
+# 메뉴 묶음: (묶음 이름, [(페이지 제목, 아이콘 이름 - components/ui.py ICONS)])
 NAV_GROUPS = [
     ("심사 업무", [("고객 심사", "screening"), ("XAI 분석", "xai")]),
     ("모델 검증", [("공정성", "fairness"), ("모델 성능", "performance"), ("통계 검증", "stats")]),
@@ -29,7 +29,7 @@ def status_html(state, health=None):
         status = health.get("status")
         server = ('<span class="sb-state">정상</span>' if status == "healthy"
                   else f'<span class="sb-state fail">{escape(str(status))}</span>')
-        model = f'<b>{escape(str(health.get("model_version") or "—"))}</b>'
+        model = f'<b>{escape(str(health.get("model_version") or "-"))}</b>'
     return ('<div class="sb-status"><span class="sb-status-head">시스템 상태</span>'
             f'<span class="sb-row"><span>API 서버</span>{server}</span>'
             f'<span class="sb-row"><span>모델 버전</span>{model}</span></div>')

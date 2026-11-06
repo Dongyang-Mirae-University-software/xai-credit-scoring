@@ -47,8 +47,8 @@ SAMPLE_CHIPS = [(cid, c["sample_label"]) for cid, c in CUSTOMERS.items() if c.ge
 
 # 입력 창 칸: (요청 키, 라벨)
 DELINQUENCY_FIELDS = [
-    ("NumberOfTime30-59DaysPastDueNotWorse", "30–59일"),
-    ("NumberOfTime60-89DaysPastDueNotWorse", "60–89일"),
+    ("NumberOfTime30-59DaysPastDueNotWorse", "30-59일"),
+    ("NumberOfTime60-89DaysPastDueNotWorse", "60-89일"),
     ("NumberOfTimes90DaysLate", "90일 이상"),
 ]
 EXTRA_FIELDS = [
@@ -289,14 +289,14 @@ def _bump(field, delta):
 
 
 def _stepper(field, label, disabled=False):
-    """'라벨  − 값 +' 한 줄 (디자인의 증감 버튼). 값은 위젯이 아닌 세션 값(dlg_<필드>). disabled 면 값 대신 '–'."""
+    """'라벨  - 값 +' 한 줄 (디자인의 증감 버튼). 값은 위젯이 아닌 세션 값(dlg_<필드>). disabled 면 값 대신 '-'."""
     ss = st.session_state
     with st.container(key=f"dlg-step-{field}", horizontal=True, vertical_alignment="center", gap=None):
         st.html(f'<span class="dlg-step-label">{escape(label)}</span>')
         st.space("stretch")
-        st.button("−", key=f"dlg-dec-{field}", on_click=_bump, args=(field, -1),
+        st.button("\\-", key=f"dlg-dec-{field}", on_click=_bump, args=(field, -1),
                   disabled=disabled or ss[f"dlg_{field}"] <= 0)
-        st.html(f'<b class="dlg-step-value">{"–" if disabled else ss[f"dlg_{field}"]}</b>')
+        st.html(f'<b class="dlg-step-value">{"-" if disabled else ss[f"dlg_{field}"]}</b>')
         st.button("\\+", key=f"dlg-inc-{field}", on_click=_bump, args=(field, 1), disabled=disabled)
 
 

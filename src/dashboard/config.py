@@ -29,5 +29,5 @@ XAI_RISK_HIGH = float(os.getenv("XAI_RISK_HIGH", "0.7"))
 XAI_RISK_MID = float(os.getenv("XAI_RISK_MID", "0.4"))
 # Waterfall에 따로 보여줄 변수 수 (나머지는 '기타 N개 변수'로 합침)
 WATERFALL_MAX_DISPLAY = int(os.getenv("WATERFALL_MAX_DISPLAY", "8"))
-# 가법성 검증 허용 오차: |sigmoid(base + Σφ) − /predict 부도 확률|
+# 가법성 검증 허용 오차: |sigmoid(base + Σφ) - /predict 부도 확률|
 ADDITIVITY_TOLERANCE = float(os.getenv("ADDITIVITY_TOLERANCE", "0.005"))

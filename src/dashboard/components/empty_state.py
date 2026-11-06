@@ -65,5 +65,5 @@ def ghost_card(title, card_cls, title_cls, message="결과가 나오면 여기�
 
 
 def ghost_metric(label, card_cls):
-    """값 자리를 '—' 로 둔 지표 카드."""
-    return (f'<div class="{card_cls} es-ghost-metric"><span>{label}</span><b>—</b></div>')
+    """값 자리를 '-' 로 둔 지표 카드."""
+    return (f'<div class="{card_cls} es-ghost-metric"><span>{label}</span><b>-</b></div>')

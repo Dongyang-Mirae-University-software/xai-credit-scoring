@@ -47,7 +47,7 @@ def _short(text):
 
 
 def _signed(v):
-    return f"{v:+.3f}".replace("-", "−")
+    return f"{v:+.3f}"
 
 
 def _eta_level(t):
@@ -204,7 +204,7 @@ def _main():
     else:
         cv_text = "교차검증(CV) 폴드별 AUC"
     sizes = sorted({n for key, _, _ in TESTS for n in (anova.get(key, {}).get("group_sizes") or {}).values()})
-    size_text = "AUC " + " / ".join(f"{n}개" for n in sizes) if sizes else "—"
+    size_text = "AUC " + " / ".join(f"{n}개" for n in sizes) if sizes else "-"
     render_page_header("통계 검증", SUBTITLE, meta=[("검증 데이터", cv_text), ("그룹별 표본", size_text)])
 
     st.html(_summary(anova))

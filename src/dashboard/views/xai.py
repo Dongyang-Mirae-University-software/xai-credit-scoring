@@ -1,7 +1,7 @@
 """XAI 분석 페이지 (디자인 05)
 
 결론(한 줄 요약·부도 확률) → 근거(거절 사유 Top 5) → 상세(SHAP Waterfall · SHAP Summary).
-기여도는 모두 '부도 위험' 기준: + 는 위험을 높였다, − 는 낮췄다.
+기여도는 모두 '부도 위험' 기준: + 는 위험을 높였다, - 는 낮췄다.
 (POST /explain 의 rejection_reasons[].shap_contribution 은 승인 쪽 기준(음수)이라 부호를 뒤집어 보여 준다.)
 """
 import hashlib
@@ -33,7 +33,7 @@ def _sigmoid(x):
 
 
 def _signed(v):
-    return f"{v:+.2f}".replace("-", "−")
+    return f"{v:+.2f}"
 
 
 def _pct(p):
@@ -88,7 +88,7 @@ def _customer_strip(entry):
     cells = [
         ("고객 ID", result["customer_id"]),
         ("나이", f'{profile["age"]}세'),
-        ("성별", profile.get("gender") or "—"),
+        ("성별", profile.get("gender") or "-"),
         ("월 소득", f'{profile["MonthlyIncome"] / 10_000:,.0f}만원'),
         ("고객 유형", "씬파일러" if result.get("is_thin_filer") else "일반 고객"),
         ("신용 점수", f'{result["credit_score"]}점'),

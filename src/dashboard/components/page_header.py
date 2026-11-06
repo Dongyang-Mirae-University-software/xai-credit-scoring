@@ -5,7 +5,7 @@ import streamlit as st
 
 
 def render_page_header(title, subtitle, meta=None):
-    """meta: [(라벨, 값)] — 예: [('마지막 점검', '2026-11-04')]. 값은 escape 해서 넣는다."""
+    """meta: [(라벨, 값)] - 예: [('마지막 점검', '2026-11-04')]. 값은 escape 해서 넣는다."""
     meta_html = ""
     if meta:
         meta_html = '<div class="ui-page-meta">' + "".join(

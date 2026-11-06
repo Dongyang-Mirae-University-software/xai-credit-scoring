@@ -9,13 +9,13 @@ API 단위 (src/api/schemas.py):
 FEATURE_NAMES_KR = {
     "RevolvingUtilizationOfUnsecuredLines": "신용한도 사용률",
     "age": "나이",
-    "NumberOfTime30-59DaysPastDueNotWorse": "30–59일 연체 횟수",
+    "NumberOfTime30-59DaysPastDueNotWorse": "30-59일 연체 횟수",
     "DebtRatio": "부채비율",
     "MonthlyIncome": "월 소득",
     "NumberOfOpenCreditLinesAndLoans": "신용 개설 건수",
     "NumberOfTimes90DaysLate": "90일 이상 연체 횟수",
     "NumberRealEstateLoansOrLines": "부동산 대출",
-    "NumberOfTime60-89DaysPastDueNotWorse": "60–89일 연체 횟수",
+    "NumberOfTime60-89DaysPastDueNotWorse": "60-89일 연체 횟수",
     "NumberOfDependents": "부양가족 수",
     "telecom_payment_rate": "통신비 정상납부율",
     "utility_payment_rate": "공과금 납부율",
@@ -64,7 +64,7 @@ def _count(v):
 def fmt_value(feature, value):
     """/explain 의 current_value·reference_value 를 화면 표기로 (비율 변수는 0~1 로 온다)."""
     if value is None:
-        return "—"
+        return "-"
     if feature in _RATE:
         return f"{float(value) * 100:.0f}%"
     if feature == "MonthlyIncome":
@@ -103,7 +103,7 @@ def direction_text(feature, higher_is_riskier):
 def fmt_input(feature, value):
     """/predict 요청 단위의 값(부채비율·납부율은 %, 한도 사용률은 0~1, 소득은 원)을 화면 표기로."""
     if value is None:
-        return "—"
+        return "-"
     if feature in {"DebtRatio", "telecom_payment_rate", "utility_payment_rate"}:
         return f"{float(value):.0f}%"
     return fmt_value(feature, value)

@@ -32,7 +32,7 @@ def _group_label(group):
         return GENDER_LABELS[group]
     if group.endswith("+"):
         return f"{group[:-1]}세 이상"
-    return group.replace("-", "–") + "세"
+    return group + "세"
 
 
 def _ordered(attr, rates):
@@ -66,11 +66,11 @@ def _metrics_of(block, criteria):
 
 
 def _v(value):
-    return "—" if value is None else f"{value:.2f}"
+    return "-" if value is None else f"{value:.2f}"
 
 
 def _pass_pill(ok):
-    return ui.pill("통과" if ok else "미달", "ok" if ok else "fail") if ok is not None else ui.pill("—", "gray")
+    return ui.pill("통과" if ok else "미달", "ok" if ok else "fail") if ok is not None else ui.pill("-", "gray")
 
 
 # ---------------------------------------------------------------------------
@@ -270,12 +270,12 @@ def _main():
 
     evaluated = (fairness or {}).get("evaluated_at") or (mitigation or {}).get("evaluated_at")
     try:
-        evaluated = datetime.fromisoformat(evaluated).astimezone().strftime("%Y.%m.%d") if evaluated else "—"
+        evaluated = datetime.fromisoformat(evaluated).astimezone().strftime("%Y.%m.%d") if evaluated else "-"
     except ValueError:
         pass
     n = (fairness or {}).get("n")
     render_page_header("공정성", "성별이나 나이 때문에 심사 결과가 불리하게 나오지 않는지 점검해요.",
-                       meta=[("점검 데이터", f"{DATASET_LABEL} {n:,}명" if n else "—"), ("마지막 점검", evaluated)])
+                       meta=[("점검 데이터", f"{DATASET_LABEL} {n:,}명" if n else "-"), ("마지막 점검", evaluated)])
 
     st.html(_summary(after, before, after_block is not None))
 

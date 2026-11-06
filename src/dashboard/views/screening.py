@@ -27,7 +27,7 @@ from components.api_error import api_error_html
 
 CSS_PATH = Path(__file__).with_suffix(".css")
 HISTORY_FETCH = 100  # GET /screenings 최대치 (서버 le=100, 고객당 최신 1건). 기간은 받아 온 목록에서 거른다
-# 조회 기간 버튼: (이름, 며칠 — 오늘 포함). 마지막 '직접 설정' 은 날짜 두 칸 + 조회
+# 조회 기간 버튼: (이름, 며칠 - 오늘 포함). 마지막 '직접 설정' 은 날짜 두 칸 + 조회
 HISTORY_PRESETS = [("오늘", 1), ("최근 7일", 7), ("최근 30일", 30)]
 HISTORY_CUSTOM = "직접 설정"
 RISK_DOT = {"low": "#0E7C5A", "mid": "#E39A1B", "high": "#C62828"}
@@ -112,11 +112,11 @@ def _history_entries(start, end):
 
 
 def _customer_type(r):
-    """고객 유형: /predict 응답의 is_thin_filer. 서버 이력 목록에는 없어서, 이번 세션에서 심사한 결과로 찾고 그래도 없으면 '—'."""
+    """고객 유형: /predict 응답의 is_thin_filer. 서버 이력 목록에는 없어서, 이번 세션에서 심사한 결과로 찾고 그래도 없으면 '-'."""
     thin = r.get("is_thin_filer")
     if thin is None:
         thin = st.session_state.customers.get(r["customer_id"], {}).get("result", {}).get("is_thin_filer")
-    return "—" if thin is None else ("씬파일러" if thin else "일반")
+    return "-" if thin is None else ("씬파일러" if thin else "일반")
 
 
 def _history_row(r):
@@ -294,7 +294,7 @@ def _summary_html(profile, result):
     cells = [
         ("고객 ID", profile["customer_id"]),
         ("나이", f'{profile["age"]}세'),
-        ("성별", profile.get("gender") or "—"),
+        ("성별", profile.get("gender") or "-"),
         ("월 소득", f'{profile["MonthlyIncome"] / 10_000:,.0f}만원'),
         ("부채비율", f'{profile["DebtRatio"]:.0f}%'),
         ("연체", f"{late}회" if late else ("기록 없음" if not counts else "없음")),
@@ -318,7 +318,7 @@ def _score_bar(score, grade):
     return (f'<div class="scr-bar" style="grid-template-columns:{widths}">{segs}'
             f'<u style="left:{cut:.1f}%"></u><em style="left:{marker:.1f}%"></em></div>'
             f'<div class="scr-bar-labels" style="grid-template-columns:{widths}">{labels}</div>'
-            f'<p class="scr-bar-note">점수는 (1 − 부도 확률) × 1000이에요. 점선은 승인 기준 {config.APPROVAL_SCORE}점이에요.</p>')
+            f'<p class="scr-bar-note">점수는 (1 - 부도 확률) × 1000이에요. 점선은 승인 기준 {config.APPROVAL_SCORE}점이에요.</p>')
 
 
 def _decision_html(result):
@@ -389,8 +389,8 @@ def _approval_factors(explain, profile):
 
 def _shap_cell(value):
     if value is None:
-        return '<strong class="num">—</strong>'
-    return f'<strong class="num {"up" if value >= 0 else "down"}">{"+" if value >= 0 else "−"}{abs(value):.2f}</strong>'
+        return '<strong class="num">-</strong>'
+    return f'<strong class="num {"up" if value >= 0 else "down"}">{"+" if value >= 0 else "-"}{abs(value):.2f}</strong>'
 
 
 def _factor_table(label, explain, rows):
