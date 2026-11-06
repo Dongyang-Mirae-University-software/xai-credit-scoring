@@ -4,7 +4,7 @@
 - 불러오기 · 시연용 샘플 · 정보 수정 · 조건 바꿔 재심사 → 제목 옆에 고객 ID 태그가 붙은 창 (값이 채워져 있다)
 - 신규 고객 심사 → 태그 없이 빈 칸으로 시작하는 창
 - 심사 실행 → POST /predict + /explain → 고객 심사의 결과 화면. 결과는 POST /screenings 로 서버 이력에 바로 남는다
-  (따로 누르는 저장 버튼은 없다. 오늘 심사한 고객이 새로고침해도 남게 하려는 것)
+  (따로 누르는 저장 버튼은 없다. 심사 이력이 새로고침해도 남게 하려는 것)
 - 취소 · 닫기 → 창만 닫고 지금 화면에 남는다
 
 고객 ID 불러오기와 시연용 샘플은 API 를 부르지 않고 로컬 파일 samples.json(테스트셋 고객 입력값)에서 읽는다.
@@ -142,7 +142,7 @@ def _save(payload, result):
 
 def run_predict(profile, record=True):
     """심사 실행: POST /predict 와 POST /explain 을 함께 부른다 (승인이든 거절이든).
-    결과를 현재 심사·XAI 고객 목록에 넣고, record 면 오늘 심사한 고객에도 쌓는다. /predict 가 실패하면 예외를 올린다.
+    결과를 현재 심사·XAI 고객 목록에 넣고, record 면 심사 이력에도 쌓는다. /predict 가 실패하면 예외를 올린다.
     /explain 이 실패하면 그 예외를 캐시에 넣어 두고 결과 화면이 안내한다 (화면을 그릴 때 다시 부르지 않는다)."""
     ss = st.session_state
     payload = _payload(profile)

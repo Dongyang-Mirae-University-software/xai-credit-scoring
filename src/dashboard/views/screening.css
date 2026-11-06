@@ -55,11 +55,42 @@
 .st-key-scr-sample-chips button p { font-size: 14px; color: var(--ink-2); white-space: nowrap; }
 .st-key-scr-sample-chips button:hover { border-color: var(--accent); }
 
-/* 오늘 심사한 고객 */
+/* 심사 이력 */
 .st-key-scr-history { gap: 12px; }
-.scr-history-head { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; }
-.scr-history-head h2 { margin: 0; padding: 0; font-size: 18px; font-weight: 700; line-height: 1.4; color: var(--ink); }
-.scr-history-head span { font-size: 13px; color: var(--ink-3); }
+/* 심사 이력 머리: 제목·건수·안내 | 적용 기간 · (직접 설정: 날짜 ~ 날짜 조회) · 기간 버튼 */
+.st-key-scr-history-head { gap: 12px; flex-wrap: nowrap; }
+.st-key-scr-history-head > div { flex: 0 0 auto; width: auto !important; }
+.st-key-scr-history-head > div:first-child { flex: 1 1 auto; }
+.scr-history-title h2 { margin: 0; padding: 0; font-size: 18px; font-weight: 700; line-height: 1.4; color: var(--ink); white-space: nowrap; }
+.scr-history-title h2 span { font-size: 15px; font-weight: 500; color: var(--ink-3); margin-left: 2px; }
+.scr-history-title p { margin: 2px 0 0; font-size: 13px; color: var(--ink-3); }
+.scr-history-range { font-size: 13px; color: var(--ink-2); white-space: nowrap; margin-right: 8px; font-variant-numeric: tabular-nums; }
+.scr-history-tilde { font-size: 14px; color: var(--ink-3); }
+.st-key-scr-history-head [data-testid="stDateInput"] { width: 150px; }
+.st-key-scr-history-head [data-testid="stDateInput"] [data-baseweb="input"] {
+  height: 36px; border-radius: 8px; background: #FFF; border: 1px solid var(--input);
+}
+.st-key-scr-history-head [data-testid="stDateInput"] [data-baseweb="input"]:focus-within { border-color: var(--accent); }
+.st-key-scr-history-head [data-testid="stDateInput"] [data-baseweb="input"] > div { background: #FFF; }
+.st-key-scr-history-head [data-testid="stDateInput"] input { font-size: 14px; color: var(--ink); background: #FFF; }
+.st-key-scr-range-go button,
+.st-key-scr-range-go button:hover, .st-key-scr-range-go button:focus, .st-key-scr-range-go button:active {
+  height: 36px; min-height: 36px; padding: 0 16px; border-radius: 8px; background: var(--ink); border-color: var(--ink);
+}
+.st-key-scr-range-go button:hover { opacity: .9; }
+.st-key-scr-range-go button p { color: #FFF; font-size: 14px; font-weight: 700; }
+.st-key-scr-history-head [role="radiogroup"] {
+  display: flex; gap: 0; height: 36px; flex-wrap: nowrap;
+  border: 1px solid var(--input); border-radius: 8px; overflow: hidden; background: #FFF;
+}
+.st-key-scr-history-head [role="radiogroup"] > label {
+  margin: 0; padding: 0 14px; height: 100%; display: flex; align-items: center; justify-content: center; cursor: pointer;
+}
+.st-key-scr-history-head [role="radiogroup"] > label + label { border-left: 1px solid var(--input); }
+.st-key-scr-history-head [role="radiogroup"] > label > div:first-child { display: none; }
+.st-key-scr-history-head [role="radiogroup"] > label p { font-size: 14px; color: var(--ink-2); white-space: nowrap; }
+.st-key-scr-history-head [role="radiogroup"] > label:has(input:checked) { background: var(--accent-bg); }
+.st-key-scr-history-head [role="radiogroup"] > label:has(input:checked) p { color: var(--accent); font-weight: 700; }
 .st-key-scr-history-card {
   background: var(--card); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; gap: 0;
 }

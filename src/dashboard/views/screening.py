@@ -3,14 +3,15 @@
 흐름 (디자인 시안의 프로토타입 동작과 같다)
 - 첫 화면: 불러오기 · 시연용 샘플 칩 → 값이 채워진 입력 창 (제목 옆 고객 ID), 신규 고객 심사 → 빈 입력 창
 - 입력 창(components/customer_form)에서 심사 실행 → 결과 화면 (결과는 서버 이력에 바로 남는다)
-- 오늘 심사한 고객 줄 → 그 고객의 결과 화면 바로
+- 심사 이력 줄 → 그 고객의 결과 화면 바로
 - 결과 화면: 정보 수정 → 입력 창, 이전 → 첫 화면. 주소는 ?customer=<고객 ID> 라 새로고침·공유해도 그 결과가 열린다
 - 로고 · 사이드바 '고객 심사' → 언제나 첫 화면
 '불러오기'·샘플은 API 를 부르지 않고 로컬 고객 파일(samples.json)과 이번 세션에서 심사한 고객에서 찾는다.
-오늘 심사한 고객은 서버 이력(GET /screenings)과 이번 세션에서 심사한 것을 합쳐 보여 준다 (새로고침해도 남는다).
+심사 이력은 서버 이력(GET /screenings)과 이번 세션에서 심사한 것을 합쳐 보여 준다 (새로고침해도 남는다).
+조회 기간은 오늘(기본) · 최근 7일 · 최근 30일 · 직접 설정(시작일~종료일 + 조회) 중에서 고른다.
 """
 import re
-from datetime import datetime
+from datetime import date, datetime, timedelta
 from html import escape
 from pathlib import Path
 
@@ -25,7 +26,10 @@ from components import ui
 from components.api_error import api_error_html
 
 CSS_PATH = Path(__file__).with_suffix(".css")
-HISTORY_LIMIT = 5
+HISTORY_FETCH = 100  # GET /screenings 최대치 (서버 le=100, 고객당 최신 1건). 기간은 받아 온 목록에서 거른다
+# 조회 기간 버튼: (이름, 며칠 — 오늘 포함). 마지막 '직접 설정' 은 날짜 두 칸 + 조회
+HISTORY_PRESETS = [("오늘", 1), ("최근 7일", 7), ("최근 30일", 30)]
+HISTORY_CUSTOM = "직접 설정"
 RISK_DOT = {"low": "#0E7C5A", "mid": "#E39A1B", "high": "#C62828"}
 REASON_LIMIT = 3  # 결과 화면의 주요 거절 사유 수 (전체 5개는 XAI 분석)
 
@@ -67,7 +71,7 @@ def _open_sample(customer_id):
 
 
 def _open_history(customer_id):
-    """오늘 심사한 고객 줄: 그 고객의 결과 화면으로.
+    """심사 이력 줄: 그 고객의 결과 화면으로.
     이번 세션에서 심사한 고객이면 그 결과를, 서버 이력에만 있으면 고객 파일의 입력값으로 다시 심사해 보여 준다."""
     if CF.show_result(customer_id):
         return
@@ -88,23 +92,23 @@ def _parse_time(text):
         return None
 
 
-def _history_entries():
-    """오늘 심사한 고객 = 서버 이력(GET /screenings) + 이번 세션에서 심사한 것. 오늘 것만, 고객당 최신 1건, 최신순 5건."""
+def _history_entries(start, end):
+    """심사 이력 = 서버 이력(GET /screenings) + 이번 세션에서 심사한 것.
+    start~end (날짜, 양끝 포함) 것만, 고객당 최신 1건, 최신순."""
     rows = [{**h["result"], "at": h["at"]} for h in st.session_state.scr_history]
     try:
-        saved = [] if connection.is_down() else api_client.screenings()
+        saved = [] if connection.is_down() else api_client.screenings(HISTORY_FETCH)
     except Exception:
         saved = []  # 이력 조회가 실패해도 첫 화면은 그린다
     for r in saved:
         at = _parse_time(r.get("screened_at"))
         if at and r.get("customer_id"):
             rows.append({**r, "at": at})
-    today = datetime.now().date()
     latest = {}
     for r in sorted(rows, key=lambda r: r["at"], reverse=True):
-        if r["at"].date() == today:
+        if start <= r["at"].date() <= end:
             latest.setdefault(r["customer_id"], r)
-    return list(latest.values())[:HISTORY_LIMIT]
+    return list(latest.values())
 
 
 def _customer_type(r):
@@ -125,22 +129,84 @@ def _history_row(r):
             f'<td><span class="scr-risk"><i style="background:{RISK_DOT[risk]}"></i><b>{escape(grade)}</b>'
             f'<span>{RISK_LABELS[risk]}</span></span></td>'
             f'<td class="num">{r["credit_score"]}</td>'
-            f'<td class="scr-time">오늘 {r["at"].strftime("%H:%M")}</td>'
+            f'<td class="scr-time">{_time_label(r["at"])}</td>'
             f'<td class="scr-go">{ui.icon("chevron", "#8A94A6", 16)}</td></tr>')
 
 
+def _time_label(at):
+    """심사 시각: 오늘 09:12 / 어제 18:40 / 11.03 14:05"""
+    days = (datetime.now().date() - at.date()).days
+    day = "오늘" if days == 0 else "어제" if days == 1 else at.strftime("%m.%d")
+    return f"{day} {at.strftime('%H:%M')}"
+
+
+def _preset_range(days):
+    today = date.today()
+    return today - timedelta(days=days - 1), today
+
+
+def _history_range():
+    """적용 중인 조회 기간 (시작, 끝). 처음엔 오늘. 화면을 옮겨도 남도록 위젯이 아닌 키(scr_range)에 둔다."""
+    ss = st.session_state
+    if "scr_range" not in ss:
+        ss.scr_period, ss.scr_range = HISTORY_PRESETS[0][0], _preset_range(HISTORY_PRESETS[0][1])
+    return ss.scr_range
+
+
+def _pick_period():
+    """기간 버튼: 오늘·최근 7일·최근 30일은 바로 적용, 직접 설정은 날짜 칸만 연다 (조회를 눌러야 적용)."""
+    ss = st.session_state
+    ss.scr_period = ss.scr_period_w
+    days = dict(HISTORY_PRESETS).get(ss.scr_period)
+    if days:
+        ss.scr_range = _preset_range(days)
+
+
+def _apply_custom():
+    """직접 설정의 조회: 시작일이 끝일보다 늦으면 안내만 하고 기간은 그대로."""
+    ss = st.session_state
+    start, end = ss.scr_from_w, ss.scr_to_w
+    if not start or not end:
+        _toast_later("시작일과 종료일을 모두 골라 주세요.", error=True)
+    elif start > end:
+        _toast_later("시작일이 종료일보다 늦어요. 날짜를 다시 골라 주세요.", error=True)
+    else:
+        ss.scr_range = (start, end)
+
+
+def _range_label(start, end):
+    fmt = lambda d: d.strftime("%Y.%m.%d")
+    return fmt(start) if start == end else f"{fmt(start)} ~ {fmt(end)}"
+
+
 def _history():
-    """오늘 심사한 고객 표. 줄 전체가 눌리고 (위에 투명 버튼), 누르면 그 고객의 결과 화면이 열린다."""
+    """심사 이력 표 (조회 기간 선택). 줄 전체가 눌리고 (위에 투명 버튼), 누르면 그 고객의 결과 화면이 열린다."""
+    ss = st.session_state
     colgroup = "<colgroup>" + "<col>" * 6 + '<col style="width:40px"></colgroup>'
-    entries = _history_entries()
+    start, end = _history_range()
+    entries = _history_entries(start, end)
+    names = [name for name, _ in HISTORY_PRESETS] + [HISTORY_CUSTOM]
     with st.container(key="scr-history"):
-        st.html('<div class="scr-history-head"><h2>오늘 심사한 고객</h2>'
-                '<span>줄을 누르면 심사 결과를 다시 볼 수 있어요</span></div>')
+        with st.container(key="scr-history-head", horizontal=True, vertical_alignment="center"):
+            st.html(f'<div class="scr-history-title"><h2>심사 이력 <span>{len(entries)}건</span></h2>'
+                    '<p>줄을 누르면 심사 결과를 다시 볼 수 있어요</p></div>')
+            st.html(f'<span class="scr-history-range">{_range_label(start, end)}</span>')
+            if ss.scr_period == HISTORY_CUSTOM:
+                # 날짜 칸 처음 값: 적용 중인 기간. 하루짜리(오늘)면 최근 7일로 채워 둔다 (시안)
+                pick_from, pick_to = (start, end) if start != end else _preset_range(7)
+                st.date_input("시작일", value=pick_from, max_value=date.today(), key="scr_from_w",
+                              format="YYYY.MM.DD", label_visibility="collapsed")
+                st.html('<span class="scr-history-tilde">~</span>')
+                st.date_input("종료일", value=pick_to, max_value=date.today(), key="scr_to_w",
+                              format="YYYY.MM.DD", label_visibility="collapsed")
+                st.button("조회", key="scr-range-go", on_click=_apply_custom)
+            st.radio("조회 기간", names, index=names.index(ss.scr_period), key="scr_period_w",
+                     horizontal=True, label_visibility="collapsed", on_change=_pick_period)
         with st.container(key="scr-history-card"):
             st.html(f'<table class="scr-htable">{colgroup}<thead><tr><th>고객 ID</th><th>고객 유형</th><th>결과</th>'
                     '<th>리스크 등급</th><th class="num">신용 점수</th><th>심사 시각</th><th></th></tr></thead></table>')
             if not entries:
-                st.html('<p class="scr-empty">오늘 심사한 고객이 아직 없어요. 심사를 실행하면 여기에 쌓여요.</p>')
+                st.html('<p class="scr-empty">이 기간에 심사한 고객이 없어요. 심사를 실행하면 여기에 쌓여요.</p>')
             for i, r in enumerate(entries):
                 customer_id = r["customer_id"]
                 with st.container(key=f"scr-hrow-{i}"):
