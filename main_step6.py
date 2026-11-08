@@ -96,11 +96,14 @@ def upload(plan, env_file, run_id=None, client=None):
     metrics = {m['key']: m['value'] for m in data.get('metrics', [])}
     tags = {t['key']: t['value'] for t in data.get('tags', [])}
     if 'test_auc' in metrics and 'test_ks' in metrics:
-        uplift = None
-        if all(k in metrics for k in ('thin_uplift', 'thin_ci_low', 'thin_ci_high')):
-            uplift = {'uplift': metrics['thin_uplift'], 'ci_low': metrics['thin_ci_low'], 'ci_high': metrics['thin_ci_high']}
+        def _uplift(prefix):
+            keys = (f'{prefix}uplift', f'{prefix}ci_low', f'{prefix}ci_high')
+            if all(k in metrics for k in keys):
+                return dict(zip(('uplift', 'ci_low', 'ci_high'), (metrics[k] for k in keys)))
+            return None
+        # thin_cv_* = Train+Validation 교차검증(판정 값), thin_* = Test 1회(참고 값) (#120)
         note = notes.final_test_note(tags.get('selected_model', 'final model'), metrics['test_auc'], metrics['test_ks'],
-                                     psi=metrics.get('test_psi'), uplift=uplift)
+                                     psi=metrics.get('test_psi'), uplift=_uplift('thin_'), uplift_cv=_uplift('thin_cv_'))
         client.set_tag(rid, 'mlflow.note.content', note + ' See summary_en.md and metrics_guide.md in Artifacts.')
     client.set_tag(rid, 'results_attached', 'SHAP plots, fairness and ANOVA results with a plain-English summary')
     return rid
