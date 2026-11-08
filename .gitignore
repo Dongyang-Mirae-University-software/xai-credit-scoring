@@ -33,3 +33,6 @@ outputs/**
 !outputs/fairness/fairness_mitigation.json
 !outputs/statistics/anova.json
 data/screenings.db
+
+# 과제 원문 (이슈 #101, PR #113): 저장소에서 추적 해제. 원문은 노션에 있다
+프로젝트 주제.txt
