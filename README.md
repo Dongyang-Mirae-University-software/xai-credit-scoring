@@ -29,13 +29,14 @@ Give Me Some Credit(GMSC) 데이터에 대안 데이터 시뮬레이터를 결�
 
 | 등급 | 점수 | 위험도 | 심사 결과 |
 |---|---|---|---|
-| A | 900 이상 | 저위험 | 승인 |
-| B | 800 ~ 899 | 저위험 | 승인 |
-| C | 650 ~ 799 | 중위험 | 승인 |
-| D | 450 ~ 649 | 고위험 | 거절 |
-| E | 450 미만 | 고위험 | 거절 |
+| A | 800 이상 | 저위험 | 승인 |
+| B | 650 ~ 799 | 저위험 | 승인 |
+| C | 500 ~ 649 | 중위험 | 승인 |
+| D | 300 ~ 499 | 고위험 | 거절 |
+| E | 300 미만 | 고위험 | 거절 |
 
-650점 이상(A~C)이면 승인입니다. 대시보드 결과 화면의 등급 막대는 칸 폭이 점수 구간 길이 그대로(E:D:C:B:A = 45:20:15:10:10)이고, 점선이 승인 기준 650점입니다 (`src/dashboard/config.py` `GRADE_SCALE`, `APPROVAL_SCORE`).
+부도 확률이 `APPROVAL_THRESHOLD`(기본 0.5) 미만이면 승인, 즉 500점 이상(A~C)이 승인입니다. 등급 구간은 `src/api/model.py` `GRADE_SCALE`, 승인은 `approval_status()` 가 정합니다.
+대시보드 결과 화면의 등급 막대는 칸 폭이 점수 구간 길이 그대로(E:D:C:B:A = 30:20:15:15:20, `src/dashboard/config.py` `GRADE_SCALE`, API 와 같은 구간)이고, 점선은 `/predict` 응답의 `approval_threshold` 를 점수로 바꾼 위치입니다 (기본 500점). 승인 기준을 바꾸면 API 의 `APPROVAL_THRESHOLD` 만 바꾸면 점선이 따라갑니다. 혼동행렬·승인율·공정성 결과도 같은 기준(0.5)으로 계산되어 있습니다.
 
 ### 모델과 검증
 - 모델: Logistic Regression · XGBoost · LightGBM × 불균형 처리(class_weight / SMOTE) × 데이터(전통 / 대안 / 통합), 5-Fold Stratified CV
@@ -163,7 +164,6 @@ xai-credit-scoring/
 | `API_LOG` | (끔) | 대시보드의 API 호출을 터미널에 기록. `1` 은 `POST /predict 200 (24ms)` 한 줄, `body` 는 요청·응답 JSON 까지 (목록은 한 건씩 한 줄) |
 | `API_LOG_BODY_MAX` | 600 | `API_LOG=body` 에서 한 줄 최대 글자 수. `0` 이면 자르지 않음 |
 | `HEALTH_CACHE_TTL` | 10 | 서버 상태 카드 새로고침 간격(초) |
-| `APPROVAL_SCORE` | 650 | 결과 화면 등급 막대의 승인 기준 점선 (점수와 등급 기준 참고) |
 | `XAI_RISK_HIGH` / `XAI_RISK_MID` | 0.7 / 0.4 | 거절 사유 카드의 고·중위험 표시 기준 (SHAP 값) |
 | `WATERFALL_MAX_DISPLAY` | 8 | Waterfall에 따로 보여 줄 변수 수 |
 | `ADDITIVITY_TOLERANCE` | 0.005 | SHAP 가법성 검증 허용 오차 |
