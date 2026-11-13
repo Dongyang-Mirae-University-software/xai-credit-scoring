@@ -6,6 +6,7 @@
 승인율 비율(DI)은 디자인 정의대로 '가장 낮은 집단 승인율 ÷ 가장 높은 집단 승인율' 을 화면에서 계산하고
 criteria.di_min(0.80) 이상이면 통과로 본다.
 """
+import math
 from datetime import datetime
 from html import escape
 from pathlib import Path
@@ -214,6 +215,88 @@ def _compare_table(before, after, criteria):
     </div>"""
 
 
+# ---------------------------------------------------------------------------
+# 상세: 보정 전후 비교 차트 (이슈 #119). 값은 GET /fairness/mitigation 의 before / after 그대로
+# ---------------------------------------------------------------------------
+def _axis_top(values, floor):
+    """세로축 위 끝: 기준선과 값이 모두 들어가게, 0.1 단위로 올림."""
+    top = max([floor] + [v for v in values if v is not None]) * 1.1
+    return math.ceil(top * 10) / 10
+
+
+def _bar(value, top, cls, label, ok):
+    """막대 하나 + 바로 위 숫자. 값이 없으면 빈 자리. 기준을 못 넘으면 숫자 위에 '미달'.
+    반올림한 숫자가 기준 안처럼 보이면(예: 1.2535 → 1.25) 소수 셋째 자리까지 보여 준다."""
+    if value is None:
+        return '<span class="fa-mbar empty"></span>'
+    fail = ok is not None and not ok(value)
+    text = f"{value:.3f}" if fail and ok(round(value, 2)) else f"{value:.2f}"
+    h = min(max(value / top, 0), 1) * 100
+    tag = '<em>미달</em>' if fail else ""
+    return (f'<span class="fa-mbar {cls}" title="{escape(label)} {value:.3f}">'
+            f'<b>{tag}{text}</b><i style="height:{h:.1f}%"></i></span>')
+
+
+def _bar_chart(title, sub, groups, top, guide, legend_rule):
+    """groups: [(이름, 보정 전 값, 보정 후 값, 미달인가(값) 함수)]. guide: 기준선·범위 HTML 함수(top → HTML)."""
+    cols = "".join(
+        f'<div class="fa-bars-group"><div class="fa-bars-pair">'
+        f'{_bar(b, top, "before", f"{name} 보정 전", ok)}'
+        f'{_bar(a, top, "after", f"{name} 보정 후", ok)}'
+        f'</div><span class="fa-bars-name">{name}</span></div>'
+        for name, b, a, ok in groups)
+    ticks = "".join(f'<span style="bottom:{t / top * 100:.1f}%">{t:.1f}</span>'
+                    for t in [round(i * 0.1, 1) for i in range(0, int(round(top * 10)) + 1)]
+                    if (top <= 0.4 or round(t * 10) % 2 == 0))
+    return f"""
+    <div class="fa-chart">
+      <div class="fa-chart-head"><b>{title}</b><span>{sub}</span></div>
+      <div class="fa-chart-body">
+        <div class="fa-chart-axis">{ticks}</div>
+        <div class="fa-chart-plot"><div class="fa-chart-guides">{guide(top)}</div>{cols}</div>
+      </div>
+      <div class="fa-chart-legend"><span><i class="before"></i>보정 전</span><span><i class="after"></i>보정 후</span>{legend_rule}</div>
+    </div>"""
+
+
+def _mitigation_chart(before_block, after_block, criteria):
+    """DI Ratio 와 Equalized Odds(TPR·FPR 차이)를 보호 속성별로 보정 전/후 막대로 나란히.
+    두 지표는 기준과 단위가 달라 한 축에 그리지 않고 차트 두 개로 나눈다."""
+    b_attrs, a_attrs = before_block.get("by_attribute", {}), after_block.get("by_attribute", {})
+    attrs = [(attr, label) for attr, label in ATTRIBUTES if attr in b_attrs or attr in a_attrs]
+    get = lambda block, attr, key: (block.get(attr) or {}).get(key)
+    di_min, di_max, eo_max = criteria["di_min"], criteria.get("di_max"), criteria["eo_max"]
+
+    di_ok = lambda v: v >= di_min and (di_max is None or v <= di_max)
+    di_groups = [(label, get(b_attrs, attr, "di_ratio"), get(a_attrs, attr, "di_ratio"), di_ok) for attr, label in attrs]
+    di_top = _axis_top([v for _, b, a, _ in di_groups for v in (b, a)], di_max or di_min)
+
+    def di_guide(top):
+        lo, hi = di_min / top * 100, (di_max if di_max is not None else top) / top * 100
+        return (f'<i class="fa-chart-band" style="bottom:{lo:.1f}%;height:{hi - lo:.1f}%"></i>'
+                f'<i class="fa-chart-line" style="bottom:{1 / top * 100:.1f}%"></i>')
+    di_rule = (f'<span><i class="band"></i>기준 범위 {di_min:g}~{di_max:g}</span>' if di_max is not None
+               else f'<span><i class="band"></i>기준 {di_min:g} 이상</span>') + '<span><i class="one"></i>1.0 = 완전히 같음</span>'
+
+    eo_ok = lambda v: v <= eo_max
+    eo_groups = [(f"{label} {kind}", get(b_attrs, attr, key), get(a_attrs, attr, key), eo_ok)
+                 for attr, label in attrs
+                 for kind, key in (("TPR", "equalized_odds_tpr_diff"), ("FPR", "equalized_odds_fpr_diff"))]
+    eo_top = _axis_top([v for _, b, a, _ in eo_groups for v in (b, a)], eo_max)
+
+    def eo_guide(top):
+        return (f'<i class="fa-chart-band" style="bottom:0;height:{eo_max / top * 100:.1f}%"></i>'
+                f'<i class="fa-chart-line limit" style="bottom:{eo_max / top * 100:.1f}%"></i>')
+    eo_rule = f'<span><i class="band"></i>기준 {eo_max:g} 이하</span>'
+
+    return ('<div class="fa-charts">'
+            + _bar_chart("승인율 비율 (DI Ratio)", "보호 집단 승인율 ÷ 나머지 승인율. 1.0에 가까울수록 고르게 승인해요.",
+                         di_groups, di_top, di_guide, di_rule)
+            + _bar_chart("오류율 차이 (Equalized Odds)", "TPR·FPR의 집단 간 차이. 0에 가까울수록 고르게 판단해요.",
+                         eo_groups, eo_top, eo_guide, eo_rule)
+            + "</div>")
+
+
 def _change_card(mitigation, auc_target):
     b, a = mitigation.get("before", {}), mitigation.get("after", {})
     cells = []
@@ -305,6 +388,7 @@ def _main():
         except Exception:
             auc_target = None
         st.html(f'<section class="fa-compare">{ui.section_head("보정 전후 비교", method_text)}'
+                f'{_mitigation_chart(before_block, after_block, criteria)}'
                 f'{_compare_table(before, after, criteria)}{_change_card(mitigation, auc_target)}'
                 f'{LIMIT_NOTE if method == "threshold_adjustment" else ""}</section>')
     else:
