@@ -382,15 +382,15 @@ Recall 0.775(연체자 4명 중 3명을 거절), Precision 0.253(거절한 사�
 
 ### 6.7 신용점수와 국내 CB 신용점수 비교
 
-본 시스템의 신용점수는 과제 노션의 「신용 점수(0-1000)」를 따라 `round((1 - default_probability) × 1000)`으로 계산한다 (10.2). 국내 CB(NICE평가정보, KCB)도 2021년 1월부터 1~1,000점 신용점수제를 쓰지만, 두 점수는 숫자 범위만 같고 만드는 방식과 뜻이 다르다.
+본 시스템의 신용점수는 과제 노션의 「신용 점수(0-1000)」를 따라 `round((1 - default_probability) × 1000)`으로 계산한다 (10.2). 국내 CB(NICE평가정보, KCB)도 2021년 1월부터 1\~1,000점 신용점수제를 쓰지만, 두 점수는 숫자 범위만 같고 만드는 방식과 뜻이 다르다.
 
 | 항목 | 본 시스템 신용점수 | 국내 CB 신용점수 (NICE · KCB) |
 |---|---|---|
-| 범위 | 0 ~ 1000 | 1 ~ 1000 |
+| 범위 | 0 \~ 1000 | 1 \~ 1000 |
 | 계산 | (1 - 부도 확률) × 1000, 확률에 비례 | 기관별 자체 모형 (공식 비공개) |
 | 확률의 뜻 | 연체자에 무게를 더 주고 학습한 모델(`is_unbalance`)의 출력이라 실제 연체율보다 높게 나온다 (Test 평균 27.5%, 실제 6.7%) | 점수가 같으면 연체 가능성이 같도록 맞춘 점수 |
 | 정답(Target) | 2년 안에 90일 이상 연체 (Give Me Some Credit) | 기관별 정의 (비공개) |
-| 등급 | A ~ E 다섯 등급 (과제 노션) | 2021년부터 등급을 산정하지 않음 |
+| 등급 | A \~ E 다섯 등급 (과제 노션) | 2021년부터 등급을 산정하지 않음 |
 | 승인 기준 | 부도 확률 0.5 미만 = 500점 이상 (`APPROVAL_THRESHOLD`) | 금융사가 상품마다 정함. 금융위원회는 전환 때 참고 기준선만 공표 |
 
 금융위원회는 신용점수제 전환 때 신용카드 발급 기준(기존 6등급 이상)을 NICE 680점 이상 또는 KCB 576점 이상으로 안내했다. 같은 숫자를 본 시스템의 Test 22,500명 점수에 그대로 대면 다음과 같다.
@@ -409,7 +409,7 @@ Recall 0.775(연체자 4명 중 3명을 거절), Precision 0.253(거절한 사�
 
 출처: 금융위원회 보도자료 「신용점수제 전면 전환」 (2020.12.27), https://www.fsc.go.kr/no010101/75101
 
-## 7. XAI 분석 (3쪽) ✅
+## 7. XAI 분석
 
 > 코드: `main_step3.py`, `src/explainer/`. 그림은 `outputs/evaluation/shap/`를 `docs/figures/`에 복사해 썼다(한도 사용 비율 Dependence Plot만 원래 단위로 다시 그림, 7.3).
 
@@ -691,9 +691,9 @@ main_step3~5 ──▶ outputs/ (검증 결과 JSON)    ──▶   (/predict ·
 |---|---|---|---|
 | 공통 | `GET /health` | 상태, 모델 버전 · 단계(Staging), Test AUC, 결과 JSON 출처 | 모델 파일 |
 | 고객 심사 | `POST /predict` | 신용점수, 등급, 승인 여부, 부도 확률, 씬파일러 여부 | 최종 모델 즉시 계산 |
-| 고객 심사 | `GET /customers/{customer_id}` ➕ | 고객 한 명의 입력값 15칸 | `data/customers.json` (Test 고객 1,000명) |
-| 고객 심사 | `POST /screenings` ➕ | 심사 결과 저장 | SQLite (`data/screenings.db`) |
-| 고객 심사 | `GET /screenings` ➕ | 최근 심사 목록 | SQLite (`data/screenings.db`) |
+| 고객 심사 | `GET /customers/{customer_id}` (추가) | 고객 한 명의 입력값 15칸 | `data/customers.json` (Test 고객 1,000명) |
+| 고객 심사 | `POST /screenings` (추가) | 심사 결과 저장 | SQLite (`data/screenings.db`) |
+| 고객 심사 | `GET /screenings` (추가) | 최근 심사 목록 | SQLite (`data/screenings.db`) |
 | XAI 분석 | `POST /explain` | 거절 사유 Top 5(문장 포함), 칸별 SHAP 값 | SHAP 즉시 계산 |
 | XAI 분석 | `GET /explain/summary` ➕ | 전역 중요도 상위 칸 | `shap_summary.json` |
 | 공정성 | `GET /fairness` | DI Ratio, TPR · FPR 차이, 집단별 승인율 | `fairness.json` |
@@ -718,8 +718,8 @@ main_step3~5 ──▶ outputs/ (검증 결과 JSON)    ──▶   (/predict ·
 
 | 확인 | 결과 |
 |---|---|
-| 엔드포인트 호출 | 처음 9개 모두 200 ✅ (10/29). 고객 조회 · 심사 저장 3개는 #116 · #118에서 추가 |
-| `/predict` 응답 시간 | 첫 호출 0.92초(모델 불러오기 포함), 이후 0.1초 이하. 과제 노션 「`/predict` API 응답 시간이 2초 이내이다」 ✅ |
+| 엔드포인트 호출 | 처음 9개 모두 200 (통과) (10/29). 고객 조회 · 심사 저장 3개는 #116 · #118에서 추가 |
+| `/predict` 응답 시간 | 첫 호출 0.92초(모델 불러오기 포함), 이후 0.1초 이하. 과제 노션 「`/predict` API 응답 시간이 2초 이내이다」 (통과) |
 | Swagger 예시 고객 (C-10482) | 268점 · E등급 · 부도 확률 73% · 거절 (11/5, #118 월소득 원 단위 반영 후). 거절 사유 1위 「정기결제 건수가 5건으로, 동일 연령대 평균(11.3건) 대비 낮습니다」 |
 | API 테스트 (`tests/test_api.py`) | 통과 (전체 pytest 120 통과 · 7 건너뜀 · 실패 0, 11/5) |
 
@@ -730,16 +730,16 @@ main_step3~5 ──▶ outputs/ (검증 결과 JSON)    ──▶   (/predict ·
 | 페이지 | 과제 노션 「필수 구성 요소」 | 구현 | 쓰는 API |
 |---|---|---|---|
 | 고객 심사 | 입력 폼(나이, 소득, 부채비율 등), 승인/거절 결과, 신용 점수, 리스크 등급 | 입력 15칸, 승인/거절, 점수 막대와 등급 눈금, 씬파일러 표시 ✅ | `/predict` |
-| XAI 분석 | SHAP Summary Plot 이미지, 개별 고객 Waterfall Plot, 거절 사유 Top 5 텍스트 | 전역 중요도(금융 · 대안 색 구분), 심사한 고객의 Waterfall과 가법성 검증, 거절 사유 카드 5개 ✅ | `/explain`, `/explain/summary` |
-| 공정성 | 집단별 승인율 막대 차트, DI Ratio 수치, Mitigation 전/후 비교 차트 | 집단별 승인율 막대, DI Ratio · Equalized Odds 수치와 통과 표시, 완화 전/후 비교 ✅ | `/fairness`, `/fairness/mitigation` |
-| 모델 성능 | ROC Curve, Precision-Recall Curve, 혼동행렬 히트맵 | 지표 카드(AUC · KS · PSI 통과 표시), ROC · PR 곡선, 혼동행렬, 후보 모델 비교, 씬파일러 AUC 향상 ✅ | `/metrics`, `/metrics/comparison` |
-| 통계 검증 | ANOVA 검증 결과 테이블 (F값, p값, η²), Tukey HSD 결과 | 검증 1 · 2의 F · p · η² 표, Tukey HSD 쌍별 비교 표 ✅ | `/anova` |
+| XAI 분석 | SHAP Summary Plot 이미지, 개별 고객 Waterfall Plot, 거절 사유 Top 5 텍스트 | 전역 중요도(금융 · 대안 색 구분), 심사한 고객의 Waterfall과 가법성 검증, 거절 사유 카드 5개 (완료) | `/explain`, `/explain/summary` |
+| 공정성 | 집단별 승인율 막대 차트, DI Ratio 수치, Mitigation 전/후 비교 차트 | 집단별 승인율 막대, DI Ratio · Equalized Odds 수치와 통과 표시, 완화 전/후 비교 (완료) | `/fairness`, `/fairness/mitigation` |
+| 모델 성능 | ROC Curve, Precision-Recall Curve, 혼동행렬 히트맵 | 지표 카드(AUC · KS · PSI 통과 표시), ROC · PR 곡선, 혼동행렬, 후보 모델 비교, 씬파일러 AUC 향상 (완료) | `/metrics`, `/metrics/comparison` |
+| 통계 검증 | ANOVA 검증 결과 테이블 (F값, p값, η²), Tukey HSD 결과 | 검증 1 · 2의 F · p · η² 표, Tukey HSD 쌍별 비교 표 (완료) | `/anova` |
 
 - **위험도 색**: A · B 저위험(초록), C 중위험(노랑), D · E 고위험(빨강). 과제 노션 「위험도에 따라 색상이 구분된다」.
 - **가법성 검증**: Waterfall의 기준값 + SHAP 값 합을 확률로 바꾼 값이 `/predict`의 부도 확률과 같은지(오차 0.005 이내) 화면에 표시해, 설명이 실제 예측과 맞는지 보여 준다.
 - **면책 조항**: 모든 페이지 사이드바 아래에 원문 그대로 표시한다 (#97). 과제 노션 「모든 결과물에 다음 면책 조항(Disclaimer)을 명시해야 한다」.
 - **API가 꺼졌을 때**: 화면이 멈추지 않고 오류 안내를 보여 준다. API 없이 화면만 볼 때는 `USE_MOCK=true`로 예시 응답을 쓴다.
-- ✍️ 화면 캡처: 새 화면 시안(PR #124)과 공정성 완화 비교 차트(#119)가 들어간 뒤 5페이지를 한 장씩 넣는다 (`docs/figures/10_*.png`).
+- 화면 캡처: 새 화면 시안(PR #124)과 공정성 완화 비교 차트(#119)가 들어간 뒤 5페이지를 한 장씩 넣는다 (`docs/figures/10_*.png`).
 
 ### 10.4 Docker Compose
 
