@@ -56,9 +56,14 @@
 .fa-bar { position: relative; display: block; height: 22px; border-radius: 4px; background: #F3F5F8; }
 .fa-bar i { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 4px; background: var(--accent); }
 .fa-bar-row strong { font-size: 15px; font-weight: 700; text-align: right; color: var(--ink); }
-.fa-line { position: absolute; top: 0; bottom: 0; width: 0; border-left: 2px dashed var(--ink-3); }
+/* 기준 범위 띠: 나머지 집단 승인율의 0.8~1.25배. 막대 위에 반투명으로 겹친다 */
+.fa-band {
+  position: absolute; top: 0; bottom: 0; z-index: 1; pointer-events: none;
+  background: rgba(14, 124, 90, .12); border-left: 2px dashed var(--ok); border-right: 2px dashed var(--ok);
+}
+.fa-bar-row.prot > span:first-child { font-weight: 700; color: var(--ink); }
 .fa-line-note { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--ink-3); }
-.fa-line-note i { width: 16px; border-top: 2px dashed var(--ink-3); }
+.fa-line-note i { width: 14px; height: 10px; border-radius: 2px; background: rgba(14, 124, 90, .12); border: 1px dashed var(--ok); }
 
 /* 상세: 보정 전후 비교 */
 .fa-compare { display: flex; flex-direction: column; gap: 12px; }
