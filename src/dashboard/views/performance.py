@@ -29,7 +29,7 @@ def _algorithm(model_name):
 
 
 def _model_version(model_name):
-    return (model_name or "—").removesuffix(".joblib")
+    return (model_name or "-").removesuffix(".joblib")
 
 
 # ---------------------------------------------------------------------------
@@ -49,10 +49,10 @@ def _targets(m):
          passes.get("auc", m.get("auc", 0) >= t["auc"])),
         ("ks", "KS 통계량", m.get("ks"), f"{m.get('ks', 0):.3f}", f"목표 {t['ks']:.2f} 이상",
          passes.get("ks", m.get("ks", 0) >= t["ks"])),
-        ("thin_filer_uplift", "씬파일러 AUC 향상", uplift, "—" if uplift is None else f"{uplift:+.3f}",
+        ("thin_filer_uplift", "씬파일러 AUC 향상", uplift, "-" if uplift is None else f"{uplift:+.3f}",
          f"목표 +{t['thin_filer_uplift']:.2f} 이상",
          passes.get("thin_filer_uplift", uplift is not None and uplift >= t["thin_filer_uplift"])),
-        ("psi", "PSI", m.get("psi"), "—" if m.get("psi") is None else f"{m['psi']:.3f}", f"목표 {t['psi']:g} 미만",
+        ("psi", "PSI", m.get("psi"), "-" if m.get("psi") is None else f"{m['psi']:.3f}", f"목표 {t['psi']:g} 미만",
          passes.get("psi", m.get("psi") is not None and m["psi"] < t["psi"])),
     ]
     return t, items
@@ -71,7 +71,7 @@ def _summary(m):
     else:
         sub = f"{first}지만, 씬파일러 고객의 AUC 향상은 {uplift:+.3f}로 목표(+{t['thin_filer_uplift']:.2f})에 못 미쳐요."
     title = (f"성능 목표 {len(items)}개를 모두 달성했어요" if all_ok
-             else f"성능 목표 {len(items)}개 중 {len(done)}개를 달성했어요")
+             else f"성능 목표 {len(items)}개 중 {len(items) - len(done)}개가 미달이에요")
     cells = "".join(
         f'<div class="pf-metric"><span>{label}</span><div><strong>{text}</strong>'
         f'{ui.pill("달성" if ok else "미달", "ok" if ok else "fail")}</div><small>{rule}</small></div>'
@@ -81,7 +81,7 @@ def _summary(m):
         ("Recall", m.get("recall"), "실제 부도 고객 중 거절로 걸러낸 비율"),
         ("F1", m.get("f1"), "Precision과 Recall의 조화 평균"),
     ]
-    sec = "".join(f'<div><span>{label}</span><strong>{"—" if v is None else f"{v:.3f}"}</strong><small>{desc}</small></div>'
+    sec = "".join(f'<div><span>{label}</span><strong>{"-" if v is None else f"{v:.3f}"}</strong><small>{desc}</small></div>'
                   for label, v, desc in secondary)
     tone = "ok" if all_ok else "fail"
     return f"""
@@ -216,7 +216,7 @@ def _main():
         return
 
     n = metrics.get("n")
-    render_page_header("모델 성능", SUBTITLE, meta=[("평가 데이터", f"{DATASET_LABEL} {n:,}명" if n else "—"),
+    render_page_header("모델 성능", SUBTITLE, meta=[("평가 데이터", f"{DATASET_LABEL} {n:,}명" if n else "-"),
                                                  ("모델", _model_version(metrics.get("model")))])
     st.html(_summary(metrics))
 

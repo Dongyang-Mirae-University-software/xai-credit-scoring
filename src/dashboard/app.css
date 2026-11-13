@@ -1,4 +1,4 @@
-/* 앱 전역 테마 (디자인 토큰) — 헤더는 components/header.css, 사이드바는 components/sidebar.css */
+/* 앱 전역 테마 (디자인 토큰) - 헤더는 components/header.css, 사이드바는 components/sidebar.css */
 @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap');
 
 :root {
@@ -28,6 +28,8 @@
 
 /* ---- 전역: 가로 스크롤 금지, 폰트, 배경 ---- */
 html, body { overflow-x: hidden; }
+/* 한글은 단어 중간에서 줄을 바꾸지 않고, 너무 긴 낱말(영문 변수명 등)만 아무 곳에서나 바꾼다. 말줄임(…)은 쓰지 않는다 */
+[data-testid="stApp"] { word-break: keep-all; overflow-wrap: anywhere; }
 [data-testid="stApp"],
 [data-testid="stAppViewContainer"],
 [data-testid="stMain"] {

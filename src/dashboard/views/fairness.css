@@ -108,3 +108,26 @@
 .fa-change > div em { font-style: normal; color: var(--ink-3); }
 .fa-change > div strong { font-weight: 700; }
 .fa-change-note { margin-left: auto; font-size: 13px; color: var(--ink-3); }
+
+/* 집단별 승인율 패널: 위 한 줄 상태 + 카드 2개 */
+.fa-panel { display: flex; flex-direction: column; gap: 16px; }
+.fa-state { margin: 0; padding: 12px 16px; border-radius: 10px; font-size: 14px; font-weight: 500; line-height: 1.5; }
+.fa-state.ok { background: var(--ok-bg); color: var(--ok-text); }
+.fa-state.fail { background: var(--fail-bg); color: var(--fail-text); }
+/* 기준선 아래 집단: 막대·글자 빨강 */
+.fa-bar-row.low > span:first-child { color: var(--fail-text); font-weight: 700; }
+.fa-bar-row.low .fa-bar i { background: var(--risk-up); }
+.fa-bar-row.low strong { color: var(--fail-text); }
+.fa-card-head strong.fail { color: var(--fail-text) !important; }
+
+/* 보정 방식의 한계 */
+.fa-limit {
+  display: flex; gap: 12px; padding: 16px 20px; border-radius: 12px; background: var(--mid-bg);
+  color: #5C3A00; font-size: 13px; line-height: 1.6;
+}
+.fa-limit::before {
+  content: ""; flex: 0 0 18px; width: 18px; height: 18px; margin-top: 2px;
+  background: url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='12' r='9' fill='none' stroke='%238A5200' stroke-width='2'/%3E%3Cpath d='M12 8v5M12 16.5v.5' fill='none' stroke='%238A5200' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E") center/contain no-repeat;
+}
+.fa-limit > div { display: flex; flex-direction: column; gap: 4px; }
+.fa-limit strong { font-size: 14px; color: var(--mid-text); }

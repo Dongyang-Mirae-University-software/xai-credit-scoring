@@ -11,7 +11,14 @@ div[role="dialog"]:has(.dlg-sub) > div:first-child p {
 div[role="dialog"]:has(.dlg-sub) > button {
   top: 24px; right: 28px; width: 40px; height: 40px; border-radius: 8px; color: var(--ink-2);
 }
-div[role="dialog"]:has(.dlg-sub) > div:nth-child(2) { padding: 0 28px !important; }
+/* 창이 화면보다 길면 딤드가 아니라 창 안(본문)이 스크롤된다. 제목은 위, 버튼 줄(sticky)은 아래에 남는다 */
+div[role="dialog"]:has(.dlg-sub) {
+  display: flex; flex-direction: column; max-height: calc(100vh - 96px);
+}
+div[role="dialog"]:has(.dlg-sub) > div:first-child { flex: none; }
+div[role="dialog"]:has(.dlg-sub) > div:nth-child(2) {
+  padding: 0 28px !important; flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain;
+}
 div[role="dialog"]:has(.dlg-sub) [data-testid="stVerticalBlock"] { gap: 24px; }
 .dlg-sub {
   margin: 0 -28px; padding: 0 28px 20px; border-bottom: 1px solid var(--divider);
@@ -23,23 +30,11 @@ div[role="dialog"]:has(.dlg-sub) [data-testid="stWidgetLabel"] p { font-size: 13
 div[role="dialog"] [data-testid="stNumberInputContainer"] { border: 0; height: 44px; background: none; }
 div[role="dialog"] [data-testid="stNumberInputContainer"] > [data-baseweb="input"] { flex: 1 1 auto; }
 
-/* 불러옴 안내 */
-.st-key-dlg-loaded {
-  padding: 12px 16px; border-radius: 10px; background: var(--ok-bg); gap: 12px; flex-wrap: nowrap;
+/* 제목 옆 고객 ID 태그 (글자는 창에서 content 로 넣는다) */
+div[role="dialog"]:has(.dlg-sub) > div:first-child p::after {
+  display: inline-block; margin-left: 10px; padding: 3px 10px; border-radius: 6px; vertical-align: 2px;
+  background: var(--divider); color: var(--ink-2); font-size: 13px; font-weight: 700; line-height: 1.5;
 }
-.dlg-loaded-text { display: inline-flex; align-items: center; gap: 8px; font-size: 14px; color: var(--ok-text); white-space: nowrap; }
-.dlg-loaded-text b { font-weight: 700; }
-.st-key-dlg-loaded .stButton { margin-left: auto; }
-.st-key-dlg-loaded button { height: 32px; min-height: 32px; padding: 0 10px; }
-.st-key-dlg-loaded button p { font-size: 13px; font-weight: 700; color: var(--ok-text); }
-/* 신규 고객 안내 (회색, 버튼은 파란 글씨) */
-.st-key-dlg-new {
-  padding: 12px 16px; border-radius: 10px; background: var(--page); gap: 12px; flex-wrap: nowrap;
-}
-.dlg-new-text { font-size: 14px; color: var(--ink-2); white-space: nowrap; }
-.st-key-dlg-new .stButton { margin-left: auto; }
-.st-key-dlg-new button { height: 32px; min-height: 32px; padding: 0 10px; }
-.st-key-dlg-new button p { font-size: 13px; font-weight: 700; color: var(--accent); }
 
 /* 묶음 머리 (기본 정보 / 금융 이력 / 추가 정보 / 대안 데이터) */
 .st-key-dlg-basic, .st-key-dlg-finance, .st-key-dlg-extra, .st-key-dlg-alt { gap: 12px !important; }
@@ -53,6 +48,8 @@ div[role="dialog"] [data-testid="stNumberInputContainer"] > [data-baseweb="input
   font-style: normal; padding: 2px 8px; border-radius: 999px;
   background: var(--ok-bg); color: var(--ok-text); font-size: 12px; font-weight: 700;
 }
+.dlg-tag.mid { background: var(--mid-bg); color: var(--mid-text); }
+.dlg-tag.info { background: var(--accent-bg); color: var(--accent); }
 .dlg-label { font-size: 13px; color: var(--ink-2); }
 .dlg-hint { display: block; font-size: 12px; color: var(--ink-3); }
 .dlg-hint b { color: var(--ink); font-weight: 700; }
@@ -110,7 +107,32 @@ div[role="dialog"] [data-testid="InputInstructions"] { display: none; }
 }
 .dlg-step-label { font-size: 13px; color: var(--ink-3); white-space: nowrap; }
 .dlg-step-value { display: inline-block; min-width: 20px; text-align: center; font-size: 16px; font-weight: 700; color: var(--ink); }
-.st-key-dlg-steps-extra .dlg-step-value { min-width: 32px; }
+[class*="st-key-dlg-steps-extra"] .dlg-step-value { min-width: 32px; }
+
+/* 연체 칸: 증감 줄 + '기록 없음' 체크 (체크하면 값 대신 '-', 칸 배경 회색) */
+[class*="st-key-dlg-due-"] {
+  flex: 1 1 0; min-width: 0; gap: 8px !important;
+  padding: 10px; border: 1px solid var(--border); border-radius: 8px;
+}
+[class*="st-key-dlg-due-"][class*="-none"] { background: var(--page); }
+[class*="st-key-dlg-due-"] [class*="st-key-dlg-step-"] { padding: 0; border: 0; border-radius: 0; }
+[class*="st-key-dlg-due-"] [class*="st-key-dlg-step-"] button:disabled { opacity: .4; }
+[class*="st-key-dlg-due-"] .stCheckbox label { gap: 6px; min-height: 0; }
+[class*="st-key-dlg-due-"] .stCheckbox label p { font-size: 12px; color: var(--ink-3); }
+[class*="st-key-dlg-due-"] .stCheckbox [data-testid="stCheckbox"] { margin: 0; }
+[class*="st-key-dlg-due-"] .stElementContainer:has(.stCheckbox) { height: auto; }
+
+/* 추가 정보 2×2 · 신용카드 이용 기간 입력칸 (64×32) */
+[class*="st-key-dlg-steps-extra-"] { gap: 8px !important; flex-wrap: nowrap; }
+.st-key-dlg-step-card { gap: 6px !important; }
+.st-key-dlg-step-card .stNumberInput { width: 64px !important; flex: none; }
+.st-key-dlg-step-card .stElementContainer:has(.stNumberInput) { width: 64px !important; flex: none; height: 32px; }
+div[role="dialog"] .st-key-dlg-step-card [data-testid="stNumberInputContainer"] { height: 32px; }
+div[role="dialog"] .st-key-dlg-step-card .stNumberInput [data-baseweb="input"] {
+  height: 32px; border-radius: 6px; padding-right: 0;
+}
+div[role="dialog"] .st-key-dlg-step-card .stNumberInput input { padding: 0 8px; font-size: 15px; }
+.dlg-step-unit { font-size: 13px; color: var(--ink-3); white-space: nowrap; }
 [class*="st-key-dlg-step-"] button {
   width: 32px; height: 32px; min-height: 32px; padding: 0;
   border: 1px solid var(--input); border-radius: 6px; background: #FFF;
@@ -131,6 +153,8 @@ div[role="dialog"] [data-testid="InputInstructions"] { display: none; }
 .dlg-alt-list > div:nth-last-child(1) { border-bottom: 0; }
 .dlg-alt-list span { color: var(--ink-2); }
 .dlg-alt-list b { font-weight: 700; color: var(--ink); }
+.dlg-alt-list b.dlg-alt-empty { color: var(--ink-3); }
+.dlg-missing { margin: 0; padding: 10px 14px; border-radius: 8px; background: var(--fail-bg); color: var(--fail-text); font-size: 13px; }
 
 /* 창 아래 버튼 줄 (창 바닥에 붙는다) */
 div[role="dialog"] [data-testid="stLayoutWrapper"]:has(> .st-key-dlg-foot) {
@@ -146,3 +170,7 @@ div[role="dialog"] [data-testid="stLayoutWrapper"]:has(> .st-key-dlg-foot) {
 .st-key-dlg-reset button p, .st-key-dlg-cancel button p { color: var(--ink-2); }
 .st-key-dlg-submit button { padding: 0 28px; background: var(--accent); border: 0; }
 .st-key-dlg-submit button p { color: #FFF; font-weight: 700; }
+/* 증감 줄: 라벨은 왼쪽, '- 값 +' 은 오른쪽에 붙여 모은다 (칸이 넓어도 벌어지지 않게) */
+[class*="st-key-dlg-step-"] > .stElementContainer { flex: 0 0 auto; width: auto !important; }
+[class*="st-key-dlg-step-"] > .stElementContainer:has(.dlg-step-value) { margin: 0 10px; }
+[class*="st-key-dlg-step-"] > [data-testid="stSpace"], [class*="st-key-dlg-step-"] > .stElementContainer:has([data-testid="stSpace"]) { flex: 1 1 auto; }
