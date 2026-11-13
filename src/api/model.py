@@ -47,6 +47,15 @@ def default_probability(features):
     return float(model.predict_proba(_scaled_frame(features))[:, 1][0])
 
 
+def batch_default_probability(frame):
+    """원래 값 DataFrame(여러 행) → 부도 확률 배열. /counterfactual 이 후보 여러 개를 한 번에 계산할 때 쓴다."""
+    model, scaler = _artifacts()
+    cols = list(scaler.feature_names_in_)
+    X = frame[cols].astype(float).copy()
+    X[cols] = scaler.transform(X)
+    return model.predict_proba(X[list(getattr(model, 'feature_names_in_', cols))])[:, 1]
+
+
 def is_thin_filer(features):
     import pandas as pd
     from src.data.simulator import label_thin_filer
