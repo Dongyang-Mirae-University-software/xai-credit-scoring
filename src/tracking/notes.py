@@ -74,6 +74,14 @@ EXACT_METRICS = {
     'thin_auc_with_alt': 'Thin-filer AUC of the best model that uses financial + alternative data.',
     'thin_n': 'Number of thin-filers in the test data.',
     'thin_n_default': 'Number of thin-filers in the test data who defaulted.',
+    'thin_cv_uplift': 'Thin-filer AUC gain from 5-fold cross-validation on train + validation data (test data not used). '
+                      'This is the value checked against the goal of +0.03 or more.',
+    'thin_cv_ci_low': 'Lower end of the 95% range for the cross-validated thin-filer AUC gain (from 1,000 resamples).',
+    'thin_cv_ci_high': 'Upper end of the 95% range for the cross-validated thin-filer AUC gain.',
+    'thin_cv_auc_without_alt': 'Cross-validated thin-filer AUC of the model that uses financial data only.',
+    'thin_cv_auc_with_alt': 'Cross-validated thin-filer AUC of the model that uses financial + alternative data.',
+    'thin_cv_n': 'Number of thin-filers in the train + validation data.',
+    'thin_cv_n_default': 'Number of thin-filers in the train + validation data who defaulted.',
 }
 PARAM_GUIDE = {
     'algorithm': 'Model type (Logistic Regression, XGBoost or LightGBM).',
@@ -169,8 +177,11 @@ def _verdict(ok):
     return 'passed' if ok else 'NOT passed'
 
 
-def final_test_note(selected_model, test_auc, test_ks, psi=None, uplift=None):
-    """final_test run Description (쉬운 영어). uplift: {'uplift','ci_low','ci_high'} 또는 None."""
+def final_test_note(selected_model, test_auc, test_ks, psi=None, uplift=None, uplift_cv=None):
+    """final_test run Description (쉬운 영어). uplift·uplift_cv: {'uplift','ci_low','ci_high'} 또는 None.
+
+    uplift_cv(Train+Validation 교차검증)가 있으면 그 값으로 목표를 판정하고, Test 1회 값(uplift)은 참고로만 적는다 (#120).
+    """
     data_type, _, rest = str(selected_model).partition('/')
     text = (f"The chosen model ({rest.replace('/', ', ') or selected_model}, {DATA_TYPE_EN.get(data_type, data_type)}) "
             f"was tested once on unseen test data. "
@@ -178,7 +189,16 @@ def final_test_note(selected_model, test_auc, test_ks, psi=None, uplift=None):
             f"KS {test_ks:.3f} (goal {TARGETS['ks']} or higher, {_verdict(test_ks >= TARGETS['ks'])}).")
     if psi is not None:
         text += f" Score PSI {psi:.4f} (goal below {TARGETS['psi']}, {_verdict(psi < TARGETS['psi'])})."
-    if uplift:
+    if uplift_cv:
+        u = uplift_cv['uplift']
+        text += (f" Thin-filer AUC gain {u:+.3f} from 5-fold cross-validation on train + validation data (test data not used), "
+                 f"95% range {uplift_cv['ci_low']:+.3f} to {uplift_cv['ci_high']:+.3f} "
+                 f"(goal +{TARGETS['thin_filer_uplift']} or more, {_verdict(u >= TARGETS['thin_filer_uplift'])}).")
+        if uplift:
+            text += (f" A single check on test data gave {uplift['uplift']:+.3f} "
+                     f"(95% range {uplift['ci_low']:+.3f} to {uplift['ci_high']:+.3f}); it is shown for reference only "
+                     f"because the test data has few thin-filers who defaulted.")
+    elif uplift:
         u = uplift['uplift']
         text += (f" Thin-filer AUC gain {u:+.3f}, 95% range {uplift['ci_low']:+.3f} to {uplift['ci_high']:+.3f} "
                  f"(goal +{TARGETS['thin_filer_uplift']} or more, {_verdict(u >= TARGETS['thin_filer_uplift'])}).")
@@ -198,9 +218,18 @@ def performance_lines(m):
     if all(k in m for k in ('precision', 'recall')):
         out.append(f"- Of people flagged as \"will default\", {m['precision']:.0%} really defaulted (precision). "
                    f"Of people who really defaulted, the model caught {m['recall']:.0%} (recall).")
+    cv = m.get('thin_filer_uplift_cv')
+    if cv:
+        goal = TARGETS['thin_filer_uplift']
+        out.append(f"- Thin-filers, 5-fold cross-validation on train + validation data ({cv['n_thin_filer']} people, "
+                   f"{cv['n_thin_filer_default']} defaults, test data not used): AUC {cv['auc_without_alt']:.3f} without "
+                   f"alternative data → {cv['auc_with_alt']:.3f} with it, gain **{cv['uplift']:+.3f}** "
+                   f"(95% range {cv['ci_low']:+.3f} to {cv['ci_high']:+.3f}; goal +{goal} or more, "
+                   f"{_verdict(cv['uplift'] >= goal)}).")
     u = m.get('thin_filer_uplift')
     if u:
-        out.append(f"- Thin-filers ({u['n_thin_filer']} people, {u['n_thin_filer_default']} defaults): AUC "
+        label = "Thin-filers, single check on test data, for reference only" if cv else "Thin-filers"
+        out.append(f"- {label} ({u['n_thin_filer']} people, {u['n_thin_filer_default']} defaults): AUC "
                    f"{u['auc_without_alt']:.3f} without alternative data → {u['auc_with_alt']:.3f} with it, "
                    f"gain **{u['uplift']:+.3f}** (95% range {u['ci_low']:+.3f} to {u['ci_high']:+.3f}).")
     return out
