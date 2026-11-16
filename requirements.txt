@@ -1,38 +1,39 @@
+# Python 3.12 (Dockerfile) 기준으로 고정. scikit-learn 1.9.1 = 최종 모델 학습 버전 (1.9 는 Python 3.11+ 필요)
+
 # Core Data Science
-pandas>=1.3.0
-numpy>=1.20.0
-scipy>=1.7.0
+pandas==2.3.3
+numpy==2.5.5
+scipy==1.18.1
 
 # Machine Learning
-scikit-learn>=1.0.0
-xgboost>=1.5.0
-lightgbm>=3.3.0
-imbalanced-learn>=0.9.0
+scikit-learn==1.9.1
+xgboost==3.4.1
+lightgbm==4.7.0
+imbalanced-learn==0.14.2
 
 # XAI & Explainability
-shap>=0.42.0
+shap==0.54.1
 
 # Fairness
-fairlearn>=0.7.0
-aif360>=0.4.0
+fairlearn==0.15.0
 
 # Experiment Tracking
 mlflow==2.22.0
 
 # API & Dashboard
-fastapi>=0.95.0
-uvicorn>=0.21.0
-pydantic>=1.10.0
-streamlit>=1.28.0
+fastapi==0.163.1
+uvicorn==0.54.0
+pydantic==2.14.3
+streamlit==1.67.0
 
 # Testing
-pytest>=7.0.0
-pytest-cov>=4.0.0
-httpx>=0.24.0  # FastAPI TestClient
+pytest==9.2.0
+pytest-cov==7.1.0
+httpx==0.28.1  # FastAPI TestClient
 
 # Utilities
-joblib>=1.1.0
-python-dotenv>=0.21.0
-requests>=2.28.0
-plotly>=5.0.0
-ucimlrepo>=0.0.4
+joblib==1.6.0
+python-dotenv==1.2.4
+requests==2.34.2
+plotly==7.1.0
+ucimlrepo==0.0.7
