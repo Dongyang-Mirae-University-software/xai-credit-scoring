@@ -17,6 +17,7 @@ import api_client
 from components import ui
 from components.api_error import render_api_error
 from components.empty_state import render_no_report
+from components.fairness_rules import di_ok, eo_ok, fmt_value
 from components.page_header import render_page_header
 
 CSS_PATH = Path(__file__).with_suffix(".css")
@@ -41,18 +42,6 @@ def _ordered(attr, rates):
     return [g for g in order if g in rates] + [g for g in rates if g not in order]
 
 
-def _di_ok(value, criteria):
-    """DI 기준: di_min 이상 di_max 이하 (src/fairness/metrics.py 와 같다). di_max 가 없으면 아래쪽만."""
-    if value is None:
-        return None
-    return value >= criteria["di_min"] and (criteria.get("di_max") is None or value <= criteria["di_max"])
-
-
-def _eo_ok(value, criteria):
-    """Equalized Odds 기준: TPR · FPR 차이가 eo_max 이하."""
-    return None if value is None else value <= criteria["eo_max"]
-
-
 def _di_rule(criteria):
     di_min, di_max = criteria["di_min"], criteria.get("di_max")
     return f"{di_min:.2f}~{di_max:.2f}" if di_max is not None else f"{di_min:.2f} 이상"
@@ -63,7 +52,7 @@ def _di_of(info, criteria):
     info = info or {}
     value = info.get("di_ratio")
     passed = info.get("di_passed")
-    return value, (passed if passed is not None else _di_ok(value, criteria)), info.get("protected_group")
+    return value, (passed if passed is not None else di_ok(value, criteria)), info.get("protected_group")
 
 
 def _metrics_of(block, criteria):
@@ -79,20 +68,10 @@ def _metrics_of(block, criteria):
         ("gender_di", "성별 승인율 비율", vs(gender_p), gender_di, _di_rule(criteria), gender_ok),
         ("age_di", "연령대 승인율 비율", vs(age_p), age_di, _di_rule(criteria), age_ok),
         ("tpr", "부도 고객 적발률 차이", "Equalized Odds, TPR 차이", tpr, f"{eo_max:.2f} 이하",
-         _eo_ok(tpr, criteria)),
+         eo_ok(tpr, criteria)),
         ("fpr", "정상 고객 오판율 차이", "Equalized Odds, FPR 차이", fpr, f"{eo_max:.2f} 이하",
-         _eo_ok(fpr, criteria)),
+         eo_ok(fpr, criteria)),
     ]
-
-
-_BOUNDS = set()  # 기준 경계값 (di_min, di_max, eo_max). _main 에서 API 기준으로 채운다
-
-
-def _v(value, ok=None):
-    """소수 둘째 자리. 단 미달인데 반올림하면 기준 경계값과 같아 보이면(예: 1.2535 → 1.25) 셋째 자리까지."""
-    if value is None:
-        return "-"
-    return f"{value:.3f}" if ok is False and round(value, 2) in _BOUNDS else f"{value:.2f}"
 
 
 def _pass_pill(ok):
@@ -111,7 +90,7 @@ def _josa_list(names):
     return text + ("이" if batchim else "가")
 
 
-def _summary(now, before, mitigated):
+def _summary(now, before, mitigated, criteria):
     passed = [m for m in now if m[5]]
     all_ok = len(passed) == len(now)
     if all_ok:
@@ -125,7 +104,7 @@ def _summary(now, before, mitigated):
         sub = f"{_josa_list(failed)} 기준을 벗어났어요." + ("" if mitigated else " 보정 결과가 아직 없어요.")
     cells = "".join(
         f'<div class="fa-metric"><span>{name}</span>'
-        f'<div><strong>{_v(value, ok)}</strong>{_pass_pill(ok)}</div><small>기준 {rule}</small></div>'
+        f'<div><strong>{fmt_value(value, ok, criteria)}</strong>{_pass_pill(ok)}</div><small>기준 {rule}</small></div>'
         for _, name, _, value, rule, ok in now)
     tone = "ok" if all_ok else "fail"
     return f"""
@@ -198,7 +177,7 @@ def _group_card(attr, label, info, criteria):
     return f"""
     <div class="fa-card">
       <div class="fa-card-head"><h3>{label}</h3>
-        <span>승인율 비율<strong class="{"fail" if ok is False else ""}">{_v(di, ok)}</strong>{_pass_pill(ok)}</span></div>
+        <span>승인율 비율<strong class="{"fail" if ok is False else ""}">{fmt_value(di, ok, criteria)}</strong>{_pass_pill(ok)}</span></div>
       <div class="fa-bars" role="img" aria-label="{label}별 승인율">
         {rows}{band_html}
       </div>
@@ -241,8 +220,8 @@ def _compare_table(before, after, criteria):
           <span class="fa-name"><strong>{name}</strong><small>{tech}</small></span>
           <span class="fa-rule">{rule}</span>
           {_range_cell(key, b, a, criteria)}
-          <span class="num fa-before">{_v(b, b_ok)}{fail}</span>
-          <strong class="num">{_v(a, a_ok)}</strong>
+          <span class="num fa-before">{fmt_value(b, b_ok, criteria)}{fail}</span>
+          <strong class="num">{fmt_value(a, a_ok, criteria)}</strong>
           <span class="num">{_pass_pill(a_ok)}</span>
         </div>""")
     legend = ('<span class="fa-legend"><span><i class="before"></i>보정 전</span><span><i class="after"></i>보정 후</span>'
@@ -264,22 +243,22 @@ def _axis_top(values, floor):
     return math.ceil(top * 10) / 10
 
 
-def _bar(value, ok, top, cls, label):
+def _bar(value, ok, top, cls, label, criteria):
     """막대 하나 + 바로 위 숫자. 값이 없으면 빈 자리. ok 가 False(미달)면 숫자 위에 '미달'."""
     if value is None:
         return '<span class="fa-mbar empty"></span>'
     h = min(max(value / top, 0), 1) * 100
     tag = '<em>미달</em>' if ok is False else ""
     return (f'<span class="fa-mbar {cls}" title="{escape(label)} {value:.3f}">'
-            f'<b>{tag}{_v(value, ok)}</b><i style="height:{h:.1f}%"></i></span>')
+            f'<b>{tag}{fmt_value(value, ok, criteria)}</b><i style="height:{h:.1f}%"></i></span>')
 
 
-def _bar_chart(title, sub, groups, top, guide, legend_rule):
+def _bar_chart(title, sub, groups, top, guide, legend_rule, criteria):
     """groups: [(이름, (보정 전 값, 통과), (보정 후 값, 통과))]. guide: 기준선·범위 HTML 함수(top → HTML)."""
     cols = "".join(
         f'<div class="fa-bars-group"><div class="fa-bars-pair">'
-        f'{_bar(*before, top, "before", f"{name} 보정 전")}'
-        f'{_bar(*after, top, "after", f"{name} 보정 후")}'
+        f'{_bar(*before, top, "before", f"{name} 보정 전", criteria)}'
+        f'{_bar(*after, top, "after", f"{name} 보정 후", criteria)}'
         f'</div><span class="fa-bars-name">{name}</span></div>'
         for name, before, after in groups)
     ticks = "".join(f'<span style="bottom:{t / top * 100:.1f}%">{t:.1f}</span>'
@@ -308,7 +287,7 @@ def _mitigation_chart(before_block, after_block, criteria):
 
     def eo(block, attr, key):
         value = (block.get(attr) or {}).get(key)
-        return value, _eo_ok(value, criteria)
+        return value, eo_ok(value, criteria)
 
     di_groups = [(label, di(b_attrs, attr), di(a_attrs, attr)) for attr, label in attrs]
     di_top = _axis_top([v for _, b, a in di_groups for v, _ in (b, a)], di_max or di_min)
@@ -332,9 +311,9 @@ def _mitigation_chart(before_block, after_block, criteria):
 
     return ('<div class="fa-charts">'
             + _bar_chart("승인율 비율 (DI Ratio)", "보호 집단 승인율 ÷ 나머지 승인율. 1.0에 가까울수록 고르게 승인해요.",
-                         di_groups, di_top, di_guide, di_rule)
+                         di_groups, di_top, di_guide, di_rule, criteria)
             + _bar_chart("오류율 차이 (Equalized Odds)", "TPR·FPR의 집단 간 차이. 0에 가까울수록 고르게 판단해요.",
-                         eo_groups, eo_top, eo_guide, eo_rule)
+                         eo_groups, eo_top, eo_guide, eo_rule, criteria)
             + "</div>")
 
 
@@ -387,8 +366,6 @@ def _main():
         return
 
     criteria = {**DEFAULT_CRITERIA, **((fairness or {}).get("criteria") or {})}
-    _BOUNDS.clear()
-    _BOUNDS.update(round(v, 2) for v in (criteria.get("di_min"), criteria.get("di_max"), criteria.get("eo_max")) if v is not None)
     before_block = (mitigation or {}).get("before") or fairness
     after_block = (mitigation or {}).get("after")
     before = _metrics_of(before_block, criteria)
@@ -403,7 +380,7 @@ def _main():
     render_page_header("공정성", "성별이나 나이 때문에 심사 결과가 불리하게 나오지 않는지 점검해요.",
                        meta=[("점검 데이터", f"{DATASET_LABEL} {n:,}명" if n else "-"), ("마지막 점검", evaluated)])
 
-    st.html(_summary(after, before, after_block is not None))
+    st.html(_summary(after, before, after_block is not None, criteria))
 
     # 집단별 승인율 (보정 전 / 후 전환)
     with st.container(key="fa-groups-head", horizontal=True, vertical_alignment="bottom"):
