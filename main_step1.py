@@ -45,7 +45,7 @@ def main():
         logger.info(f"  다운로드 경로: https://github.com/Dongyang-Mirae-University-software/xai-credit-scoring-datasets")
         return
 
-    df, _ = load_gmsc(str(gmsc_path))
+    df = load_gmsc(str(gmsc_path))
 
     # 2단계: 대안 데이터 생성
     logger.info("\n[2/4] 대안 데이터 생성")

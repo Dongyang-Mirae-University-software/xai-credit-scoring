@@ -24,6 +24,20 @@ Give Me Some Credit(GMSC) 데이터에 대안 데이터 시뮬레이터를 결�
 - 기준 1: 연체 컬럼 2개 이상 결측
 - 기준 2: 보유 대출·신용 한도 1개 이하 **이고** 부동산 담보대출 0개 **이고** 연체 기록 0회
 
+### 점수와 등급 기준
+신용 점수는 `credit_score = round((1 - default_probability) * 1000)` 입니다 (0~1000).
+
+| 등급 | 점수 | 위험도 | 심사 결과 |
+|---|---|---|---|
+| A | 800 이상 | 저위험 | 승인 |
+| B | 650 ~ 799 | 저위험 | 승인 |
+| C | 500 ~ 649 | 중위험 | 승인 |
+| D | 300 ~ 499 | 고위험 | 거절 |
+| E | 300 미만 | 고위험 | 거절 |
+
+부도 확률이 `APPROVAL_THRESHOLD`(기본 0.5) 미만이면 승인, 즉 500점 이상(A~C)이 승인입니다. 등급 구간은 `src/api/model.py` `GRADE_SCALE`, 승인은 `approval_status()` 가 정합니다.
+대시보드 결과 화면의 등급 막대는 칸 폭이 점수 구간 길이 그대로(E:D:C:B:A = 30:20:15:15:20, `src/dashboard/config.py` `GRADE_SCALE`, API 와 같은 구간)이고, 점선은 `/predict` 응답의 `approval_threshold` 를 점수로 바꾼 위치입니다 (기본 500점). 승인 기준을 바꾸면 API 의 `APPROVAL_THRESHOLD` 만 바꾸면 점선이 따라갑니다. 혼동행렬·승인율·공정성 결과도 같은 기준(0.5)으로 계산되어 있습니다.
+
 ### 모델과 검증
 - 모델: Logistic Regression · XGBoost · LightGBM × 불균형 처리(class_weight / SMOTE) × 데이터(전통 / 대안 / 통합), 5-Fold Stratified CV
 - 최종 모델 선택: Validation AUC 최고 모델 → Test에서 1회만 평가 (현재 결과는 [`models/README.md`](models/README.md))
@@ -101,13 +115,12 @@ pytest
 xai-credit-scoring/
 ├── main_step1.py ~ main_step6.py   # 파이프라인 단계별 실행 스크립트 (위 "파이프라인" 참고)
 ├── data/
-│   ├── raw/                 # GMSC 원본 (cs-training.csv, cs-test.csv, Data Dictionary.xls)
+│   ├── raw/                 # GMSC 원본 (cs-training.csv, Data Dictionary.xls)
 │   ├── intermediate/        # step1 중간 결과 (01_loaded.csv, 02_simulated.csv) - git 미포함
-│   ├── splits/              # Train/Validation/Test 분할 CSV - git 미포함
-│   └── mock/                # 개발용 mock 데이터
+│   └── splits/              # Train/Validation/Test 분할 CSV - git 미포함
 ├── src/
 │   ├── data/                # loader.py(로드) · simulator.py(대안 데이터·씬파일러) · preprocessor.py(결측·스케일링·분할)
-│   ├── models/              # train.py(9개 조합 학습·5-Fold CV·최종 선택) · imbalance_comparison.py
+│   ├── models/              # train.py(9개 조합 학습·5-Fold CV·최종 선택)
 │   ├── explainer/           # performance.py(AUC·KS·PSI·씬파일러 향상) · shap_explainer.py · reasons.py(거절 사유 문장)
 │   ├── fairness/            # metrics.py(DI Ratio·Equalized Odds) · mitigation.py(편향 완화) · library_check.py(Fairlearn 교차 확인)
 │   ├── statistics/          # anova.py(One-way ANOVA 2종 + Tukey HSD)
@@ -119,7 +132,7 @@ xai-credit-scoring/
 ├── notebooks/01_eda.ipynb   # 탐색적 데이터 분석
 ├── docs/                    # report_draft.md(실험 리포트 초안) · column_spec.md(칸 이름·단위)
 ├── tests/                   # pytest 단위 테스트
-├── scripts/                 # mock 데이터 생성 등 보조 스크립트
+├── scripts/                 # add_dashboard_fields.py (대시보드 시안용 고객 예시·결과 JSON 추가 필드 생성, #116)
 ├── mlflow/                  # 팀 MLflow 서버 배포 설정 (서버용, 로컬 실행에는 필요 없음)
 ├── docker-compose.yml       # api(8000) · dashboard(8501) · mlflow(5000) · mlflow-seed(기록 채우기, 일회성)
 ├── Dockerfile
@@ -149,6 +162,8 @@ xai-credit-scoring/
 |---|---|---|
 | `API_BASE_URL` | `http://localhost:8000` | 대시보드가 부를 API 주소 (Docker Compose에서는 자동으로 `http://api:8000`) |
 | `API_TIMEOUT` / `HEALTH_TIMEOUT` | 5 / 2 | API 응답 대기 시간(초) |
+| `API_LOG` | (끔) | 대시보드의 API 호출을 터미널에 기록. `1` 은 `POST /predict 200 (24ms)` 한 줄, `body` 는 요청·응답 JSON 까지 (목록은 한 건씩 한 줄) |
+| `API_LOG_BODY_MAX` | 600 | `API_LOG=body` 에서 한 줄 최대 글자 수. `0` 이면 자르지 않음 |
 | `HEALTH_CACHE_TTL` | 10 | 서버 상태 카드 새로고침 간격(초) |
 | `XAI_RISK_HIGH` / `XAI_RISK_MID` | 0.7 / 0.4 | 거절 사유 카드의 고·중위험 표시 기준 (SHAP 값) |
 | `WATERFALL_MAX_DISPLAY` | 8 | Waterfall에 따로 보여 줄 변수 수 |

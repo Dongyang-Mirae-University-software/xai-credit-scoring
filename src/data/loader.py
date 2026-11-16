@@ -48,17 +48,18 @@ def _print_data_info(df: pd.DataFrame, dataset_name: str):
     logger.info(f"{'='*80}\n")
 
 
-def load_gmsc(train_path: str = "data/raw/cs-training.csv",
-              test_path: str = "data/raw/cs-test.csv") -> tuple:
+def load_gmsc(train_path: str = "data/raw/cs-training.csv") -> pd.DataFrame:
     """
     Give Me Some Credit 데이터셋 로드
 
+    정답(SeriousDlqin2yrs)이 있는 cs-training.csv만 읽는다. 학습·검증·테스트는 이 파일을 70:15:15로 나눠 만든다.
+    경진대회 제출용 cs-test.csv는 정답이 없어 쓰지 않는다 (이슈 #101).
+
     Args:
-        train_path: 훈련 데이터 경로
-        test_path: 테스트 데이터 경로
+        train_path: 데이터 경로
 
     Returns:
-        (train_df, test_df) 튜플
+        데이터프레임
     """
     _setup_logger()
 
@@ -66,13 +67,11 @@ def load_gmsc(train_path: str = "data/raw/cs-training.csv",
 
     try:
         train_df = pd.read_csv(train_path)
-        test_df = pd.read_csv(test_path)
 
-        _print_data_info(train_df, "훈련 데이터셋 (cs-training.csv)")
-        _print_data_info(test_df, "테스트 데이터셋 (cs-test.csv)")
+        _print_data_info(train_df, "Give Me Some Credit (cs-training.csv)")
 
         logger.info("✅ 데이터 로드 완료")
-        return train_df, test_df
+        return train_df
 
     except FileNotFoundError as e:
         logger.error(f"❌ 파일을 찾을 수 없습니다: {e}")

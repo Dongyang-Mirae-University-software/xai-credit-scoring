@@ -12,6 +12,8 @@ from pathlib import Path
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 MODEL_PATH = Path(os.getenv('MODEL_PATH', PROJECT_ROOT / 'models' / 'lightgbm_is_unbalance_integrated_v1.0.joblib'))
 SCALER_PATH = Path(os.getenv('SCALER_PATH', PROJECT_ROOT / 'models' / 'preprocess_scaler_v1.0.joblib'))
+# 월소득은 API 바깥에서 원, 모델은 원본 GMSC 단위(달러 규모)로 학습했다. 원 ÷ 이 값 = 모델 단위 (기본 1000원 = 1)
+INCOME_KRW_PER_UNIT = float(os.getenv('INCOME_KRW_PER_UNIT', '1000'))
 APPROVAL_THRESHOLD = float(os.getenv('APPROVAL_THRESHOLD', '0.5'))
 MODEL_STAGE = os.getenv('MODEL_STAGE', 'Staging')
 MODEL_VERSION = MODEL_PATH.stem
@@ -73,7 +75,14 @@ def _explainer():
     return make_explainer(model, background=None)
 
 
+def _won(features):
+    return {**features, 'MonthlyIncome': features['MonthlyIncome'] * INCOME_KRW_PER_UNIT}
+
+
 def explain(features, references=None):
     """src.explainer.shap_explainer.explain_customer 결과: rejection_reasons, shap_values, base_value."""
     from src.explainer.shap_explainer import explain_customer
-    return explain_customer(_explainer(), _scaled_frame(features), features, references=references)
+    if references:  # 기준 평균도 원 단위로 (reference_values.json 은 모델 단위로 저장돼 있다)
+        references = {g: {**t, 'MonthlyIncome': round(t['MonthlyIncome'] * INCOME_KRW_PER_UNIT)} if 'MonthlyIncome' in t else t
+                      for g, t in references.items()}
+    return explain_customer(_explainer(), _scaled_frame(features), _won(features), references=references)

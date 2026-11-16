@@ -67,7 +67,7 @@ def main():
     from src.explainer import performance as perf
     from src.explainer import shap_explainer as sx
 
-    raw, _ = load_gmsc(str(ROOT / 'data/raw/cs-training.csv'))
+    raw = load_gmsc(str(ROOT / 'data/raw/cs-training.csv'))
     raw = generate_alternative_data(raw, target_col='SeriousDlqin2yrs', thin_filer_ratio=None, bias_ratio=0, random_seed=42)
     train_idx = get_train_index(raw)
     processed, _ = preprocess(raw, fit_index=train_idx)

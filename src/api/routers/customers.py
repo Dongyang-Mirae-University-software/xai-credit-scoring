@@ -6,7 +6,7 @@ from functools import lru_cache
 
 from fastapi import APIRouter, HTTPException
 
-from src.api.model import PROJECT_ROOT
+from src.api.model import INCOME_KRW_PER_UNIT, PROJECT_ROOT
 
 router = APIRouter(tags=['01 고객 심사'])
 
@@ -14,11 +14,15 @@ router = APIRouter(tags=['01 고객 심사'])
 @lru_cache(maxsize=1)
 def _customers():
     path = PROJECT_ROOT / 'data' / 'customers.json'
-    return {c['customer_id']: c for c in json.loads(path.read_text(encoding='utf-8'))} if path.exists() else {}
+    if not path.exists():
+        return {}
+    # 파일은 모델 단위(원본 GMSC), 응답은 원
+    return {c['customer_id']: {**c, 'MonthlyIncome': int(round(c['MonthlyIncome'] * INCOME_KRW_PER_UNIT))}
+            for c in json.loads(path.read_text(encoding='utf-8'))}
 
 
 @router.get('/customers/{customer_id}', summary='고객 정보 조회',
-            description='`/predict` 입력 15개(+ 표시용 gender). 부채비율·납부율은 %, 신용한도 소진율은 0~1.',
+            description='`/predict` 입력 15개(+ 표시용 gender). 월소득은 원, 부채비율·납부율은 %, 신용한도 소진율은 0~1.',
             responses={404: {'description': '없는 고객'}})
 def get_customer(customer_id: str):
     customer = _customers().get(customer_id.upper())
