@@ -72,7 +72,7 @@ docker compose up --build     # .env 없이도 뜬다. 처음 한 번은 이미�
 - `/metrics`·`/fairness`·`/anova`·`/explain/summary`는 `outputs/`의 검증 결과 JSON을 돌려줍니다. 최종 모델로 만든 결과 JSON 6개가 저장소에 들어 있어서 clone 직후에도 실제 숫자가 나옵니다. 파일이 없으면 내장 예시(`src/api/examples/`)를 돌려주며, `GET /health`의 `reports`에서 어느 쪽인지 확인할 수 있습니다.
 - 모델을 다시 학습했다면 결과 JSON도 아래 `main_step3~5`로 다시 만들어 함께 커밋합니다.
 
-### 2. 로컬 실행 (Python 3.10 권장, Docker 이미지와 같은 버전)
+### 2. 로컬 실행 (Python 3.12 권장, Docker 이미지와 같은 버전)
 
 ```bash
 pip install -r requirements.txt
