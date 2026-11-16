@@ -56,9 +56,14 @@
 .fa-bar { position: relative; display: block; height: 22px; border-radius: 4px; background: #F3F5F8; }
 .fa-bar i { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 4px; background: var(--accent); }
 .fa-bar-row strong { font-size: 15px; font-weight: 700; text-align: right; color: var(--ink); }
-.fa-line { position: absolute; top: 0; bottom: 0; width: 0; border-left: 2px dashed var(--ink-3); }
+/* 기준 범위 띠: 나머지 집단 승인율의 0.8~1.25배. 막대 위에 반투명으로 겹친다 */
+.fa-band {
+  position: absolute; top: 0; bottom: 0; z-index: 1; pointer-events: none;
+  background: rgba(14, 124, 90, .12); border-left: 2px dashed var(--ok); border-right: 2px dashed var(--ok);
+}
+.fa-bar-row.prot > span:first-child { font-weight: 700; color: var(--ink); }
 .fa-line-note { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--ink-3); }
-.fa-line-note i { width: 16px; border-top: 2px dashed var(--ink-3); }
+.fa-line-note i { width: 14px; height: 10px; border-radius: 2px; background: rgba(14, 124, 90, .12); border: 1px dashed var(--ok); }
 
 /* 상세: 보정 전후 비교 */
 .fa-compare { display: flex; flex-direction: column; gap: 12px; }
@@ -131,3 +136,54 @@
 }
 .fa-limit > div { display: flex; flex-direction: column; gap: 4px; }
 .fa-limit strong { font-size: 14px; color: var(--mid-text); }
+
+/* 보정 전후 비교 차트 (이슈 #119): DI Ratio · Equalized Odds 두 차트를 나란히 */
+.fa-charts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; }
+.fa-chart {
+  display: flex; flex-direction: column; gap: 16px; padding: 20px 24px;
+  background: var(--card); border: 1px solid var(--border); border-radius: 14px; min-width: 0;
+}
+.fa-chart-head { display: flex; flex-direction: column; gap: 4px; }
+.fa-chart-head b { font-size: 15px; font-weight: 700; color: var(--ink); }
+.fa-chart-head span { font-size: 13px; color: var(--ink-3); line-height: 1.5; }
+.fa-chart-body { display: grid; grid-template-columns: 28px minmax(0, 1fr); column-gap: 8px; }
+.fa-chart-axis { position: relative; height: 200px; margin-top: 22px; }
+.fa-chart-axis span {
+  position: absolute; right: 0; transform: translateY(50%); font-size: 11px; color: var(--ink-3);
+  font-variant-numeric: tabular-nums;
+}
+.fa-chart-plot {
+  position: relative; display: flex; align-items: stretch; gap: 8px;
+  padding-top: 22px; border-bottom: 1px solid var(--baseline);
+}
+/* 기준 범위(초록 띠)와 기준선. 막대 영역(위 22px 숫자 자리 제외) 기준으로 위치를 잡는다 */
+.fa-chart-band, .fa-chart-line { position: absolute; left: 0; right: 0; pointer-events: none; }
+.fa-chart-guides { position: absolute; left: 0; right: 0; bottom: 0; height: 200px; pointer-events: none; }
+.fa-chart-band { background: var(--ok-bg); }
+.fa-chart-line { height: 0; border-top: 1px dashed var(--baseline); }
+.fa-chart-line.limit { border-top: 2px dashed var(--ok); }
+.fa-bars-group { position: relative; flex: 1 1 0; display: flex; flex-direction: column; min-width: 0; z-index: 1; }
+.fa-bars-pair { display: flex; justify-content: center; align-items: flex-end; gap: 2px; height: 200px; }
+.fa-mbar { position: relative; display: flex; flex-direction: column; justify-content: flex-end; align-items: center;
+  width: 32px; height: 100%; }
+.fa-mbar i { display: block; flex: none; width: 100%; border-radius: 4px 4px 0 0; min-height: 2px; }
+.fa-mbar.before i { background: var(--baseline); }
+.fa-mbar.after i { background: var(--accent); }
+.fa-mbar b {
+  display: flex; flex-direction: column; align-items: center; margin-bottom: 4px; line-height: 1.2;
+  font-size: 11px; font-weight: 600; color: var(--ink-2); white-space: nowrap; font-variant-numeric: tabular-nums;
+}
+.fa-mbar b em { font-style: normal; font-size: 10px; font-weight: 700; color: var(--fail-text); }
+.fa-mbar:hover i { filter: brightness(1.1); }
+.fa-bars-name {
+  position: absolute; top: 100%; left: 0; right: 0; margin-top: 8px;
+  font-size: 12px; color: var(--ink-2); text-align: center; white-space: nowrap;
+}
+.fa-chart-body { padding-bottom: 28px; }
+.fa-chart-legend { display: flex; flex-wrap: wrap; gap: 8px 16px; font-size: 12px; color: var(--ink-3); }
+.fa-chart-legend span { display: inline-flex; align-items: center; gap: 6px; }
+.fa-chart-legend i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; }
+.fa-chart-legend i.before { background: var(--baseline); }
+.fa-chart-legend i.after { background: var(--accent); }
+.fa-chart-legend i.band { width: 14px; background: var(--ok-bg); border: 1px solid var(--ok); }
+.fa-chart-legend i.one { width: 16px; height: 0; border-radius: 0; border-top: 1px dashed var(--baseline); }
