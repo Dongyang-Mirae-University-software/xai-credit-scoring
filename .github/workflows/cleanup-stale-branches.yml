@@ -1,0 +1,94 @@
+# 쓰지 않는 브랜치를 자동으로 지운다.
+# 지우는 기준 (모두 만족할 때만):
+#   - develop 에 없는 커밋이 하나도 없다 (지워도 코드가 사라지지 않음)
+#   - 이 브랜치에서 올린 열린 PR 이 없다
+#   - 이름이 type/번호-설명 이면 그 이슈가 닫혀 있다 (열린 이슈의 브랜치는 작업 전일 수 있어 남긴다)
+#   - develop, main, release/*, hotfix/* 가 아니다
+# 실행: 이슈가 닫힐 때(그 이슈 번호의 브랜치만), 매주 월요일 09:00 KST(전체), 수동 실행(dry run 가능)
+name: 쓰지 않는 브랜치 정리
+
+on:
+  issues:
+    types: [closed]
+  schedule:
+    - cron: '0 0 * * 1'
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: '지우지 않고 대상만 출력'
+        type: boolean
+        default: true
+
+permissions:
+  contents: write
+  issues: read
+  pull-requests: read
+
+concurrency:
+  group: cleanup-stale-branches
+  cancel-in-progress: false
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/github-script@v7
+        with:
+          script: |
+            const KEEP = /^(develop|main)$|^(release|hotfix)\//;
+            const ISSUE_BRANCH = /^[a-z]+\/(\d+)-/;
+            const repo = context.repo;
+            const dryRun = context.eventName === 'workflow_dispatch'
+              && String(context.payload.inputs?.dry_run) !== 'false';
+
+            const { data: develop } = await github.rest.repos.getBranch({ ...repo, branch: 'develop' });
+            let branches = await github.paginate(github.rest.repos.listBranches, { ...repo, per_page: 100 });
+
+            if (context.eventName === 'issues') {
+              const num = String(context.payload.issue.number);
+              branches = branches.filter(b => (b.name.match(ISSUE_BRANCH) || [])[1] === num);
+            }
+
+            const deleted = [], kept = [];
+            for (const b of branches) {
+              const name = b.name;
+              if (KEEP.test(name) || b.protected) continue;
+
+              const m = name.match(ISSUE_BRANCH);
+              if (m && context.eventName !== 'issues') {
+                try {
+                  const { data: issue } = await github.rest.issues.get({ ...repo, issue_number: Number(m[1]) });
+                  if (issue.state === 'open') { kept.push(`${name} (이슈 #${m[1]} 열림)`); continue; }
+                } catch (e) {
+                  if (e.status !== 404) throw e;
+                }
+              }
+
+              const { data: cmp } = await github.rest.repos.compareCommitsWithBasehead({
+                ...repo, basehead: `${develop.commit.sha}...${b.commit.sha}`, per_page: 1,
+              });
+              if (cmp.ahead_by > 0) { kept.push(`${name} (develop에 없는 커밋 ${cmp.ahead_by}개)`); continue; }
+
+              const { data: prs } = await github.rest.pulls.list({
+                ...repo, state: 'open', head: `${repo.owner}:${name}`, per_page: 1,
+              });
+              if (prs.length) { kept.push(`${name} (열린 PR #${prs[0].number})`); continue; }
+
+              if (!dryRun) {
+                try {
+                  await github.rest.git.deleteRef({ ...repo, ref: `heads/${name}` });
+                } catch (e) {
+                  kept.push(`${name} (삭제 실패: ${e.status})`);
+                  continue;
+                }
+              }
+              deleted.push(name);
+            }
+
+            const title = dryRun ? '지울 대상 (dry run, 지우지 않음)' : '지운 브랜치';
+            core.info(`${title}: ${deleted.length ? deleted.join(', ') : '없음'}`);
+            core.info(`남긴 브랜치: ${kept.length ? kept.join(', ') : '없음'}`);
+            await core.summary
+              .addHeading(title, 3).addList(deleted.length ? deleted : ['없음'])
+              .addHeading('남긴 브랜치', 3).addList(kept.length ? kept : ['없음'])
+              .write();
