@@ -57,6 +57,45 @@ def test_final_test_note_verdicts():
     assert low.count('NOT passed') == 2
 
 
+def test_final_test_note_judges_by_cv_uplift():
+    # 교차검증 값으로 판정하고, Test 1회 값은 참고로만 적는다 (#120)
+    text = notes.final_test_note('integrated/LightGBM/is_unbalance', 0.889, 0.613, psi=0.0004,
+                                 uplift={'uplift': 0.001, 'ci_low': -0.051, 'ci_high': 0.053},
+                                 uplift_cv={'uplift': 0.066, 'ci_low': 0.042, 'ci_high': 0.089})
+    assert 'NOT passed' not in text and text.count('passed') == 4
+    assert '+0.066 from 5-fold cross-validation' in text and 'reference only' in text and '+0.001' in text
+
+
+def test_summary_shows_cv_uplift_first():
+    perf = dict(PERF, thin_filer_uplift_cv={'n_thin_filer': 3485, 'n_thin_filer_default': 253, 'auc_without_alt': 0.749,
+                                            'auc_with_alt': 0.815, 'uplift': 0.066, 'ci_low': 0.042, 'ci_high': 0.089})
+    lines = notes.performance_lines(perf)
+    cv_i = next(i for i, l in enumerate(lines) if 'cross-validation' in l)
+    test_i = next(i for i, l in enumerate(lines) if 'reference only' in l)
+    assert cv_i < test_i and '+0.066' in lines[cv_i] and 'passed' in lines[cv_i]
+
+
+def test_step6_upload_note_uses_cv_metrics(tmp_path):
+    ev, fa, st = _outputs(tmp_path)
+    plan, _ = main_step6.build(ev, fa, st, tmp_path / 'summary')
+    server = FakeServer()
+    metrics = [('test_auc', 0.889), ('test_ks', 0.613), ('thin_uplift', 0.001), ('thin_ci_low', -0.051),
+               ('thin_ci_high', 0.053), ('thin_cv_uplift', 0.066), ('thin_cv_ci_low', 0.042), ('thin_cv_ci_high', 0.089)]
+    orig = server.__call__
+
+    def call(req):
+        if req.full_url.endswith('/runs/search'):
+            server.requests.append((req.get_method(), req.full_url, {}, req.data))
+            run = {'info': {'run_id': 'abc', 'run_name': 'final_test', 'artifact_uri': 'mlflow-artifacts:/1/abc/artifacts'},
+                   'data': {'metrics': [{'key': k, 'value': v} for k, v in metrics], 'tags': []}}
+            return io.BytesIO(json.dumps({'runs': [run]}).encode())
+        return orig(req)
+    main_step6.upload(plan, tmp_path / 'none.env', client=MlflowRest('https://example.test', opener=call))
+    tags = [json.loads(r[3]) for r in server.requests if r[1].endswith('/runs/set-tag')]
+    note = next(t['value'] for t in tags if t['key'] == 'mlflow.note.content')
+    assert '+0.066 from 5-fold cross-validation' in note and 'NOT passed' not in note
+
+
 def test_summary_is_plain_english():
     md = notes.summary_md(PERF, EXPLAIN, FAIR, MITI, ANOVA)
     assert not HANGUL.search(md)                       # 한글 집단 이름도 영어로 바뀜
