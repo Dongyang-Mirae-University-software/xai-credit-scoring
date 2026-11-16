@@ -24,6 +24,20 @@ Give Me Some Credit(GMSC) 데이터에 대안 데이터 시뮬레이터를 결�
 - 기준 1: 연체 컬럼 2개 이상 결측
 - 기준 2: 보유 대출·신용 한도 1개 이하 **이고** 부동산 담보대출 0개 **이고** 연체 기록 0회
 
+### 점수와 등급 기준
+신용 점수는 `credit_score = round((1 - default_probability) * 1000)` 입니다 (0~1000).
+
+| 등급 | 점수 | 위험도 | 심사 결과 |
+|---|---|---|---|
+| A | 800 이상 | 저위험 | 승인 |
+| B | 650 ~ 799 | 저위험 | 승인 |
+| C | 500 ~ 649 | 중위험 | 승인 |
+| D | 300 ~ 499 | 고위험 | 거절 |
+| E | 300 미만 | 고위험 | 거절 |
+
+부도 확률이 `APPROVAL_THRESHOLD`(기본 0.5) 미만이면 승인, 즉 500점 이상(A~C)이 승인입니다. 등급 구간은 `src/api/model.py` `GRADE_SCALE`, 승인은 `approval_status()` 가 정합니다.
+대시보드 결과 화면의 등급 막대는 칸 폭이 점수 구간 길이 그대로(E:D:C:B:A = 30:20:15:15:20, `src/dashboard/config.py` `GRADE_SCALE`, API 와 같은 구간)이고, 점선은 `/predict` 응답의 `approval_threshold` 를 점수로 바꾼 위치입니다 (기본 500점). 승인 기준을 바꾸면 API 의 `APPROVAL_THRESHOLD` 만 바꾸면 점선이 따라갑니다. 혼동행렬·승인율·공정성 결과도 같은 기준(0.5)으로 계산되어 있습니다.
+
 ### 모델과 검증
 - 모델: Logistic Regression · XGBoost · LightGBM × 불균형 처리(class_weight / SMOTE) × 데이터(전통 / 대안 / 통합), 5-Fold Stratified CV
 - 최종 모델 선택: Validation AUC 최고 모델 → Test에서 1회만 평가 (현재 결과는 [`models/README.md`](models/README.md))
@@ -52,10 +66,11 @@ docker compose up --build     # .env 없이도 뜬다. 처음 한 번은 이미�
 |---|---|---|
 | API | http://localhost:8000/docs | Swagger UI. 화면별 태그로 엔드포인트 확인 |
 | 대시보드 | http://localhost:8501 | 고객 심사 / XAI 분석 / 공정성 / 모델 성능 / 통계 검증 |
-| MLflow UI | http://localhost:5000 | 이 PC의 `./mlruns` 기록 (팀 서버 기록이 아님) |
+| MLflow UI | http://localhost:5000 | 실험 `credit-scoring-metadata`에 모델 18개(5-Fold 평균 AUC·KS 등)와 최종 모델(`integrated/LightGBM/is_unbalance`의 Test AUC·KS·PSI) 기록 (아래 참고) |
 
 - 최종 모델·스케일러는 `models/`에 들어 있어서 clone 직후 바로 `/predict`·`/explain`이 동작합니다.
 - `/metrics`·`/fairness`·`/anova`·`/explain/summary`는 `outputs/`의 검증 결과 JSON을 돌려줍니다. 최종 모델로 만든 결과 JSON 6개가 저장소에 들어 있어서 clone 직후에도 실제 숫자가 나옵니다. 파일이 없으면 내장 예시(`src/api/examples/`)를 돌려주며, `GET /health`의 `reports`에서 어느 쪽인지 확인할 수 있습니다.
+- MLflow 기록은 `mlflow-seed`(일회성 서비스)가 `up`할 때마다 `models/model_metadata.json`을 읽어 채웁니다. **실제 학습 run이 아니라 기록을 옮긴 것**이며(tag `source=model_metadata`), 팀 서버(`mlflow.gosky.kr`)의 진짜 학습 기록과는 별개입니다. 재학습해서 메타데이터가 바뀌면 다음 `up`에서 자동으로 갱신됩니다.
 - 모델을 다시 학습했다면 결과 JSON도 아래 `main_step3~5`로 다시 만들어 함께 커밋합니다.
 
 ### 2. 로컬 실행 (Python 3.10 권장, Docker 이미지와 같은 버전)
@@ -119,7 +134,7 @@ xai-credit-scoring/
 ├── tests/                   # pytest 단위 테스트
 ├── scripts/                 # add_dashboard_fields.py (대시보드 시안용 고객 예시·결과 JSON 추가 필드 생성, #116)
 ├── mlflow/                  # 팀 MLflow 서버 배포 설정 (서버용, 로컬 실행에는 필요 없음)
-├── docker-compose.yml       # api(8000) · dashboard(8501) · mlflow(5000)
+├── docker-compose.yml       # api(8000) · dashboard(8501) · mlflow(5000) · mlflow-seed(기록 채우기, 일회성)
 ├── Dockerfile
 ├── requirements.txt
 └── .env.example
@@ -147,6 +162,8 @@ xai-credit-scoring/
 |---|---|---|
 | `API_BASE_URL` | `http://localhost:8000` | 대시보드가 부를 API 주소 (Docker Compose에서는 자동으로 `http://api:8000`) |
 | `API_TIMEOUT` / `HEALTH_TIMEOUT` | 5 / 2 | API 응답 대기 시간(초) |
+| `API_LOG` | (끔) | 대시보드의 API 호출을 터미널에 기록. `1` 은 `POST /predict 200 (24ms)` 한 줄, `body` 는 요청·응답 JSON 까지 (목록은 한 건씩 한 줄) |
+| `API_LOG_BODY_MAX` | 600 | `API_LOG=body` 에서 한 줄 최대 글자 수. `0` 이면 자르지 않음 |
 | `HEALTH_CACHE_TTL` | 10 | 서버 상태 카드 새로고침 간격(초) |
 | `XAI_RISK_HIGH` / `XAI_RISK_MID` | 0.7 / 0.4 | 거절 사유 카드의 고·중위험 표시 기준 (SHAP 값) |
 | `WATERFALL_MAX_DISPLAY` | 8 | Waterfall에 따로 보여 줄 변수 수 |
