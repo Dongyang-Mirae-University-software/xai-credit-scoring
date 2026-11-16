@@ -34,12 +34,17 @@ ACTIONABLE = {
     'app_login_frequency': (+1, 18.0, 23.0, None),
 }
 INTEGER_FEATURES = {'regular_payment_count', 'app_login_frequency'}
-# 사람에게 보여 줄 때의 (배수, 단위). 월소득 모델 단위 1 = 1,000원 (src/api/model.py INCOME_KRW_PER_UNIT 기본값)
-DISPLAY_UNITS = {
-    'RevolvingUtilizationOfUnsecuredLines': (100, '%'), 'DebtRatio': (100, '%'), 'MonthlyIncome': (1000, '원'),
-    'telecom_payment_rate': (100, '%'), 'utility_payment_rate': (100, '%'), 'spending_consistency': (1, '점'),
-    'regular_payment_count': (1, '건'), 'app_login_frequency': (1, '회'),
-}
+# 사람에게 보여 줄 때의 (배수, 단위). 월소득 배수는 모델 단위 1 = 몇 원인지 (src/api/model.py INCOME_KRW_PER_UNIT)
+def display_units(income_krw_per_unit=1000):
+    return {
+        'RevolvingUtilizationOfUnsecuredLines': (100, '%'), 'DebtRatio': (100, '%'),
+        'MonthlyIncome': (income_krw_per_unit, '원'),
+        'telecom_payment_rate': (100, '%'), 'utility_payment_rate': (100, '%'), 'spending_consistency': (1, '점'),
+        'regular_payment_count': (1, '건'), 'app_login_frequency': (1, '회'),
+    }
+
+
+DISPLAY_UNITS = display_units()   # 기본값(1,000원) 기준. API 는 display_units(model.INCOME_KRW_PER_UNIT) 를 쓴다
 IMMUTABLE = [
     'age', 'NumberOfTime30-59DaysPastDueNotWorse', 'NumberOfTime60-89DaysPastDueNotWorse',
     'NumberOfTimes90DaysLate', 'NumberOfDependents', 'NumberRealEstateLoansOrLines',
@@ -48,10 +53,19 @@ IMMUTABLE = [
 
 
 def target_value(feature, current):
-    """이 칸을 가장 많이 좋게 움직였을 때의 값. 이미 한계를 넘어 있으면 현재 값 (움직일 수 없음)."""
+    """
+    이 칸을 가장 많이 좋게 움직였을 때의 값. 이미 한계를 넘어 있으면 현재 값 (움직일 수 없음).
+    상대 변화 상한(max_rel)이 있는 칸(월소득)은 현재 값이 0 이하면 움직이지 않는다
+    (0원 → 월 2,290만 원 같은 제안을 막기 위해).
+    """
     direction, low, high, max_rel = ACTIONABLE[feature]
     if direction > 0:
-        limit = high if max_rel is None else min(high, current * (1 + max_rel)) if current > 0 else high
+        if max_rel is None:
+            limit = high
+        elif current <= 0:
+            return current
+        else:
+            limit = min(high, current * (1 + max_rel))
         return max(current, limit)
     return min(current, low)
 

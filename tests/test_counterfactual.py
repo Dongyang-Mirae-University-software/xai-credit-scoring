@@ -36,6 +36,23 @@ def test_levels_move_only_in_good_direction_within_train_range():
     assert max(cf.levels('MonthlyIncome', 3000.0)) == pytest.approx(4500.0)   # 월소득은 +50% 까지만
 
 
+def test_zero_income_is_not_moved():
+    """월소득 0이면 상대 변화 +50% 를 정할 수 없어 소득 칸을 움직이지 않는다 (0원 → 2,290만 원 방지)."""
+    assert cf.target_value('MonthlyIncome', 0.0) == 0.0
+    assert cf.levels('MonthlyIncome', 0.0) == []
+    single = cf.single_changes({**BASE, 'MonthlyIncome': 0.0}, fake_model, 0.5)
+    assert single['MonthlyIncome'] is None
+    comb = cf.combined_changes({**BASE, 'MonthlyIncome': 0.0}, fake_model, 0.5)
+    assert 'MonthlyIncome' not in comb['changes']
+
+
+def test_display_units_follow_income_unit():
+    """INCOME_KRW_PER_UNIT 를 바꾸면 월소득 원화 표시도 같이 바뀐다."""
+    assert cf.display_units(1000)['MonthlyIncome'] == (1000, '원')
+    assert '4,500,000원' in cf.describe('MonthlyIncome', 3000, 4500, cf.display_units(1000))
+    assert '6,750,000원' in cf.describe('MonthlyIncome', 3000, 4500, cf.display_units(1500))
+
+
 def test_single_change_finds_smallest_approving_value():
     single = cf.single_changes(BASE, fake_model, 0.5)
     r = single['RevolvingUtilizationOfUnsecuredLines']

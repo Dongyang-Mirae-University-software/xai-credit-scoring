@@ -44,10 +44,11 @@ class CounterfactualResponse(BaseModel):
 def _change(features, f, v, prob=None):
     from src.explainer import counterfactual as cf
     from src.explainer.feature_names import korean_name
-    mult, unit = cf.DISPLAY_UNITS[f]
+    units = cf.display_units(model.INCOME_KRW_PER_UNIT)   # 환경 변수로 바꾼 월소득 단위를 따른다
+    mult, unit = units[f]
     return CounterfactualChange(
         feature=f, feature_name_kr=korean_name(f), current_value=round(features[f] * mult, 4),
-        suggested_value=round(v * mult, 4), unit=unit, explanation=cf.describe(f, features[f], v, cf.DISPLAY_UNITS),
+        suggested_value=round(v * mult, 4), unit=unit, explanation=cf.describe(f, features[f], v, units),
         new_probability=None if prob is None else round(prob, 4))
 
 
