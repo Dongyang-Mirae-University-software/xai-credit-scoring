@@ -73,7 +73,7 @@ docker compose up --build     # .env 없이도 뜬다. 처음 한 번은 이미�
 - MLflow 기록은 `mlflow-seed`(일회성 서비스)가 `up`할 때마다 `models/model_metadata.json`을 읽어 채웁니다. **실제 학습 run이 아니라 기록을 옮긴 것**이며(tag `source=model_metadata`), 팀 서버(`mlflow.gosky.kr`)의 진짜 학습 기록과는 별개입니다. 재학습해서 메타데이터가 바뀌면 다음 `up`에서 자동으로 갱신됩니다.
 - 모델을 다시 학습했다면 결과 JSON도 아래 `main_step3~5`로 다시 만들어 함께 커밋합니다.
 
-### 2. 로컬 실행 (Python 3.10 권장, Docker 이미지와 같은 버전)
+### 2. 로컬 실행 (Python 3.12 권장, Docker 이미지와 같은 버전)
 
 ```bash
 pip install -r requirements.txt
