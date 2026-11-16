@@ -1,0 +1,37 @@
+/* 기존 CB 모델 vs 대안신용평가 모델 (모델 성능, 보너스 5) */
+.ab-card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; }
+.ab-models { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); border-bottom: 1px solid var(--divider); background: #F8FAFC; }
+.ab-models > div { display: flex; align-items: baseline; flex-wrap: wrap; gap: 4px 10px; padding: 14px 24px; min-width: 0; }
+.ab-models > div + div { border-left: 1px solid var(--divider); }
+.ab-models span {
+  align-self: center; width: 22px; height: 22px; border-radius: 6px; display: inline-flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 700; background: var(--baseline); color: #FFF;
+}
+.ab-models > div + div span { background: var(--accent); }
+.ab-models b { font-size: 15px; font-weight: 700; color: var(--ink); }
+.ab-models small { font-size: 12px; color: var(--ink-3); }
+.ab-policies { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.ab-policy { display: flex; flex-direction: column; gap: 8px; padding: 20px 24px; min-width: 0; }
+.ab-policy + .ab-policy { border-left: 1px solid var(--divider); }
+.ab-policy > strong { font-size: 16px; font-weight: 700; color: var(--ink); }
+.ab-desc { font-size: 12px; line-height: 1.5; color: var(--ink-3); min-height: 36px; }
+.ab-line { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--ink-3); font-variant-numeric: tabular-nums; }
+.ab-line > span { flex: 0 0 96px; }
+.ab-line em { font-style: normal; color: var(--ink-3); }
+.ab-line b { font-weight: 700; color: var(--ink); }
+.ab-line small { margin-left: auto; font-size: 12px; font-weight: 700; color: var(--ink-3); }
+.ab-line small.ok { color: var(--ok-text); }
+.ab-line small.fail { color: var(--fail-text); }
+.ab-line.focus { padding: 8px 10px; margin: 0 -10px; border-radius: 8px; background: var(--accent-bg); }
+.ab-line.focus > span { color: var(--ink-2); font-weight: 700; }
+.ab-line.focus b { font-size: 18px; }
+.ab-note { font-size: 12px; color: var(--ink-3); }
+.ab-exp { display: flex; align-items: flex-start; gap: 10px; padding: 14px 24px; border-top: 1px solid var(--divider); font-size: 13px; line-height: 1.6; }
+.ab-exp.mid { background: var(--mid-bg); color: var(--mid-text); }
+.ab-exp.ok { background: var(--ok-bg); color: var(--ok-text); }
+.ab-exp img { flex: none; margin-top: 2px; }
+.ab-exp b { margin-right: 8px; font-weight: 700; }
+@media (max-width: 1100px) {
+  .ab-policies { grid-template-columns: minmax(0, 1fr); }
+  .ab-policy + .ab-policy { border-left: 0; border-top: 1px solid var(--divider); }
+}
