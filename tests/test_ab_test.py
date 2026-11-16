@@ -59,6 +59,26 @@ def test_two_proportion_test_known_values():
     assert same['p_value'] == pytest.approx(1.0)
 
 
+def test_two_proportion_test_zero_sample_does_not_crash():
+    """한쪽 승인 고객이 0명이면 ZeroDivisionError 없이 '검정 불가' 로 돌려준다."""
+    t = ab.two_proportion_test(0, 0, 30, 1000)
+    assert t['testable'] is False and t['p_value'] == 1.0 and t['rate_a'] == 0.0
+    t = ab.two_proportion_test(5, 100, 0, 0)
+    assert t['testable'] is False and t['z'] == 0.0
+    assert ab.two_proportion_test(50, 1000, 30, 1000)['testable'] is True
+
+
+def test_same_bad_rate_threshold_from_validation():
+    """calibration 을 주면 '같은 대손율' 기준값은 Validation 에서 정하고, 평가 데이터 라벨로 다시 맞추지 않는다."""
+    y, p_a, p_b = _data(seed=0)
+    y_v, p_a_v, p_b_v = _data(seed=1)
+    r = ab.policy_comparison(y, p_a, p_b, 0.5, calibration=(y_v, p_a_v, p_b_v))
+    assert r['same_bad_rate_threshold_source'] == 'validation'
+    target_v = ab.approval_metrics(y_v, p_a_v, 0.5)['bad_rate']
+    assert r['policies']['same_bad_rate']['threshold_b'] == pytest.approx(ab.threshold_for_bad_rate(y_v, p_b_v, target_v))
+    assert ab.policy_comparison(y, p_a, p_b, 0.5)['same_bad_rate_threshold_source'] == 'evaluation'
+
+
 def test_repeated_ab_and_sample_size():
     y, p_a, p_b = _data(n=8000)
     rep = ab.repeated_ab(y, p_a, p_b, 0.5, 0.5, n_rep=50, seed=1)

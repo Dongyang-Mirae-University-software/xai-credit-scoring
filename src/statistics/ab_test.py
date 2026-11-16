@@ -66,7 +66,16 @@ def threshold_for_bad_rate(y, p, target):
 
 
 def two_proportion_test(x1, n1, x2, n2):
-    """두 비율 차이(2 - 1)의 z 검정과 95% 구간."""
+    """
+    두 비율 차이(2 - 1)의 z 검정과 95% 구간.
+    한쪽 표본이 0명이면(예: 한쪽 승인 고객 0명 → 대손율 분모 0) 검정할 수 없어 z = 0, p = 1, testable = False.
+    """
+    if n1 <= 0 or n2 <= 0:
+        p1 = x1 / n1 if n1 > 0 else 0.0
+        p2 = x2 / n2 if n2 > 0 else 0.0
+        d = float(p2 - p1)
+        return {'rate_a': float(p1), 'rate_b': float(p2), 'diff': d, 'ci_low': d, 'ci_high': d,
+                'z': 0.0, 'p_value': 1.0, 'testable': False}
     p1, p2 = x1 / n1, x2 / n2
     pooled = (x1 + x2) / (n1 + n2)
     se0 = np.sqrt(pooled * (1 - pooled) * (1 / n1 + 1 / n2))
@@ -74,18 +83,31 @@ def two_proportion_test(x1, n1, x2, n2):
     se = np.sqrt(p1 * (1 - p1) / n1 + p2 * (1 - p2) / n2)
     return {'rate_a': float(p1), 'rate_b': float(p2), 'diff': float(p2 - p1),
             'ci_low': float(p2 - p1 - 1.96 * se), 'ci_high': float(p2 - p1 + 1.96 * se),
-            'z': float(z), 'p_value': float(2 * stats.norm.sf(abs(z)))}
+            'z': float(z), 'p_value': float(2 * stats.norm.sf(abs(z))), 'testable': True}
 
 
-def policy_comparison(y, p_a, p_b, threshold=0.5, segment=None):
-    """세 정책(같은 기준값 / 같은 승인율 / 같은 대손율)에서 A, B 의 결과와 세그먼트별 결과."""
+def policy_comparison(y, p_a, p_b, threshold=0.5, segment=None, calibration=None):
+    """
+    세 정책(같은 기준값 / 같은 승인율 / 같은 대손율)에서 A, B 의 결과와 세그먼트별 결과.
+
+    calibration = (y_val, p_a_val, p_b_val) 를 주면 '같은 대손율' 의 B 기준값을 Validation 에서 정하고
+    (A 의 Validation 대손율에 맞춘 B 기준값) 그 값을 평가 데이터(Test)에 그대로 적용한다.
+    평가 데이터의 부도 라벨로 기준값을 고르면 같은 라벨로 평가하게 되어 결과가 낙관적이 되기 때문이다.
+    '같은 승인율' 은 점수만 써서 정하므로(라벨 미사용) 평가 데이터에서 맞춘다.
+    """
     a = approval_metrics(y, p_a, threshold)
+    if calibration is not None:
+        y_v, p_a_v, p_b_v = calibration
+        target = approval_metrics(y_v, p_a_v, threshold)['bad_rate']
+        bad_thr, bad_src = threshold_for_bad_rate(y_v, p_b_v, target), 'validation'
+    else:
+        bad_thr, bad_src = threshold_for_bad_rate(y, p_b, a['bad_rate']), 'evaluation'
     thr = {
         'same_threshold': threshold,
         'same_approval_rate': threshold_for_approval_rate(p_b, a['approval_rate']),
-        'same_bad_rate': threshold_for_bad_rate(y, p_b, a['bad_rate']),
+        'same_bad_rate': bad_thr,
     }
-    out = {'threshold_a': threshold, 'a': a, 'policies': {}}
+    out = {'threshold_a': threshold, 'a': a, 'same_bad_rate_threshold_source': bad_src, 'policies': {}}
     for name, t in thr.items():
         b = approval_metrics(y, p_b, t)
         row = {'threshold_b': float(t), 'b': b,
@@ -117,7 +139,11 @@ def ab_split(y, p_a, p_b, thr_a, thr_b, seed=42, share_b=0.5):
 
 
 def repeated_ab(y, p_a, p_b, thr_a, thr_b, n_rep=1000, seed=42):
-    """A/B 나누기를 n_rep 번 반복: 대손율·승인율 차이의 분포와 '유의하게 나온 비율'(검정력)."""
+    """
+    A/B 나누기를 n_rep 번 반복: 대손율·승인율 차이의 분포와 '유의하게 나온 비율'.
+    같은 고객 집단을 배정만 바꿔 다시 나누는 것이므로, 유의 비율은 새 고객을 뽑는 검정력이 아니라
+    '이 표본 안에서 배정만 달라졌을 때 유의하게 나오는 비율' 이다.
+    """
     rng = np.random.default_rng(seed)
     seeds = rng.integers(0, 2**31 - 1, size=n_rep)
     d_bad, d_app, sig_bad = [], [], 0

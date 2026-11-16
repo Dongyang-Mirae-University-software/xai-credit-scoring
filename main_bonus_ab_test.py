@@ -3,7 +3,8 @@
 
 A = 기존 CB 모델 (금융 칸 10개만), B = 대안신용평가 모델 (금융 10개 + 대안 5개, 지금 서비스 모델).
   - A 는 B 와 같은 설정(LightGBM is_unbalance)으로 Train 의 금융 칸만 써서 학습한다.
-  - Test 22,500명에서 정책 3개(같은 기준값 / 같은 승인율 / 같은 대손율)를 비교하고,
+  - Test 22,500명에서 정책 3개(같은 기준값 / 같은 승인율 / 같은 대손율)를 비교하고
+    ('같은 대손율' 의 B 기준값은 Validation 에서 정해 Test 에 적용),
     고객을 무작위로 반씩 나누는 A/B 테스트를 1회 + 1,000회 반복한다 (src/statistics/ab_test.py).
   - 결과: outputs/evaluation/ab_test/ab_test.json, ab_test.png
 
@@ -72,8 +73,8 @@ def save_plot(y, p_a, p_b, thin, result, path):
     ax2.axvline(d.mean(), color='#1F5F8F', ls='--', lw=1.2)
     ax2.set_xlabel('대손율 차이 B - A (%p)')
     ax2.set_ylabel('반복 횟수')
-    ax2.set_title(f"A/B 테스트 {rep['n_rep']:,}회 반복 (같은 승인율 정책)\n"
-                  f"평균 {d.mean():+.2f}%p, 유의하게 나온 비율 {rep['share_significant_bad_rate']:.0%}")
+    ax2.set_title(f"같은 Test 고객을 A/B로 {rep['n_rep']:,}회 다시 나눔 (같은 승인율 정책)\n"
+                  f"평균 {d.mean():+.2f}%p, 배정만 바꿨을 때 유의하게 나온 비율 {rep['share_significant_bad_rate']:.0%}")
     fig.tight_layout()
     path.parent.mkdir(parents=True, exist_ok=True)
     fig.savefig(path, dpi=150)
@@ -93,8 +94,10 @@ def main():
 
     splits = Path(args.splits)
     train = pd.read_csv(splits / 'train_processed.csv')
+    val = pd.read_csv(splits / 'val_processed.csv')
     test = pd.read_csv(splits / 'test_processed.csv')
     y_tr, y = train['SeriousDlqin2yrs'].to_numpy(), test['SeriousDlqin2yrs'].to_numpy()
+    y_val = val['SeriousDlqin2yrs'].to_numpy()
     thin = test['is_thin_filer'].to_numpy().astype(bool)
     threshold = float(os.getenv('APPROVAL_THRESHOLD', '0.5'))
 
@@ -105,8 +108,11 @@ def main():
     model_a = clone(model_b).fit(X_a_tr, y_tr)
     p_a = model_a.predict_proba(get_features_by_type(test, 'financial_only'))[:, 1]
     logger.info("Test AUC: A 기존 CB %.3f, B 대안신용평가 %.3f", roc_auc_score(y, p_a), roc_auc_score(y, p_b))
+    # '같은 대손율' 의 B 기준값은 Validation 에서 정한다 (Test 라벨로 고르고 Test 로 평가하면 낙관적)
+    p_a_val = model_a.predict_proba(get_features_by_type(val, 'financial_only'))[:, 1]
+    p_b_val = model_b.predict_proba(val[cols_b])[:, 1]
 
-    policies = ab.policy_comparison(y, p_a, p_b, threshold, segment=thin)
+    policies = ab.policy_comparison(y, p_a, p_b, threshold, segment=thin, calibration=(y_val, p_a_val, p_b_val))
     for key, row in policies['policies'].items():
         a, b = policies['a'], row['b']
         logger.info("%s: 승인율 A %.1f%% → B %.1f%%, 대손율 A %.2f%% → B %.2f%% (상대 %+.1f%%)", POLICY_KR[key],
@@ -115,7 +121,7 @@ def main():
     thr_b = policies['policies']['same_approval_rate']['threshold_b']
     single = ab.ab_split(y, p_a, p_b, threshold, thr_b, seed=args.seed)
     repeated = ab.repeated_ab(y, p_a, p_b, threshold, thr_b, n_rep=args.repeats, seed=args.seed)
-    logger.info("A/B 1회 (같은 승인율): 대손율 차이 %+.2f%%p, p = %.3g / %d회 반복 중 유의 %.0f%%",
+    logger.info("A/B 1회 (같은 승인율): 대손율 차이 %+.2f%%p, p = %.3g / 같은 Test 를 %d회 다시 나눴을 때 유의 %.0f%%",
                 single['bad_rate_test']['diff'] * 100, single['bad_rate_test']['p_value'], args.repeats,
                 repeated['share_significant_bad_rate'] * 100)
     same = policies['policies']['same_approval_rate']
@@ -124,7 +130,8 @@ def main():
                 needed['applicants_total'])
 
     result = {
-        'models': {'a': '기존 CB 모델: 금융 칸 10개, LightGBM is_unbalance (Train 으로 학습)',
+        'models': {'a': '기존 CB 모델: 금융 칸 10개, LightGBM is_unbalance (Train 으로 학습, '
+                        'B 용으로 튜닝한 하이퍼파라미터를 그대로 사용 → 비교가 B 에 약간 유리)',
                    'b': f'대안신용평가 모델: {Path(args.model).name}'},
         'test_auc': {'a': float(roc_auc_score(y, p_a)), 'b': float(roc_auc_score(y, p_b))},
         'bad_rate_definition': '승인 고객 중 부도(SeriousDlqin2yrs = 1) 비율 (금액 정보가 없어 건수 기준)',
