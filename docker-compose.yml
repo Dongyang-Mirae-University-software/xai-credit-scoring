@@ -37,3 +37,16 @@ services:
       - "${MLFLOW_PORT:-5000}:5000"
     volumes:
       - ./mlruns:/mlflow   # 실험 DB + 아티팩트. 팀 서버(mlflow.gosky.kr)가 아닌 이 PC 의 기록
+
+  # 한 번 돌고 끝나는 서비스: models/model_metadata.json 의 학습 결과를 위 mlflow 에 run 으로 기록한다.
+  # 실제 학습 run 이 아니라 메타데이터를 옮긴 것이며, up 할 때마다 다시 써서 재학습 뒤에도 갱신된다.
+  mlflow-seed:
+    build: .
+    command: python scripts/seed_mlflow.py
+    environment:
+      MLFLOW_TRACKING_URI: http://mlflow:5000   # .env 의 팀 서버 주소가 아니라 이 compose 의 mlflow
+    volumes:
+      - ./:/app
+    depends_on:
+      - mlflow
+    restart: "no"
