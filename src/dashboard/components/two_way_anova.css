@@ -1,0 +1,26 @@
+/* Two-way ANOVA (통계 검증, 보너스 3) */
+.st-key-stt2-card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; gap: 0; }
+.st-key-stt2-card [data-testid="stHorizontalBlock"] { gap: 0; }
+.stt2-conclusion { margin: 0; padding: 18px 24px; border-bottom: 1px solid var(--divider); font-size: 15px; line-height: 1.55; color: var(--ink); }
+.stt2-conclusion strong { font-weight: 700; }
+.st-key-stt2-plot { padding: 20px 24px 12px; gap: 6px; border-right: 1px solid var(--divider); height: 100%; }
+.st-key-stt2-table { padding: 20px 0 12px; gap: 6px; }
+.stt2-col-title { font-size: 13px; font-weight: 700; color: var(--ink-3); }
+.st-key-stt2-table .stt2-col-title { padding: 0 24px; }
+.stt2-note { font-size: 12px; color: var(--ink-3); }
+.stt2-row {
+  display: grid; grid-template-columns: minmax(0, 1fr) 72px 72px 56px 92px; column-gap: 14px;
+  align-items: center; padding: 0 24px; min-height: 58px;
+}
+.stt2-row + .stt2-row { border-top: 1px solid var(--divider); }
+.stt2-head { min-height: 36px; font-size: 12px; color: var(--ink-3); border-bottom: 1px solid var(--border); }
+.stt2-head + .stt2-row { border-top: 0; }
+.stt2-row .num { text-align: right; font-size: 14px; color: var(--ink); }
+.stt2-head .num { font-size: 12px; color: var(--ink-3); }
+.stt2-row .ui-pill { font-size: 12px; }
+.stt2-name { display: flex; flex-direction: column; gap: 2px; }
+.stt2-name strong { font-size: 14px; font-weight: 700; color: var(--ink); }
+.stt2-name small { font-size: 12px; color: var(--ink-3); }
+.stt2-check { margin: 12px 24px 0; padding: 12px 14px; border-radius: 10px; background: #F8FAFC; font-size: 13px; line-height: 1.6; color: var(--ink-2); }
+.stt2-check b { margin-right: 6px; font-weight: 700; color: var(--ink); }
+.stt2-foot { padding: 12px 24px; border-top: 1px solid var(--divider); background: #F8FAFC; font-size: 12px; color: var(--ink-3); }
