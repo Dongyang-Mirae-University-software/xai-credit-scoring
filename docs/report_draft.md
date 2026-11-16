@@ -749,7 +749,7 @@ main_step3\~5 ──▶ outputs/ (검증 결과 JSON)    ──▶   (/predict �
 
 ### 10.2 API (FastAPI)
 
-과제 노션 「다음 7개 엔드포인트가 구현되어 있다」의 7개에, 대시보드 화면에 필요한 5개를 더해 12개를 만들었다. Swagger(`localhost:8000/docs`)에서는 대시보드 화면 순서대로 태그를 묶어, 어느 화면이 어느 엔드포인트를 쓰는지 바로 보이게 했다.
+과제 노션 「다음 7개 엔드포인트가 구현되어 있다」의 7개에, 대시보드 화면에 필요한 5개와 보너스 4 드리프트 결과 1개를 더해 13개를 만들었다. Swagger(`localhost:8000/docs`)에서는 대시보드 화면 순서대로 태그를 묶어, 어느 화면이 어느 엔드포인트를 쓰는지 바로 보이게 했다.
 
 | 화면 | 엔드포인트 | 응답 | 데이터 출처 |
 |---|---|---|---|
@@ -765,6 +765,7 @@ main_step3\~5 ──▶ outputs/ (검증 결과 JSON)    ──▶   (/predict �
 | 모델 성능 | `GET /metrics` | AUC, KS, Precision, Recall, F1, 혼동행렬, ROC · PR 곡선 | `metrics_<모델>.json` |
 | 모델 성능 | `GET /metrics/comparison` (추가) | 후보 모델 18개의 5-Fold 결과 | `model_metadata.json` |
 | 통계 검증 | `GET /anova` | 검증 1 · 2의 F, p, η², Tukey HSD | `anova.json` |
+| 모니터링 | `GET /drift` (추가) | 시나리오별 점수 PSI, 칸별 CSI, AUC · 승인율. 구간 상세는 `include_tables=true`일 때만 (6.7, PR #153) | `drift_report.json` |
 
 (추가) 과제 노션 7개 외에 추가한 것.
 
