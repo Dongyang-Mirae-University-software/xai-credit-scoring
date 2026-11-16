@@ -128,6 +128,14 @@ def test_drift_tables_only_on_request():
     assert all('tables' in s for s in full['scenarios'].values())
 
 
+def test_drift_default_call_does_not_strip_later_tables():
+    if reports.load('drift', fallback=False) is None:
+        pytest.skip('python main_bonus_drift.py 를 먼저 실행')
+    client.get('/drift')
+    full = client.get('/drift', params={'include_tables': 'true'}).json()
+    assert all('tables' in s for s in full['scenarios'].values())
+
+
 def test_drift_missing_file_returns_example(tmp_path, monkeypatch):
     monkeypatch.setattr(reports, 'OUTPUTS_DIR', tmp_path)
     for params in ({}, {'include_tables': 'true'}):
