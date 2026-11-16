@@ -128,8 +128,10 @@ def test_drift_tables_only_on_request():
     assert all('tables' in s for s in full['scenarios'].values())
 
 
-def test_drift_missing_file(tmp_path, monkeypatch):
+def test_drift_missing_file_returns_example(tmp_path, monkeypatch):
     monkeypatch.setattr(reports, 'OUTPUTS_DIR', tmp_path)
-    r = client.get('/drift')
-    assert r.status_code == 503
-    assert 'python main_bonus_drift.py' in r.json()['detail']
+    for params in ({}, {'include_tables': 'true'}):
+        r = client.get('/drift', params=params)
+        assert r.status_code == 200, r.text
+        assert r.json()['scenarios'].keys() == {'baseline', 'app_login_change'}
+        assert all('tables' not in s for s in r.json()['scenarios'].values())
