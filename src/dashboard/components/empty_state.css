@@ -83,3 +83,10 @@
   font-family: var(--font-mono);
   font-size: 30px;
 }
+/* API 준비 중 (보너스 결과 API 가 아직 없을 때) */
+.es-pending {
+  background: #F8FAFC;
+  border: 1px dashed var(--input);
+  border-radius: 12px;
+  padding: 14px 20px;
+}
