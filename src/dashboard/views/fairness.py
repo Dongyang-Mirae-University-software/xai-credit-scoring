@@ -48,6 +48,11 @@ def _di_ok(value, criteria):
     return value >= criteria["di_min"] and (criteria.get("di_max") is None or value <= criteria["di_max"])
 
 
+def _eo_ok(value, criteria):
+    """Equalized Odds 기준: TPR · FPR 차이가 eo_max 이하."""
+    return None if value is None else value <= criteria["eo_max"]
+
+
 def _di_rule(criteria):
     di_min, di_max = criteria["di_min"], criteria.get("di_max")
     return f"{di_min:.2f}~{di_max:.2f}" if di_max is not None else f"{di_min:.2f} 이상"
@@ -69,15 +74,14 @@ def _metrics_of(block, criteria):
     tpr = block.get("equalized_odds_tpr_diff")
     fpr = block.get("equalized_odds_fpr_diff")
     eo_max = criteria["eo_max"]
-    ok = lambda v, good: None if v is None else good(v)  # noqa: E731
     vs = lambda g: f"DI Ratio, {_group_label(g)} ÷ 나머지" if g else "DI Ratio"  # noqa: E731
     return [
         ("gender_di", "성별 승인율 비율", vs(gender_p), gender_di, _di_rule(criteria), gender_ok),
         ("age_di", "연령대 승인율 비율", vs(age_p), age_di, _di_rule(criteria), age_ok),
         ("tpr", "부도 고객 적발률 차이", "Equalized Odds, TPR 차이", tpr, f"{eo_max:.2f} 이하",
-         ok(tpr, lambda v: v <= eo_max)),
+         _eo_ok(tpr, criteria)),
         ("fpr", "정상 고객 오판율 차이", "Equalized Odds, FPR 차이", fpr, f"{eo_max:.2f} 이하",
-         ok(fpr, lambda v: v <= eo_max)),
+         _eo_ok(fpr, criteria)),
     ]
 
 
@@ -260,27 +264,24 @@ def _axis_top(values, floor):
     return math.ceil(top * 10) / 10
 
 
-def _bar(value, top, cls, label, ok):
-    """막대 하나 + 바로 위 숫자. 값이 없으면 빈 자리. 기준을 못 넘으면 숫자 위에 '미달'.
-    반올림한 숫자가 기준 안처럼 보이면(예: 1.2535 → 1.25) 소수 셋째 자리까지 보여 준다."""
+def _bar(value, ok, top, cls, label):
+    """막대 하나 + 바로 위 숫자. 값이 없으면 빈 자리. ok 가 False(미달)면 숫자 위에 '미달'."""
     if value is None:
         return '<span class="fa-mbar empty"></span>'
-    fail = ok is not None and not ok(value)
-    text = f"{value:.3f}" if fail and ok(round(value, 2)) else f"{value:.2f}"
     h = min(max(value / top, 0), 1) * 100
-    tag = '<em>미달</em>' if fail else ""
+    tag = '<em>미달</em>' if ok is False else ""
     return (f'<span class="fa-mbar {cls}" title="{escape(label)} {value:.3f}">'
-            f'<b>{tag}{text}</b><i style="height:{h:.1f}%"></i></span>')
+            f'<b>{tag}{_v(value, ok)}</b><i style="height:{h:.1f}%"></i></span>')
 
 
 def _bar_chart(title, sub, groups, top, guide, legend_rule):
-    """groups: [(이름, 보정 전 값, 보정 후 값, 미달인가(값) 함수)]. guide: 기준선·범위 HTML 함수(top → HTML)."""
+    """groups: [(이름, (보정 전 값, 통과), (보정 후 값, 통과))]. guide: 기준선·범위 HTML 함수(top → HTML)."""
     cols = "".join(
         f'<div class="fa-bars-group"><div class="fa-bars-pair">'
-        f'{_bar(b, top, "before", f"{name} 보정 전", ok)}'
-        f'{_bar(a, top, "after", f"{name} 보정 후", ok)}'
+        f'{_bar(*before, top, "before", f"{name} 보정 전")}'
+        f'{_bar(*after, top, "after", f"{name} 보정 후")}'
         f'</div><span class="fa-bars-name">{name}</span></div>'
-        for name, b, a, ok in groups)
+        for name, before, after in groups)
     ticks = "".join(f'<span style="bottom:{t / top * 100:.1f}%">{t:.1f}</span>'
                     for t in [round(i * 0.1, 1) for i in range(0, int(round(top * 10)) + 1)]
                     if (top <= 0.4 or round(t * 10) % 2 == 0))
@@ -300,12 +301,17 @@ def _mitigation_chart(before_block, after_block, criteria):
     두 지표는 기준과 단위가 달라 한 축에 그리지 않고 차트 두 개로 나눈다."""
     b_attrs, a_attrs = before_block.get("by_attribute", {}), after_block.get("by_attribute", {})
     attrs = [(attr, label) for attr, label in ATTRIBUTES if attr in b_attrs or attr in a_attrs]
-    get = lambda block, attr, key: (block.get(attr) or {}).get(key)
     di_min, di_max, eo_max = criteria["di_min"], criteria.get("di_max"), criteria["eo_max"]
 
-    di_ok = lambda v: v >= di_min and (di_max is None or v <= di_max)
-    di_groups = [(label, get(b_attrs, attr, "di_ratio"), get(a_attrs, attr, "di_ratio"), di_ok) for attr, label in attrs]
-    di_top = _axis_top([v for _, b, a, _ in di_groups for v in (b, a)], di_max or di_min)
+    def di(block, attr):  # (di_ratio, di_passed): 표 · 요약과 같은 API 판정
+        return _di_of(block.get(attr), criteria)[:2]
+
+    def eo(block, attr, key):
+        value = (block.get(attr) or {}).get(key)
+        return value, _eo_ok(value, criteria)
+
+    di_groups = [(label, di(b_attrs, attr), di(a_attrs, attr)) for attr, label in attrs]
+    di_top = _axis_top([v for _, b, a in di_groups for v, _ in (b, a)], di_max or di_min)
 
     def di_guide(top):
         lo, hi = di_min / top * 100, (di_max if di_max is not None else top) / top * 100
@@ -314,11 +320,10 @@ def _mitigation_chart(before_block, after_block, criteria):
     di_rule = (f'<span><i class="band"></i>기준 범위 {di_min:g}~{di_max:g}</span>' if di_max is not None
                else f'<span><i class="band"></i>기준 {di_min:g} 이상</span>') + '<span><i class="one"></i>1.0 = 완전히 같음</span>'
 
-    eo_ok = lambda v: v <= eo_max
-    eo_groups = [(f"{label} {kind}", get(b_attrs, attr, key), get(a_attrs, attr, key), eo_ok)
+    eo_groups = [(f"{label} {kind}", eo(b_attrs, attr, key), eo(a_attrs, attr, key))
                  for attr, label in attrs
                  for kind, key in (("TPR", "equalized_odds_tpr_diff"), ("FPR", "equalized_odds_fpr_diff"))]
-    eo_top = _axis_top([v for _, b, a, _ in eo_groups for v in (b, a)], eo_max)
+    eo_top = _axis_top([v for _, b, a in eo_groups for v, _ in (b, a)], eo_max)
 
     def eo_guide(top):
         return (f'<i class="fa-chart-band" style="bottom:0;height:{eo_max / top * 100:.1f}%"></i>'
