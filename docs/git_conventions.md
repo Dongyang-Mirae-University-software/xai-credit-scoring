@@ -21,6 +21,18 @@
 
 **검사에 실패하면:** 브랜치 이름을 GitHub에서 바꾸지 않는다. 바꾸면 그 브랜치에서 올린 PR이 닫힌다. 새 이름으로 브랜치를 만들고 PR을 다시 연다.
 
+## 브랜치 보호 (develop, main 동일)
+
+| 항목 | 설정 |
+|---|---|
+| 머지 전 PR 승인 | 1명 |
+| 필수 검사 | `check` (브랜치·커밋 규칙 검사) |
+| 최신 develop 반영 | 필수. PR이 BEHIND이면 "Update branch"를 누른다 |
+| 관리자도 적용 | 예 |
+| force push, 브랜치 삭제 | 막힘 |
+
+PR 목록의 `MERGEABLE`은 "충돌 없음"이라는 뜻일 뿐, 머지할 수 있다는 뜻이 아니다. 실제로 머지할 수 있는지는 `mergeStateStatus`(BLOCKED, BEHIND, CLEAN)로 확인한다.
+
 ## 쓰지 않는 브랜치 자동 정리
 
 `cleanup-stale-branches.yml`
