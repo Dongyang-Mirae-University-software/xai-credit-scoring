@@ -3,8 +3,8 @@
 결론(4개 항목 통과 여부) → 근거(집단별 승인율, 보정 전/후 전환) → 상세(보정 전후 비교 표).
 데이터: GET /fairness, GET /fairness/mitigation (보정 전/후), GET /metrics (AUC 목표치).
 
-승인율 비율(DI)은 디자인 정의대로 '가장 낮은 집단 승인율 ÷ 가장 높은 집단 승인율' 을 화면에서 계산하고
-criteria.di_min(0.80) 이상이면 통과로 본다.
+승인율 비율(DI)은 화면에서 다시 계산하지 않고 API 의 by_attribute.di_ratio · di_passed 를 그대로 쓴다.
+정의는 src/fairness/metrics.py 와 같다: 보호 집단 승인율 ÷ 나머지 집단 승인율, criteria.di_min~di_max(0.8~1.25) 안이면 통과.
 """
 import math
 from datetime import datetime
