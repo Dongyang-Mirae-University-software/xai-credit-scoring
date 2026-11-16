@@ -107,9 +107,10 @@ def main():
     proba = model.predict_proba(test[features])[:, 1]
     sample = pick_sample(test, proba, threshold, args.sample, args.seed)
     X = sample[features]
+    p_sample = model.predict_proba(X)[:, 1]
     logger.info("표본 %d명 (거절 %d, 승인 %d, 씬파일러 %d)", len(X),
-                int((model.predict_proba(X)[:, 1] >= threshold).sum()),
-                int((model.predict_proba(X)[:, 1] < threshold).sum()),
+                int((p_sample >= threshold).sum()),
+                int((p_sample < threshold).sum()),
                 int(sample.get('is_thin_filer', pd.Series(0, index=sample.index)).sum()))
 
     explainer = sx.make_explainer(model, train[features])
@@ -120,7 +121,6 @@ def main():
                            for row in X.values])
 
     rows = lc.compare(shap_vals, lime_vals, features)
-    p_sample = model.predict_proba(X)[:, 1]
     groups = {
         'all': rows,
         'rejected': [r for r, p in zip(rows, p_sample) if p >= threshold],

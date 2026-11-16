@@ -34,16 +34,30 @@ def top_k_agreement(a, b, k=TOP_K):
 
 
 def sign_agreement(shap_row, lime_row, shared, columns):
-    """겹친 변수 중 두 기법의 기여 방향(부호)이 같은 비율. 겹친 변수가 없으면 None."""
+    """
+    겹친 변수 중 두 기법의 기여 방향(부호)이 같은 비율. 겹친 변수가 없으면 None.
+    부호는 +, -, 0 세 가지로 본다 (기여도가 정확히 0이면 음수로 세지 않는다).
+    """
     if not shared:
         return None
+
+    def sign(v):
+        v = float(v)
+        return (v > 0) - (v < 0)
+
     idx = {c: i for i, c in enumerate(columns)}
-    same = sum(1 for f in shared if (shap_row[idx[f]] > 0) == (lime_row[idx[f]] > 0))
+    same = sum(1 for f in shared if sign(shap_row[idx[f]]) == sign(lime_row[idx[f]]))
     return same / len(shared)
 
 
 def make_lime_explainer(train_X, random_state=42):
-    """Train 전처리 값으로 LIME 설명기를 만든다 (분포·구간 나누기에 Train만 쓴다)."""
+    """
+    Train 전처리 값으로 LIME 설명기를 만든다 (분포·구간 나누기에 Train만 쓴다).
+
+    주의: 설명기 하나가 RandomState 하나를 갖고, explain_instance 를 부를 때마다 그 상태를
+    이어서 쓴다. 그래서 같은 시드라도 고객별 결과는 표본 순서(몇 번째로 설명했는지)에 따라 달라진다.
+    결과를 재현하려면 같은 시드로 만든 설명기에 같은 순서로 고객을 넣어야 한다.
+    """
     from lime.lime_tabular import LimeTabularExplainer
 
     return LimeTabularExplainer(

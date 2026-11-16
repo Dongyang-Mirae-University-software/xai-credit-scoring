@@ -27,6 +27,14 @@ def test_sign_agreement_counts_same_direction():
     assert lc.sign_agreement(shap_row, lime_row, [], COLS) is None
 
 
+def test_sign_agreement_treats_zero_as_its_own_sign():
+    """기여도가 정확히 0이면 음수와 같은 방향으로 세지 않는다."""
+    shap_row = np.array([0.0, -0.2, 0.0, 0, 0, 0, 0])
+    lime_row = np.array([-0.3, -0.4, 0.0, 0, 0, 0, 0])
+    # a: 0 vs - (다름), b: - vs - (같음), c: 0 vs 0 (같음)
+    assert lc.sign_agreement(shap_row, lime_row, ['a', 'b', 'c'], COLS) == pytest.approx(2 / 3)
+
+
 def test_compare_and_summarize():
     shap_vals = np.array([[5, 4, 3, 2, 1, 0, 0], [5, 4, 3, 2, 1, 0, 0]], dtype=float)
     lime_vals = np.array([[5, 4, 3, 2, 1, 0, 0], [0, 0, 3, 2, 1, 5, 4]], dtype=float)
