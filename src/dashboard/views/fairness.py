@@ -3,9 +3,10 @@
 결론(4개 항목 통과 여부) → 근거(집단별 승인율, 보정 전/후 전환) → 상세(보정 전후 비교 표).
 데이터: GET /fairness, GET /fairness/mitigation (보정 전/후), GET /metrics (AUC 목표치).
 
-승인율 비율(DI)은 디자인 정의대로 '가장 낮은 집단 승인율 ÷ 가장 높은 집단 승인율' 을 화면에서 계산하고
-criteria.di_min(0.80) 이상이면 통과로 본다.
+승인율 비율(DI)은 화면에서 다시 계산하지 않고 API 의 by_attribute.di_ratio · di_passed 를 그대로 쓴다.
+정의는 src/fairness/metrics.py 와 같다: 보호 집단 승인율 ÷ 나머지 집단 승인율, criteria.di_min~di_max(0.8~1.25) 안이면 통과.
 """
+import math
 from datetime import datetime
 from html import escape
 from pathlib import Path
@@ -16,6 +17,7 @@ import api_client
 from components import ui
 from components.api_error import render_api_error
 from components.empty_state import render_no_report
+from components.fairness_rules import di_ok, eo_ok, fmt_value
 from components.page_header import render_page_header
 
 CSS_PATH = Path(__file__).with_suffix(".css")
@@ -40,33 +42,36 @@ def _ordered(attr, rates):
     return [g for g in order if g in rates] + [g for g in rates if g not in order]
 
 
-def _di(info):
-    rates = list((info or {}).get("approval_rates", {}).values())
-    return min(rates) / max(rates) if rates and max(rates) > 0 else None
+def _di_rule(criteria):
+    di_min, di_max = criteria["di_min"], criteria.get("di_max")
+    return f"{di_min:.2f}~{di_max:.2f}" if di_max is not None else f"{di_min:.2f} 이상"
+
+
+def _di_of(info, criteria):
+    """속성 하나의 DI: API 값(di_ratio = 보호 집단 승인율 ÷ 나머지 집단 승인율)과 통과 여부(di_passed) 그대로."""
+    info = info or {}
+    value = info.get("di_ratio")
+    passed = info.get("di_passed")
+    return value, (passed if passed is not None else di_ok(value, criteria)), info.get("protected_group")
 
 
 def _metrics_of(block, criteria):
-    """by_attribute 묶음 → 4개 점검 항목 [(키, 이름, 기술 용어, 값, 기준 문구, 통과)]."""
+    """by_attribute 묶음 → 4개 점검 항목 [(키, 이름, 기술 용어, 값, 기준 문구, 통과)]. 값은 모두 API 그대로."""
     attrs = block.get("by_attribute", {})
-    gender_di, age_di = _di(attrs.get("gender")), _di(attrs.get("age_group"))
+    gender_di, gender_ok, gender_p = _di_of(attrs.get("gender"), criteria)
+    age_di, age_ok, age_p = _di_of(attrs.get("age_group"), criteria)
     tpr = block.get("equalized_odds_tpr_diff")
     fpr = block.get("equalized_odds_fpr_diff")
-    di_min, eo_max = criteria["di_min"], criteria["eo_max"]
-    ok = lambda v, good: None if v is None else good(v)  # noqa: E731
+    eo_max = criteria["eo_max"]
+    vs = lambda g: f"DI Ratio, {_group_label(g)} ÷ 나머지" if g else "DI Ratio"  # noqa: E731
     return [
-        ("gender_di", "성별 승인율 비율", "DI Ratio, 남성 대비 여성", gender_di, f"{di_min:.2f} 이상",
-         ok(gender_di, lambda v: v >= di_min)),
-        ("age_di", "연령대 승인율 비율", "DI Ratio, 가장 높은 연령대 대비", age_di, f"{di_min:.2f} 이상",
-         ok(age_di, lambda v: v >= di_min)),
+        ("gender_di", "성별 승인율 비율", vs(gender_p), gender_di, _di_rule(criteria), gender_ok),
+        ("age_di", "연령대 승인율 비율", vs(age_p), age_di, _di_rule(criteria), age_ok),
         ("tpr", "부도 고객 적발률 차이", "Equalized Odds, TPR 차이", tpr, f"{eo_max:.2f} 이하",
-         ok(tpr, lambda v: v <= eo_max)),
+         eo_ok(tpr, criteria)),
         ("fpr", "정상 고객 오판율 차이", "Equalized Odds, FPR 차이", fpr, f"{eo_max:.2f} 이하",
-         ok(fpr, lambda v: v <= eo_max)),
+         eo_ok(fpr, criteria)),
     ]
-
-
-def _v(value):
-    return "-" if value is None else f"{value:.2f}"
 
 
 def _pass_pill(ok):
@@ -85,7 +90,7 @@ def _josa_list(names):
     return text + ("이" if batchim else "가")
 
 
-def _summary(now, before, mitigated):
+def _summary(now, before, mitigated, criteria):
     passed = [m for m in now if m[5]]
     all_ok = len(passed) == len(now)
     if all_ok:
@@ -99,7 +104,7 @@ def _summary(now, before, mitigated):
         sub = f"{_josa_list(failed)} 기준을 벗어났어요." + ("" if mitigated else " 보정 결과가 아직 없어요.")
     cells = "".join(
         f'<div class="fa-metric"><span>{name}</span>'
-        f'<div><strong>{_v(value)}</strong>{_pass_pill(ok)}</div><small>기준 {rule}</small></div>'
+        f'<div><strong>{fmt_value(value, ok, criteria)}</strong>{_pass_pill(ok)}</div><small>기준 {rule}</small></div>'
         for _, name, _, value, rule, ok in now)
     tone = "ok" if all_ok else "fail"
     return f"""
@@ -115,53 +120,68 @@ def _summary(now, before, mitigated):
 # ---------------------------------------------------------------------------
 # 근거: 집단별 승인율 막대
 # ---------------------------------------------------------------------------
-def _baseline(rates, criteria):
-    """기준선 = 가장 높은 집단 승인율 × DI 최소 기준 (0.8). 승인율과 같은 0~1."""
-    return max(rates.values()) * criteria["di_min"] if rates else 0
+def _band(info, criteria):
+    """기준 범위 (승인율 0~1): 나머지 집단 승인율 × di_min ~ × di_max. 보호 집단 승인율이 이 안이면 DI 통과.
+    나머지 집단 승인율은 API 값에서 바로 구한다 (보호 집단 승인율 ÷ di_ratio). 구할 수 없으면 None."""
+    rates = (info or {}).get("approval_rates", {})
+    protected, di = (info or {}).get("protected_group"), (info or {}).get("di_ratio")
+    if protected not in rates or not di:
+        return None
+    rest = rates[protected] / di
+    hi = rest * criteria["di_max"] if criteria.get("di_max") is not None else 1.0
+    return protected, rest, rest * criteria["di_min"], min(hi, 1.0)
 
 
-def _below(attrs, criteria):
-    """기준선보다 승인율이 낮은 집단: [(속성 이름, [집단 이름…])]."""
+def _out_of_band(attrs, criteria):
+    """기준 범위를 벗어난 보호 집단: [(속성 이름, 집단 이름, '높아'|'낮아')]."""
     found = []
     for attr, label in ATTRIBUTES:
-        rates = (attrs.get(attr) or {}).get("approval_rates", {})
-        line = _baseline(rates, criteria)
-        low = [_group_label(g) for g in _ordered(attr, rates) if rates[g] < line]
-        if low:
-            found.append((label, low))
+        info = attrs.get(attr) or {}
+        value, passed, protected = _di_of(info, criteria)
+        if passed is False and value is not None and protected:
+            found.append((label, _group_label(protected), "높아" if value > 1 else "낮아"))
     return found
 
 
 def _state_strip(view, attrs, criteria, mitigated):
-    """패널 위 한 줄: 기준선 아래 집단이 있으면 빨강(어느 집단·어느 항목이 미달), 없으면 초록."""
-    below = _below(attrs, criteria)
-    if below:
-        groups = ", ".join(g for _, low in below for g in low)
-        items = ", ".join(label for label, _ in below)
-        return (f'<p class="fa-state fail">{view}: {escape(groups)} 승인율이 기준선보다 낮아 {escape(items)} 항목이 미달이에요. '
-                '빨간 막대가 기준선 아래 집단이에요.</p>')
+    """패널 위 한 줄: 기준 범위를 벗어난 보호 집단이 있으면 빨강(어느 집단이 높거나 낮은지), 없으면 초록."""
+    out = _out_of_band(attrs, criteria)
+    if out:
+        what = ", ".join(f"{group} 승인율이 나머지 집단보다 너무 {how}" for _, group, how in out)
+        items = ", ".join(label for label, _, _ in out)
+        return (f'<p class="fa-state fail">{view}: {escape(what)} {escape(items)} 항목이 미달이에요. '
+                '빨간 막대가 기준 범위를 벗어난 보호 집단이에요.</p>')
     how = "집단별 승인 기준선을 조정해 " if view == "보정 후" and mitigated else ""
-    return f'<p class="fa-state ok">{view}: {how}모든 집단이 기준선을 넘었어요.</p>'
+    return f'<p class="fa-state ok">{view}: {how}보호 집단 승인율이 모두 기준 범위 안에 있어요.</p>'
 
 
 def _group_card(attr, label, info, criteria):
     rates = info.get("approval_rates", {})
     groups = _ordered(attr, rates)
-    di = _di(info)
-    line = _baseline(rates, criteria)
-    rows = "".join(
-        f'<div class="fa-bar-row{" low" if rates[g] < line else ""}"><span>{escape(_group_label(g))}</span>'
+    di, ok, protected = _di_of(info, criteria)
+    band = _band(info, criteria)
+    row = lambda g: (  # noqa: E731
+        f'<div class="fa-bar-row{" prot" if g == protected else ""}{" low" if g == protected and ok is False else ""}">'
+        f'<span>{escape(_group_label(g))}</span>'
         f'<span class="fa-bar"><i style="width:{rates[g] * 100:.1f}%"></i></span>'
-        f'<strong>{rates[g] * 100:.1f}%</strong></div>' for g in groups)
-    ok = None if di is None else di >= criteria["di_min"]
+        f'<strong>{rates[g] * 100:.1f}%</strong></div>')
+    rows = "".join(row(g) for g in groups)
+    band_html = note = ""
+    if band:
+        _, rest, lo, hi = band
+        band_html = (f'<i class="fa-band" style="left:calc(86px + (100% - 156px) * {lo:.4f});'
+                     f'width:calc((100% - 156px) * {hi - lo:.4f})"></i>')
+        upper = f"~{criteria['di_max']:g}" if criteria.get("di_max") is not None else " 이상"
+        note = (f'<div class="fa-line-note"><i></i>기준 범위: 보호 집단({escape(_group_label(protected))}) 승인율이 '
+                f'나머지 집단({rest * 100:.1f}%)의 {criteria["di_min"]:g}{upper}배 ({lo * 100:.1f}~{hi * 100:.1f}%)</div>')
     return f"""
     <div class="fa-card">
       <div class="fa-card-head"><h3>{label}</h3>
-        <span>승인율 비율<strong class="{"fail" if ok is False else ""}">{_v(di)}</strong>{_pass_pill(ok)}</span></div>
+        <span>승인율 비율<strong class="{"fail" if ok is False else ""}">{fmt_value(di, ok, criteria)}</strong>{_pass_pill(ok)}</span></div>
       <div class="fa-bars" role="img" aria-label="{label}별 승인율">
-        {rows}<i class="fa-line" style="left:calc(86px + (100% - 156px) * {line:.4f})"></i>
+        {rows}{band_html}
       </div>
-      <div class="fa-line-note"><i></i>기준선: 가장 높은 집단 승인율의 {criteria["di_min"]:.0%} ({line * 100:.1f}%)</div>
+      {note}
     </div>"""
 
 
@@ -200,8 +220,8 @@ def _compare_table(before, after, criteria):
           <span class="fa-name"><strong>{name}</strong><small>{tech}</small></span>
           <span class="fa-rule">{rule}</span>
           {_range_cell(key, b, a, criteria)}
-          <span class="num fa-before">{_v(b)}{fail}</span>
-          <strong class="num">{_v(a)}</strong>
+          <span class="num fa-before">{fmt_value(b, b_ok, criteria)}{fail}</span>
+          <strong class="num">{fmt_value(a, a_ok, criteria)}</strong>
           <span class="num">{_pass_pill(a_ok)}</span>
         </div>""")
     legend = ('<span class="fa-legend"><span><i class="before"></i>보정 전</span><span><i class="after"></i>보정 후</span>'
@@ -212,6 +232,89 @@ def _compare_table(before, after, criteria):
         <span class="num">보정 전</span><span class="num">보정 후</span><span class="num">결과</span></div>
       {"".join(rows)}
     </div>"""
+
+
+# ---------------------------------------------------------------------------
+# 상세: 보정 전후 비교 차트 (이슈 #119). 값은 GET /fairness/mitigation 의 before / after 그대로
+# ---------------------------------------------------------------------------
+def _axis_top(values, floor):
+    """세로축 위 끝: 기준선과 값이 모두 들어가게, 0.1 단위로 올림."""
+    top = max([floor] + [v for v in values if v is not None]) * 1.1
+    return math.ceil(top * 10) / 10
+
+
+def _bar(value, ok, top, cls, label, criteria):
+    """막대 하나 + 바로 위 숫자. 값이 없으면 빈 자리. ok 가 False(미달)면 숫자 위에 '미달'."""
+    if value is None:
+        return '<span class="fa-mbar empty"></span>'
+    h = min(max(value / top, 0), 1) * 100
+    tag = '<em>미달</em>' if ok is False else ""
+    return (f'<span class="fa-mbar {cls}" title="{escape(label)} {value:.3f}">'
+            f'<b>{tag}{fmt_value(value, ok, criteria)}</b><i style="height:{h:.1f}%"></i></span>')
+
+
+def _bar_chart(title, sub, groups, top, guide, legend_rule, criteria):
+    """groups: [(이름, (보정 전 값, 통과), (보정 후 값, 통과))]. guide: 기준선·범위 HTML 함수(top → HTML)."""
+    cols = "".join(
+        f'<div class="fa-bars-group"><div class="fa-bars-pair">'
+        f'{_bar(*before, top, "before", f"{name} 보정 전", criteria)}'
+        f'{_bar(*after, top, "after", f"{name} 보정 후", criteria)}'
+        f'</div><span class="fa-bars-name">{name}</span></div>'
+        for name, before, after in groups)
+    ticks = "".join(f'<span style="bottom:{t / top * 100:.1f}%">{t:.1f}</span>'
+                    for t in [round(i * 0.1, 1) for i in range(0, int(round(top * 10)) + 1)]
+                    if (top <= 0.4 or round(t * 10) % 2 == 0))
+    return f"""
+    <div class="fa-chart">
+      <div class="fa-chart-head"><b>{title}</b><span>{sub}</span></div>
+      <div class="fa-chart-body">
+        <div class="fa-chart-axis">{ticks}</div>
+        <div class="fa-chart-plot"><div class="fa-chart-guides">{guide(top)}</div>{cols}</div>
+      </div>
+      <div class="fa-chart-legend"><span><i class="before"></i>보정 전</span><span><i class="after"></i>보정 후</span>{legend_rule}</div>
+    </div>"""
+
+
+def _mitigation_chart(before_block, after_block, criteria):
+    """DI Ratio 와 Equalized Odds(TPR·FPR 차이)를 보호 속성별로 보정 전/후 막대로 나란히.
+    두 지표는 기준과 단위가 달라 한 축에 그리지 않고 차트 두 개로 나눈다."""
+    b_attrs, a_attrs = before_block.get("by_attribute", {}), after_block.get("by_attribute", {})
+    attrs = [(attr, label) for attr, label in ATTRIBUTES if attr in b_attrs or attr in a_attrs]
+    di_min, di_max, eo_max = criteria["di_min"], criteria.get("di_max"), criteria["eo_max"]
+
+    def di(block, attr):  # (di_ratio, di_passed): 표 · 요약과 같은 API 판정
+        return _di_of(block.get(attr), criteria)[:2]
+
+    def eo(block, attr, key):
+        value = (block.get(attr) or {}).get(key)
+        return value, eo_ok(value, criteria)
+
+    di_groups = [(label, di(b_attrs, attr), di(a_attrs, attr)) for attr, label in attrs]
+    di_top = _axis_top([v for _, b, a in di_groups for v, _ in (b, a)], di_max or di_min)
+
+    def di_guide(top):
+        lo, hi = di_min / top * 100, (di_max if di_max is not None else top) / top * 100
+        return (f'<i class="fa-chart-band" style="bottom:{lo:.1f}%;height:{hi - lo:.1f}%"></i>'
+                f'<i class="fa-chart-line" style="bottom:{1 / top * 100:.1f}%"></i>')
+    di_rule = (f'<span><i class="band"></i>기준 범위 {di_min:g}~{di_max:g}</span>' if di_max is not None
+               else f'<span><i class="band"></i>기준 {di_min:g} 이상</span>') + '<span><i class="one"></i>1.0 = 완전히 같음</span>'
+
+    eo_groups = [(f"{label} {kind}", eo(b_attrs, attr, key), eo(a_attrs, attr, key))
+                 for attr, label in attrs
+                 for kind, key in (("TPR", "equalized_odds_tpr_diff"), ("FPR", "equalized_odds_fpr_diff"))]
+    eo_top = _axis_top([v for _, b, a in eo_groups for v, _ in (b, a)], eo_max)
+
+    def eo_guide(top):
+        return (f'<i class="fa-chart-band" style="bottom:0;height:{eo_max / top * 100:.1f}%"></i>'
+                f'<i class="fa-chart-line limit" style="bottom:{eo_max / top * 100:.1f}%"></i>')
+    eo_rule = f'<span><i class="band"></i>기준 {eo_max:g} 이하</span>'
+
+    return ('<div class="fa-charts">'
+            + _bar_chart("승인율 비율 (DI Ratio)", "보호 집단 승인율 ÷ 나머지 승인율. 1.0에 가까울수록 고르게 승인해요.",
+                         di_groups, di_top, di_guide, di_rule, criteria)
+            + _bar_chart("오류율 차이 (Equalized Odds)", "TPR·FPR의 집단 간 차이. 0에 가까울수록 고르게 판단해요.",
+                         eo_groups, eo_top, eo_guide, eo_rule, criteria)
+            + "</div>")
 
 
 def _change_card(mitigation, auc_target):
@@ -277,7 +380,7 @@ def _main():
     render_page_header("공정성", "성별이나 나이 때문에 심사 결과가 불리하게 나오지 않는지 점검해요.",
                        meta=[("점검 데이터", f"{DATASET_LABEL} {n:,}명" if n else "-"), ("마지막 점검", evaluated)])
 
-    st.html(_summary(after, before, after_block is not None))
+    st.html(_summary(after, before, after_block is not None, criteria))
 
     # 집단별 승인율 (보정 전 / 후 전환)
     with st.container(key="fa-groups-head", horizontal=True, vertical_alignment="bottom"):
@@ -305,6 +408,7 @@ def _main():
         except Exception:
             auc_target = None
         st.html(f'<section class="fa-compare">{ui.section_head("보정 전후 비교", method_text)}'
+                f'{_mitigation_chart(before_block, after_block, criteria)}'
                 f'{_compare_table(before, after, criteria)}{_change_card(mitigation, auc_target)}'
                 f'{LIMIT_NOTE if method == "threshold_adjustment" else ""}</section>')
     else:
