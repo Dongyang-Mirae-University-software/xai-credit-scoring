@@ -1,0 +1,3796 @@
+{
+  "method": "PSI(점수) + CSI(칸별), 기준 = Train, 구간 10개 (값 종류 10개 이하 칸은 값마다 한 구간)",
+  "thresholds": {
+    "stable": 0.1,
+    "caution": 0.25
+  },
+  "model": "lightgbm_is_unbalance_integrated_v1.0.joblib",
+  "scenarios": {
+    "baseline": {
+      "name": "0) 기준 확인 (Test 그대로)",
+      "n_expected": 105000,
+      "n_actual": 22500,
+      "score_psi": 0.00036707664103335295,
+      "score_grade": "안정",
+      "score_bins": [
+        {
+          "label": "최소 ~ 0.02562",
+          "expected": 0.1,
+          "actual": 0.10062222222222222,
+          "contribution": 3.859571201278095e-06
+        },
+        {
+          "label": "0.02562 ~ 0.0493",
+          "expected": 0.1,
+          "actual": 0.09795555555555556,
+          "contribution": 4.223028204228672e-05
+        },
+        {
+          "label": "0.0493 ~ 0.07758",
+          "expected": 0.1,
+          "actual": 0.10106666666666667,
+          "contribution": 1.1317411810312786e-05
+        },
+        {
+          "label": "0.07758 ~ 0.1142",
+          "expected": 0.1,
+          "actual": 0.0996,
+          "contribution": 1.6031924949195701e-06
+        },
+        {
+          "label": "0.1142 ~ 0.1654",
+          "expected": 0.1,
+          "actual": 0.09853333333333333,
+          "contribution": 2.1670200542990296e-05
+        },
+        {
+          "label": "0.1654 ~ 0.2423",
+          "expected": 0.1,
+          "actual": 0.10426666666666666,
+          "contribution": 0.00017826613253035502
+        },
+        {
+          "label": "0.2423 ~ 0.355",
+          "expected": 0.1,
+          "actual": 0.10124444444444444,
+          "contribution": 1.5390698891612084e-05
+        },
+        {
+          "label": "0.355 ~ 0.5115",
+          "expected": 0.1,
+          "actual": 0.09888888888888889,
+          "contribution": 1.2414653599671933e-05
+        },
+        {
+          "label": "0.5115 ~ 0.7447",
+          "expected": 0.1,
+          "actual": 0.10057777777777778,
+          "contribution": 3.328631505203903e-06
+        },
+        {
+          "label": "0.7447 ~ 최대",
+          "expected": 0.1,
+          "actual": 0.09724444444444444,
+          "contribution": 7.69958664147225e-05
+        }
+      ],
+      "csi": {
+        "RevolvingUtilizationOfUnsecuredLines": {
+          "index": 0.0005869934068748322,
+          "grade": "안정"
+        },
+        "age": {
+          "index": 0.00045658140990882114,
+          "grade": "안정"
+        },
+        "NumberOfTime30-59DaysPastDueNotWorse": {
+          "index": 2.870240613172044e-05,
+          "grade": "안정"
+        },
+        "DebtRatio": {
+          "index": 0.0006159393752719241,
+          "grade": "안정"
+        },
+        "MonthlyIncome": {
+          "index": 0.00038124910086163345,
+          "grade": "안정"
+        },
+        "NumberOfOpenCreditLinesAndLoans": {
+          "index": 0.0010069545462095084,
+          "grade": "안정"
+        },
+        "NumberOfTimes90DaysLate": {
+          "index": 8.980950368852126e-05,
+          "grade": "안정"
+        },
+        "NumberRealEstateLoansOrLines": {
+          "index": 1.697259959457039e-05,
+          "grade": "안정"
+        },
+        "NumberOfTime60-89DaysPastDueNotWorse": {
+          "index": 0.00015043005627201847,
+          "grade": "안정"
+        },
+        "NumberOfDependents": {
+          "index": 0.00016007299911389544,
+          "grade": "안정"
+        },
+        "telecom_payment_rate": {
+          "index": 0.0009027783556832502,
+          "grade": "안정"
+        },
+        "utility_payment_rate": {
+          "index": 0.0003166559766925573,
+          "grade": "안정"
+        },
+        "spending_consistency": {
+          "index": 0.00021056725887022202,
+          "grade": "안정"
+        },
+        "regular_payment_count": {
+          "index": 0.00039753679125411224,
+          "grade": "안정"
+        },
+        "app_login_frequency": {
+          "index": 0.00018035780586358858,
+          "grade": "안정"
+        }
+      },
+      "flagged": [],
+      "top_bins": {},
+      "tables": {
+        "RevolvingUtilizationOfUnsecuredLines": {
+          "index": 0.0005869934068748322,
+          "grade": "안정",
+          "binning": "quantile",
+          "bins": [
+            {
+              "label": "최소 ~ 0.002831",
+              "expected": 0.1,
+              "actual": 0.09484444444444444,
+              "contribution": 0.0002728913907741103
+            },
+            {
+              "label": "0.002831 ~ 0.01895",
+              "expected": 0.1,
+              "actual": 0.09844444444444445,
+              "contribution": 2.4387462877988663e-05
+            },
+            {
+              "label": "0.01895 ~ 0.04316",
+              "expected": 0.1,
+              "actual": 0.0992,
+              "contribution": 6.425672842330271e-06
+            },
+            {
+              "label": "0.04316 ~ 0.08272",
+              "expected": 0.1,
+              "actual": 0.09902222222222222,
+              "contribution": 9.607444399926929e-06
+            },
+            {
+              "label": "0.08272 ~ 0.1536",
+              "expected": 0.1,
+              "actual": 0.1028,
+              "contribution": 7.732170505393335e-05
+            },
+            {
+              "label": "0.1536 ~ 0.2719",
+              "expected": 0.1,
+              "actual": 0.10413333333333333,
+              "contribution": 0.00016740639172964112
+            },
+            {
+              "label": "0.2719 ~ 0.4453",
+              "expected": 0.1,
+              "actual": 0.10088888888888889,
+              "contribution": 7.866246375229138e-06
+            },
+            {
+              "label": "0.4453 ~ 0.6983",
+              "expected": 0.1,
+              "actual": 0.09942222222222222,
+              "contribution": 3.347919232882923e-06
+            },
+            {
+              "label": "0.6983 ~ 0.9808",
+              "expected": 0.1,
+              "actual": 0.10133333333333333,
+              "contribution": 1.766012689650707e-05
+            },
+            {
+              "label": "0.9808 ~ 최대",
+              "expected": 0.1,
+              "actual": 0.09991111111111112,
+              "contribution": 7.904669228231046e-08
+            }
+          ]
+        },
+        "age": {
+          "index": 0.00045658140990882114,
+          "grade": "안정",
+          "binning": "quantile",
+          "bins": [
+            {
+              "label": "최소 ~ 33",
+              "expected": 0.11374285714285715,
+              "actual": 0.11124444444444445,
+              "contribution": 5.5489950499789496e-05
+            },
+            {
+              "label": "33 ~ 39",
+              "expected": 0.09938095238095238,
+              "actual": 0.10026666666666667,
+              "contribution": 7.858717149308656e-06
+            },
+            {
+              "label": "39 ~ 44",
+              "expected": 0.10552380952380952,
+              "actual": 0.10457777777777778,
+              "contribution": 8.51943676342127e-06
+            },
+            {
+              "label": "44 ~ 48",
+              "expected": 0.09860952380952381,
+              "actual": 0.09835555555555556,
+              "contribution": 6.549308643468016e-07
+            },
+            {
+              "label": "48 ~ 52",
+              "expected": 0.09856190476190477,
+              "actual": 0.10226666666666667,
+              "contribution": 0.0001367004823002593
+            },
+            {
+              "label": "52 ~ 56",
+              "expected": 0.0952,
+              "actual": 0.0936,
+              "contribution": 2.711900601067592e-05
+            },
+            {
+              "label": "56 ~ 60",
+              "expected": 0.08928571428571429,
+              "actual": 0.08777777777777777,
+              "contribution": 2.568459229473514e-05
+            },
+            {
+              "label": "60 ~ 65",
+              "expected": 0.11024761904761905,
+              "actual": 0.10755555555555556,
+              "contribution": 6.655098935026055e-05
+            },
+            {
+              "label": "65 ~ 72",
+              "expected": 0.09436190476190476,
+              "actual": 0.09715555555555555,
+              "contribution": 8.150647819189297e-05
+            },
+            {
+              "label": "72 ~ 최대",
+              "expected": 0.09508571428571429,
+              "actual": 0.0972,
+              "contribution": 4.649682648413108e-05
+            }
+          ]
+        },
+        "NumberOfTime30-59DaysPastDueNotWorse": {
+          "index": 2.870240613172044e-05,
+          "grade": "안정",
+          "binning": "quantile",
+          "bins": [
+            {
+              "label": "최소 ~ 0",
+              "expected": 0.8397904761904762,
+              "actual": 0.8410222222222222,
+              "contribution": 1.805313292121141e-06
+            },
+            {
+              "label": "0 ~ 1",
+              "expected": 0.10716190476190476,
+              "actual": 0.10555555555555556,
+              "contribution": 2.4261126075515872e-05
+            },
+            {
+              "label": "1 ~ 최대",
+              "expected": 0.053047619047619045,
+              "actual": 0.053422222222222225,
+              "contribution": 2.635966764083427e-06
+            }
+          ]
+        },
+        "DebtRatio": {
+          "index": 0.0006159393752719241,
+          "grade": "안정",
+          "binning": "quantile",
+          "bins": [
+            {
+              "label": "최소 ~ 0.01084",
+              "expected": 0.1,
+              "actual": 0.10235555555555556,
+              "contribution": 5.484245546506751e-05
+            },
+            {
+              "label": "0.01084 ~ 0.08175",
+              "expected": 0.10001904761904762,
+              "actual": 0.09915555555555555,
+              "contribution": 7.487056242128652e-06
+            },
+            {
+              "label": "0.08175 ~ 0.1572",
+              "expected": 0.09998095238095238,
+              "actual": 0.10351111111111111,
+              "contribution": 0.0001224927233101676
+            },
+            {
+              "label": "0.1572 ~ 0.2224",
+              "expected": 0.1,
+              "actual": 0.0971111111111111,
+              "contribution": 8.468514943476469e-05
+            },
+            {
+              "label": "0.2224 ~ 0.2848",
+              "expected": 0.1,
+              "actual": 0.10026666666666667,
+              "contribution": 7.101575530678821e-07
+            },
+            {
+              "label": "0.2848 ~ 0.3517",
+              "expected": 0.1,
+              "actual": 0.10315555555555556,
+              "contribution": 9.803555411205434e-05
+            },
+            {
+              "label": "0.3517 ~ 0.4296",
+              "expected": 0.10000952380952381,
+              "actual": 0.0971111111111111,
+              "contribution": 8.524035464670169e-05
+            },
+            {
+              "label": "0.4296 ~ 0.5366",
+              "expected": 0.09999047619047619,
+              "actual": 0.09613333333333333,
+              "contribution": 0.000151733926358326
+            },
+            {
+              "label": "0.5366 ~ 0.7495",
+              "expected": 0.1,
+              "actual": 0.10102222222222222,
+              "contribution": 1.0396232522053849e-05
+            },
+            {
+              "label": "0.7495 ~ 최대",
+              "expected": 0.1,
+              "actual": 0.10017777777777778,
+              "contribution": 3.1576562759185844e-07
+            }
+          ]
+        },
+        "MonthlyIncome": {
+          "index": 0.00038124910086163345,
+          "grade": "안정",
+          "binning": "quantile",
+          "bins": [
+            {
+              "label": "최소 ~ 2302",
+              "expected": 0.10000952380952381,
+              "actual": 0.09804444444444445,
+              "contribution": 3.899568052604345e-05
+            },
+            {
+              "label": "2302 ~ 3400",
+              "expected": 0.10255238095238095,
+              "actual": 0.1020888888888889,
+              "contribution": 2.09950965321287e-06
+            },
+            {
+              "label": "3400 ~ 4332",
+              "expected": 0.09746666666666666,
+              "actual": 0.09582222222222223,
+              "contribution": 2.7981275186580824e-05
+            },
+            {
+              "label": "4332 ~ 5351",
+              "expected": 0.09997142857142857,
+              "actual": 0.09622222222222222,
+              "contribution": 0.00014330857586339606
+            },
+            {
+              "label": "5351 ~ 5382",
+              "expected": 0.1987047619047619,
+              "actual": 0.20173333333333332,
+              "contribution": 4.581169517730854e-05
+            },
+            {
+              "label": "5382 ~ 5400",
+              "expected": 0.0028476190476190476,
+              "actual": 0.0029333333333333334,
+              "contribution": 2.5410815704188743e-06
+            },
+            {
+              "label": "5400 ~ 6600",
+              "expected": 0.09872380952380952,
+              "actual": 0.09911111111111111,
+              "contribution": 1.5164278808458424e-06
+            },
+            {
+              "label": "6600 ~ 8250",
+              "expected": 0.1,
+              "actual": 0.10328888888888889,
+              "contribution": 0.00010642615656160083
+            },
+            {
+              "label": "8250 ~ 1.072e+04",
+              "expected": 0.09973333333333333,
+              "actual": 0.09964444444444444,
+              "contribution": 7.925813921004014e-08
+            },
+            {
+              "label": "1.072e+04 ~ 최대",
+              "expected": 0.09999047619047619,
+              "actual": 0.10111111111111111,
+              "contribution": 1.2489440303016103e-05
+            }
+          ]
+        },
+        "NumberOfOpenCreditLinesAndLoans": {
+          "index": 0.0010069545462095084,
+          "grade": "안정",
+          "binning": "quantile",
+          "bins": [
+            {
+              "label": "최소 ~ 3",
+              "expected": 0.1462857142857143,
+              "actual": 0.14955555555555555,
+              "contribution": 7.228352594370575e-05
+            },
+            {
+              "label": "3 ~ 4",
+              "expected": 0.07716190476190476,
+              "actual": 0.0748888888888889,
+              "contribution": 6.796305340936496e-05
+            },
+            {
+              "label": "4 ~ 5",
+              "expected": 0.08584761904761905,
+              "actual": 0.08768888888888889,
+              "contribution": 3.907376982419065e-05
+            },
+            {
+              "label": "5 ~ 6",
+              "expected": 0.0913047619047619,
+              "actual": 0.08746666666666666,
+              "contribution": 0.00016482582526452106
+            },
+            {
+              "label": "6 ~ 8",
+              "expected": 0.17175238095238096,
+              "actual": 0.174,
+              "contribution": 2.9222261946877667e-05
+            },
+            {
+              "label": "8 ~ 9",
+              "expected": 0.07531428571428571,
+              "actual": 0.07791111111111111,
+              "contribution": 8.802796383012898e-05
+            },
+            {
+              "label": "9 ~ 10",
+              "expected": 0.06448571428571429,
+              "actual": 0.0644,
+              "contribution": 1.1400527814969794e-07
+            },
+            {
+              "label": "10 ~ 12",
+              "expected": 0.10222857142857143,
+              "actual": 0.10644444444444444,
+              "contribution": 0.00017037021878303461
+            },
+            {
+              "label": "12 ~ 15",
+              "expected": 0.09299047619047619,
+              "actual": 0.08795555555555555,
+              "contribution": 0.00028026799808924044
+            },
+            {
+              "label": "15 ~ 최대",
+              "expected": 0.09262857142857144,
+              "actual": 0.08968888888888889,
+              "contribution": 9.480592384029449e-05
+            }
+          ]
+        },
+        "NumberOfTimes90DaysLate": {
+          "index": 8.980950368852126e-05,
+          "grade": "안정",
+          "binning": "quantile",
+          "bins": [
+            {
+              "label": "최소 ~ 1.665e-16",
+              "expected": 0.9438380952380953,
+              "actual": 0.946,
+              "contribution": 4.946274819891567e-06
+            },
+            {
+              "label": "1.665e-16 ~ 최대",
+              "expected": 0.05616190476190476,
+              "actual": 0.054,
+              "contribution": 8.48632288686297e-05
+            }
+          ]
+        },
+        "NumberRealEstateLoansOrLines": {
+          "index": 1.697259959457039e-05,
+          "grade": "안정",
+          "binning": "quantile",
+          "bins": [
+            {
+              "label": "최소 ~ 0",
+              "expected": 0.3732666666666667,
+              "actual": 0.3735111111111111,
+              "contribution": 1.6002867333033037e-07
+            },
+            {
+              "label": "0 ~ 1",
+              "expected": 0.34981904761904764,
+              "actual": 0.3512888888888889,
+              "contribution": 6.162903736333692e-06
+            },
+            {
+              "label": "1 ~ 2",
+              "expected": 0.21053333333333332,
+              "actual": 0.20924444444444446,
+              "contribution": 7.91481570194304e-06
+            },
+            {
+              "label": "2 ~ 최대",
+              "expected": 0.06638095238095239,
+              "actual": 0.06595555555555556,
+              "contribution": 2.7348514829633283e-06
+            }
+          ]
+        },
+        "NumberOfTime60-89DaysPastDueNotWorse": {
+          "index": 0.00015043005627201847,
+          "grade": "안정",
+          "binning": "quantile",
+          "bins": [
+            {
+              "label": "최소 ~ 8.327e-17",
+              "expected": 0.9491619047619048,
+              "actual": 0.9518222222222222,
+              "contribution": 7.445918209870054e-06
+            },
+            {
+              "label": "8.327e-17 ~ 최대",
+              "expected": 0.05083809523809524,
+              "actual": 0.04817777777777778,
+              "contribution": 0.0001429841380621484
+            }
+          ]
+        },
+        "NumberOfDependents": {
+          "index": 0.00016007299911389544,
+          "grade": "안정",
+          "binning": "quantile",
+          "bins": [
+            {
+              "label": "최소 ~ 0",
+              "expected": 0.6047904761904762,
+              "actual": 0.6074666666666667,
+              "contribution": 1.1815967141688385e-05
+            },
+            {
+              "label": "0 ~ 1",
+              "expected": 0.17617142857142856,
+              "actual": 0.17435555555555557,
+              "contribution": 1.8813989462918e-05
+            },
+            {
+              "label": "1 ~ 2",
+              "expected": 0.12994285714285714,
+              "actual": 0.132,
+              "contribution": 3.231156193392612e-05
+            },
+            {
+              "label": "2 ~ 최대",
+              "expected": 0.08909523809523809,
+              "actual": 0.08617777777777778,
+              "contribution": 9.713148057536295e-05
+            }
+          ]
+        },
+        "telecom_payment_rate": {
+          "index": 0.0009027783556832502,
+          "grade": "안정",
+          "binning": "quantile",
+          "bins": [
+            {
+              "label": "최소 ~ 0.823",
+              "expected": 0.1,
+              "actual": 0.10128888888888889,
+              "contribution": 1.6506035430710704e-05
+            },
+            {
+              "label": "0.823 ~ 0.851",
+              "expected": 0.1,
+              "actual": 0.1020888888888889,
+              "contribution": 4.318465045614719e-05
+            },
+            {
+              "label": "0.851 ~ 0.8703",
+              "expected": 0.1,
+              "actual": 0.1004,
+              "contribution": 1.5967925717190077e-06
+            },
+            {
+              "label": "0.8703 ~ 0.8866",
+              "expected": 0.1,
+              "actual": 0.09982222222222223,
+              "contribution": 3.163274828118413e-07
+            },
+            {
+              "label": "0.8866 ~ 0.9015",
+              "expected": 0.1,
+              "actual": 0.09364444444444445,
+              "contribution": 0.0004173337594534891
+            },
+            {
+              "label": "0.9015 ~ 0.9163",
+              "expected": 0.1,
+              "actual": 0.10244444444444445,
+              "contribution": 5.9033875078266294e-05
+            },
+            {
+              "label": "0.9163 ~ 0.932",
+              "expected": 0.1,
+              "actual": 0.10146666666666666,
+              "contribution": 2.1354676619635997e-05
+            },
+            {
+              "label": "0.932 ~ 0.9503",
+              "expected": 0.1,
+              "actual": 0.10284444444444445,
+              "contribution": 7.97785201223917e-05
+            },
+            {
+              "label": "0.9503 ~ 0.975",
+              "expected": 0.1,
+              "actual": 0.09502222222222222,
+              "contribution": 0.0002541597570513592
+            },
+            {
+              "label": "0.975 ~ 최대",
+              "expected": 0.1,
+              "actual": 0.10097777777777778,
+              "contribution": 9.513961416719169e-06
+            }
+          ]
+        },
+        "utility_payment_rate": {
+          "index": 0.0003166559766925573,
+          "grade": "안정",
+          "binning": "quantile",
+          "bins": [
+            {
+              "label": "최소 ~ 0.7467",
+              "expected": 0.1,
+              "actual": 0.09977777777777778,
+              "contribution": 4.943717223598164e-07
+            },
+            {
+              "label": "0.7467 ~ 0.7845",
+              "expected": 0.1,
+              "actual": 0.10173333333333333,
+              "contribution": 2.9786734251232978e-05
+            },
+            {
+              "label": "0.7845 ~ 0.8103",
+              "expected": 0.1,
+              "actual": 0.09875555555555555,
+              "contribution": 1.5583429851182606e-05
+            },
+            {
+              "label": "0.8103 ~ 0.8318",
+              "expected": 0.1,
+              "actual": 0.10253333333333334,
+              "contribution": 6.337770695580137e-05
+            },
+            {
+              "label": "0.8318 ~ 0.8518",
+              "expected": 0.1,
+              "actual": 0.10088888888888889,
+              "contribution": 7.866246375229138e-06
+            },
+            {
+              "label": "0.8518 ~ 0.8717",
+              "expected": 0.1,
+              "actual": 0.09897777777777778,
+              "contribution": 1.0503051878943698e-05
+            },
+            {
+              "label": "0.8717 ~ 0.8926",
+              "expected": 0.1,
+              "actual": 0.09955555555555555,
+              "contribution": 1.979691425320346e-06
+            },
+            {
+              "label": "0.8926 ~ 0.9168",
+              "expected": 0.1,
+              "actual": 0.09622222222222222,
+              "contribution": 0.0001454801903677877
+            },
+            {
+              "label": "0.9168 ~ 0.95",
+              "expected": 0.1,
+              "actual": 0.102,
+              "contribution": 3.960486243937929e-05
+            },
+            {
+              "label": "0.95 ~ 최대",
+              "expected": 0.1,
+              "actual": 0.09955555555555555,
+              "contribution": 1.979691425320346e-06
+            }
+          ]
+        },
+        "spending_consistency": {
+          "index": 0.00021056725887022202,
+          "grade": "안정",
+          "binning": "quantile",
+          "bins": [
+            {
+              "label": "최소 ~ 86.18",
+              "expected": 0.1,
+              "actual": 0.09911111111111111,
+              "contribution": 7.936480941425587e-06
+            },
+            {
+              "label": "86.18 ~ 87.39",
+              "expected": 0.1,
+              "actual": 0.09942222222222222,
+              "contribution": 3.347919232882923e-06
+            },
+            {
+              "label": "87.39 ~ 88.23",
+              "expected": 0.1,
+              "actual": 0.1,
+              "contribution": 0.0
+            },
+            {
+              "label": "88.23 ~ 88.93",
+              "expected": 0.1,
+              "actual": 0.10257777777777778,
+              "contribution": 6.560671580739508e-05
+            },
+            {
+              "label": "88.93 ~ 89.56",
+              "expected": 0.1,
+              "actual": 0.10062222222222222,
+              "contribution": 3.859571201278095e-06
+            },
+            {
+              "label": "89.56 ~ 90.19",
+              "expected": 0.1,
+              "actual": 0.10155555555555555,
+              "contribution": 2.401101882432168e-05
+            },
+            {
+              "label": "90.19 ~ 90.87",
+              "expected": 0.1,
+              "actual": 0.10048888888888889,
+              "contribution": 2.384276120820011e-06
+            },
+            {
+              "label": "90.87 ~ 91.64",
+              "expected": 0.1,
+              "actual": 0.10004444444444445,
+              "contribution": 1.9748500704039598e-08
+            },
+            {
+              "label": "91.64 ~ 92.7",
+              "expected": 0.1,
+              "actual": 0.09688888888888889,
+              "contribution": 9.832672365499326e-05
+            },
+            {
+              "label": "92.7 ~ 최대",
+              "expected": 0.1,
+              "actual": 0.09928888888888888,
+              "contribution": 5.074804586401352e-06
+            }
+          ]
+        },
+        "regular_payment_count": {
+          "index": 0.00039753679125411224,
+          "grade": "안정",
+          "binning": "discrete",
+          "bins": [
+            {
+              "label": "8 미만 (기준 범위 밖)",
+              "expected": 0.0,
+              "actual": 0.0,
+              "contribution": 0.0
+            },
+            {
+              "label": "8",
+              "expected": 9.523809523809524e-05,
+              "actual": 8.888888888888889e-05,
+              "contribution": 4.333393013201633e-07
+            },
+            {
+              "label": "9",
+              "expected": 0.0051047619047619045,
+              "actual": 0.004577777777777778,
+              "contribution": 5.74083783827959e-05
+            },
+            {
+              "label": "10",
+              "expected": 0.08645714285714286,
+              "actual": 0.08666666666666667,
+              "contribution": 5.071485102240737e-07
+            },
+            {
+              "label": "11",
+              "expected": 0.5041809523809524,
+              "actual": 0.5086666666666667,
+              "contribution": 3.973297483375124e-05
+            },
+            {
+              "label": "12",
+              "expected": 0.38136190476190474,
+              "actual": 0.3778222222222222,
+              "contribution": 3.300756646593466e-05
+            },
+            {
+              "label": "13",
+              "expected": 0.022723809523809525,
+              "actual": 0.02191111111111111,
+              "contribution": 2.9596652090295877e-05
+            },
+            {
+              "label": "14",
+              "expected": 7.619047619047618e-05,
+              "actual": 0.0002666666666666667,
+              "contribution": 0.00023685073166979036
+            },
+            {
+              "label": "14 초과 (기준 범위 밖)",
+              "expected": 0.0,
+              "actual": 0.0,
+              "contribution": 0.0
+            }
+          ]
+        },
+        "app_login_frequency": {
+          "index": 0.00018035780586358858,
+          "grade": "안정",
+          "binning": "discrete",
+          "bins": [
+            {
+              "label": "16 미만 (기준 범위 밖)",
+              "expected": 0.0,
+              "actual": 0.0,
+              "contribution": 0.0
+            },
+            {
+              "label": "16",
+              "expected": 0.0004380952380952381,
+              "actual": 0.0004888888888888889,
+              "contribution": 5.559988581892058e-06
+            },
+            {
+              "label": "17",
+              "expected": 0.0036285714285714285,
+              "actual": 0.0037333333333333333,
+              "contribution": 2.9809720658895313e-06
+            },
+            {
+              "label": "18",
+              "expected": 0.02276190476190476,
+              "actual": 0.021244444444444444,
+              "contribution": 0.000104689182980993
+            },
+            {
+              "label": "19",
+              "expected": 0.11275238095238095,
+              "actual": 0.11413333333333334,
+              "contribution": 1.681054466909328e-05
+            },
+            {
+              "label": "20",
+              "expected": 0.3136,
+              "actual": 0.31408888888888886,
+              "contribution": 7.615608199549363e-07
+            },
+            {
+              "label": "21",
+              "expected": 0.36463809523809526,
+              "actual": 0.3624,
+              "contribution": 1.3779394424668726e-05
+            },
+            {
+              "label": "22",
+              "expected": 0.15761904761904763,
+              "actual": 0.15866666666666668,
+              "contribution": 6.939945074880175e-06
+            },
+            {
+              "label": "23",
+              "expected": 0.02337142857142857,
+              "actual": 0.024044444444444445,
+              "contribution": 1.9105909049012736e-05
+            },
+            {
+              "label": "24",
+              "expected": 0.0011238095238095239,
+              "actual": 0.0011555555555555555,
+              "contribution": 8.835723823798062e-07
+            },
+            {
+              "label": "25",
+              "expected": 6.666666666666667e-05,
+              "actual": 4.4444444444444447e-05,
+              "contribution": 8.846735814824342e-06
+            },
+            {
+              "label": "25 초과 (기준 범위 밖)",
+              "expected": 0.0,
+              "actual": 0.0,
+              "contribution": 0.0
+            }
+          ]
+        }
+      },
+      "auc": 0.8894458556949043,
+      "approval_rate": 0.7953333333333333,
+      "thin_filer_share": 0.027777777777777776,
+      "description": "0) 기준 확인 (Test 그대로)"
+    },
+    "recession": {
+      "name": "1) 경기 악화",
+      "n_expected": 105000,
+      "n_actual": 22500,
+      "score_psi": 0.04151065784383138,
+      "score_grade": "안정",
+      "score_bins": [
+        {
+          "label": "최소 ~ 0.02562",
+          "expected": 0.1,
+          "actual": 0.06955555555555555,
+          "contribution": 0.011052551576325228
+        },
+        {
+          "label": "0.02562 ~ 0.0493",
+          "expected": 0.1,
+          "actual": 0.07568888888888889,
+          "contribution": 0.0067715099830677515
+        },
+        {
+          "label": "0.0493 ~ 0.07758",
+          "expected": 0.1,
+          "actual": 0.08017777777777778,
+          "contribution": 0.004379151544651483
+        },
+        {
+          "label": "0.07758 ~ 0.1142",
+          "expected": 0.1,
+          "actual": 0.09115555555555556,
+          "contribution": 0.0008190111826085211
+        },
+        {
+          "label": "0.1142 ~ 0.1654",
+          "expected": 0.1,
+          "actual": 0.09382222222222222,
+          "contribution": 0.00039394322921209457
+        },
+        {
+          "label": "0.1654 ~ 0.2423",
+          "expected": 0.1,
+          "actual": 0.10195555555555555,
+          "contribution": 3.7872483123281316e-05
+        },
+        {
+          "label": "0.2423 ~ 0.355",
+          "expected": 0.1,
+          "actual": 0.11475555555555556,
+          "contribution": 0.002030848284942674
+        },
+        {
+          "label": "0.355 ~ 0.5115",
+          "expected": 0.1,
+          "actual": 0.12097777777777778,
+          "contribution": 0.003994902146336369
+        },
+        {
+          "label": "0.5115 ~ 0.7447",
+          "expected": 0.1,
+          "actual": 0.12404444444444444,
+          "contribution": 0.005180803546234306
+        },
+        {
+          "label": "0.7447 ~ 최대",
+          "expected": 0.1,
+          "actual": 0.12786666666666666,
+          "contribution": 0.006850063867329667
+        }
+      ],
+      "csi": {
+        "RevolvingUtilizationOfUnsecuredLines": {
+          "index": 4.991584883962905,
+          "grade": "경고"
+        },
+        "age": {
+          "index": 0.00045658140990882114,
+          "grade": "안정"
+        },
+        "NumberOfTime30-59DaysPastDueNotWorse": {
+          "index": 0.16852328725996196,
+          "grade": "주의"
+        },
+        "DebtRatio": {
+          "index": 0.08827828786820766,
+          "grade": "안정"
+        },
+        "MonthlyIncome": {
+          "index": 0.00038124910086163345,
+          "grade": "안정"
+        },
+        "NumberOfOpenCreditLinesAndLoans": {
+          "index": 0.0010069545462095084,
+          "grade": "안정"
+        },
+        "NumberOfTimes90DaysLate": {
+          "index": 8.980950368852126e-05,
+          "grade": "안정"
+        },
+        "NumberRealEstateLoansOrLines": {
+          "index": 1.697259959457039e-05,
+          "grade": "안정"
+        },
+        "NumberOfTime60-89DaysPastDueNotWorse": {
+          "index": 0.00015043005627201847,
+          "grade": "안정"
+        },
+        "NumberOfDependents": {
+          "index": 0.00016007299911389544,
+          "grade": "안정"
+        },
+        "telecom_payment_rate": {
+          "index": 0.0009027783556832502,
+          "grade": "안정"
+        },
+        "utility_payment_rate": {
+          "index": 0.0003166559766925573,
+          "grade": "안정"
+        },
+        "spending_consistency": {
+          "index": 0.00021056725887022202,
+          "grade": "안정"
+        },
+        "regular_payment_count": {
+          "index": 0.00039753679125411224,
+          "grade": "안정"
+        },
+        "app_login_frequency": {
+          "index": 0.00018035780586358858,
+          "grade": "안정"
+        }
+      },
+      "flagged": [
+        "RevolvingUtilizationOfUnsecuredLines",
+        "NumberOfTime30-59DaysPastDueNotWorse"
+      ],
+      "top_bins": {
+        "RevolvingUtilizationOfUnsecuredLines": {
+          "label": "최소 ~ 0.002831",
+          "expected": 0.1,
+          "actual": 0.0,
+          "contribution": 1.1512935464920229
+        },
+        "NumberOfTime30-59DaysPastDueNotWorse": {
+          "label": "0 ~ 1",
+          "expected": 0.10716190476190476,
+          "actual": 0.25208888888888886,
+          "contribution": 0.12397569796568153
+        }
+      },
+      "tables": {
+        "RevolvingUtilizationOfUnsecuredLines": {
+          "index": 4.991584883962905,
+          "grade": "경고",
+          "binning": "quantile",
+          "bins": [
+            {
+              "label": "최소 ~ 0.002831",
+              "expected": 0.1,
+              "actual": 0.0,
+              "contribution": 1.1512935464920229
+            },
+            {
+              "label": "0.002831 ~ 0.01895",
+              "expected": 0.1,
+              "actual": 0.0,
+              "contribution": 1.1512935464920229
+            },
+            {
+              "label": "0.01895 ~ 0.04316",
+              "expected": 0.1,
+              "actual": 0.0,
+              "contribution": 1.1512935464920229
+            },
+            {
+              "label": "0.04316 ~ 0.08272",
+              "expected": 0.1,
+              "actual": 0.0,
+              "contribution": 1.1512935464920229
+            },
+            {
+              "label": "0.08272 ~ 0.1536",
+              "expected": 0.1,
+              "actual": 0.0996,
+              "contribution": 1.6031924949195701e-06
+            },
+            {
+              "label": "0.1536 ~ 0.2719",
+              "expected": 0.1,
+              "actual": 0.3546666666666667,
+              "contribution": 0.32240825844599275
+            },
+            {
+              "label": "0.2719 ~ 0.4453",
+              "expected": 0.1,
+              "actual": 0.16004444444444443,
+              "contribution": 0.028237558232126467
+            },
+            {
+              "label": "0.4453 ~ 0.6983",
+              "expected": 0.1,
+              "actual": 0.13048888888888888,
+              "contribution": 0.008113567680817745
+            },
+            {
+              "label": "0.6983 ~ 0.9808",
+              "expected": 0.1,
+              "actual": 0.09604444444444445,
+              "contribution": 0.00015964118620435545
+            },
+            {
+              "label": "0.9808 ~ 최대",
+              "expected": 0.1,
+              "actual": 0.15915555555555555,
+              "contribution": 0.027490069257177528
+            }
+          ]
+        },
+        "age": {
+          "index": 0.00045658140990882114,
+          "grade": "안정",
+          "binning": "quantile",
+          "bins": [
+            {
+              "label": "최소 ~ 33",
+              "expected": 0.11374285714285715,
+              "actual": 0.11124444444444445,
+              "contribution": 5.5489950499789496e-05
+            },
+            {
+              "label": "33 ~ 39",
+              "expected": 0.09938095238095238,
+              "actual": 0.10026666666666667,
+              "contribution": 7.858717149308656e-06
+            },
+            {
+              "label": "39 ~ 44",
+              "expected": 0.10552380952380952,
+              "actual": 0.10457777777777778,
+              "contribution": 8.51943676342127e-06
+            },
+            {
+              "label": "44 ~ 48",
+              "expected": 0.09860952380952381,
+              "actual": 0.09835555555555556,
+              "contribution": 6.549308643468016e-07
+            },
+            {
+              "label": "48 ~ 52",
+              "expected": 0.09856190476190477,
+              "actual": 0.10226666666666667,
+              "contribution": 0.0001367004823002593
+            },
+            {
+              "label": "52 ~ 56",
+              "expected": 0.0952,
+              "actual": 0.0936,
+              "contribution": 2.711900601067592e-05
+            },
+            {
+              "label": "56 ~ 60",
+              "expected": 0.08928571428571429,
+              "actual": 0.08777777777777777,
+              "contribution": 2.568459229473514e-05
+            },
+            {
+              "label": "60 ~ 65",
+              "expected": 0.11024761904761905,
+              "actual": 0.10755555555555556,
+              "contribution": 6.655098935026055e-05
+            },
+            {
+              "label": "65 ~ 72",
+              "expected": 0.09436190476190476,
+              "actual": 0.09715555555555555,
+              "contribution": 8.150647819189297e-05
+            },
+            {
+              "label": "72 ~ 최대",
+              "expected": 0.09508571428571429,
+              "actual": 0.0972,
+              "contribution": 4.649682648413108e-05
+            }
+          ]
+        },
+        "NumberOfTime30-59DaysPastDueNotWorse": {
+          "index": 0.16852328725996196,
+          "grade": "주의",
+          "binning": "quantile",
+          "bins": [
+            {
+              "label": "최소 ~ 0",
+              "expected": 0.8397904761904762,
+              "actual": 0.6729333333333334,
+              "contribution": 0.03695983602054284
+            },
+            {
+              "label": "0 ~ 1",
+              "expected": 0.10716190476190476,
+              "actual": 0.25208888888888886,
+              "contribution": 0.12397569796568153
+            },
+            {
+              "label": "1 ~ 최대",
+              "expected": 0.053047619047619045,
+              "actual": 0.07497777777777778,
+              "contribution": 0.00758775327373758
+            }
+          ]
+        },
+        "DebtRatio": {
+          "index": 0.08827828786820766,
+          "grade": "안정",
+          "binning": "quantile",
+          "bins": [
+            {
+              "label": "최소 ~ 0.01084",
+              "expected": 0.1,
+              "actual": 0.09124444444444445,
+              "contribution": 0.000802246327457385
+            },
+            {
+              "label": "0.01084 ~ 0.08175",
+              "expected": 0.10001904761904762,
+              "actual": 0.08693333333333333,
+              "contribution": 0.0018348474213338926
+            },
+            {
+              "label": "0.08175 ~ 0.1572",
+              "expected": 0.09998095238095238,
+              "actual": 0.07382222222222222,
+              "contribution": 0.007934370477620922
+            },
+            {
+              "label": "0.1572 ~ 0.2224",
+              "expected": 0.1,
+              "actual": 0.07444444444444444,
+              "contribution": 0.007541792463672292
+            },
+            {
+              "label": "0.2224 ~ 0.2848",
+              "expected": 0.1,
+              "actual": 0.07004444444444445,
+              "contribution": 0.010665254625564941
+            },
+            {
+              "label": "0.2848 ~ 0.3517",
+              "expected": 0.1,
+              "actual": 0.08435555555555556,
+              "contribution": 0.0026615527482537846
+            },
+            {
+              "label": "0.3517 ~ 0.4296",
+              "expected": 0.10000952380952381,
+              "actual": 0.09337777777777778,
+              "contribution": 0.0004550128344389811
+            },
+            {
+              "label": "0.4296 ~ 0.5366",
+              "expected": 0.09999047619047619,
+              "actual": 0.10977777777777778,
+              "contribution": 0.0009139605903367826
+            },
+            {
+              "label": "0.5366 ~ 0.7495",
+              "expected": 0.1,
+              "actual": 0.14275555555555555,
+              "contribution": 0.015219292562209883
+            },
+            {
+              "label": "0.7495 ~ 최대",
+              "expected": 0.1,
+              "actual": 0.17324444444444445,
+              "contribution": 0.040249957817318785
+            }
+          ]
+        },
+        "MonthlyIncome": {
+          "index": 0.00038124910086163345,
+          "grade": "안정",
+          "binning": "quantile",
+          "bins": [
+            {
+              "label": "최소 ~ 2302",
+              "expected": 0.10000952380952381,
+              "actual": 0.09804444444444445,
+              "contribution": 3.899568052604345e-05
+            },
+            {
+              "label": "2302 ~ 3400",
+              "expected": 0.10255238095238095,
+              "actual": 0.1020888888888889,
+              "contribution": 2.09950965321287e-06
+            },
+            {
+              "label": "3400 ~ 4332",
+              "expected": 0.09746666666666666,
+              "actual": 0.09582222222222223,
+              "contribution": 2.7981275186580824e-05
+            },
+            {
+              "label": "4332 ~ 5351",
+              "expected": 0.09997142857142857,
+              "actual": 0.09622222222222222,
+              "contribution": 0.00014330857586339606
+            },
+            {
+              "label": "5351 ~ 5382",
+              "expected": 0.1987047619047619,
+              "actual": 0.20173333333333332,
+              "contribution": 4.581169517730854e-05
+            },
+            {
+              "label": "5382 ~ 5400",
+              "expected": 0.0028476190476190476,
+              "actual": 0.0029333333333333334,
+              "contribution": 2.5410815704188743e-06
+            },
+            {
+              "label": "5400 ~ 6600",
+              "expected": 0.09872380952380952,
+              "actual": 0.09911111111111111,
+              "contribution": 1.5164278808458424e-06
+            },
+            {
+              "label": "6600 ~ 8250",
+              "expected": 0.1,
+              "actual": 0.10328888888888889,
+              "contribution": 0.00010642615656160083
+            },
+            {
+              "label": "8250 ~ 1.072e+04",
+              "expected": 0.09973333333333333,
+              "actual": 0.09964444444444444,
+              "contribution": 7.925813921004014e-08
+            },
+            {
+              "label": "1.072e+04 ~ 최대",
+              "expected": 0.09999047619047619,
+              "actual": 0.10111111111111111,
+              "contribution": 1.2489440303016103e-05
+            }
+          ]
+        },
+        "NumberOfOpenCreditLinesAndLoans": {
+          "index": 0.0010069545462095084,
+          "grade": "안정",
+          "binning": "quantile",
+          "bins": [
+            {
+              "label": "최소 ~ 3",
+              "expected": 0.1462857142857143,
+              "actual": 0.14955555555555555,
+              "contribution": 7.228352594370575e-05
+            },
+            {
+              "label": "3 ~ 4",
+              "expected": 0.07716190476190476,
+              "actual": 0.0748888888888889,
+              "contribution": 6.796305340936496e-05
+            },
+            {
+              "label": "4 ~ 5",
+              "expected": 0.08584761904761905,
+              "actual": 0.08768888888888889,
+              "contribution": 3.907376982419065e-05
+            },
+            {
+              "label": "5 ~ 6",
+              "expected": 0.0913047619047619,
+              "actual": 0.08746666666666666,
+              "contribution": 0.00016482582526452106
+            },
+            {
+              "label": "6 ~ 8",
+              "expected": 0.17175238095238096,
+              "actual": 0.174,
+              "contribution": 2.9222261946877667e-05
+            },
+            {
+              "label": "8 ~ 9",
+              "expected": 0.07531428571428571,
+              "actual": 0.07791111111111111,
+              "contribution": 8.802796383012898e-05
+            },
+            {
+              "label": "9 ~ 10",
+              "expected": 0.06448571428571429,
+              "actual": 0.0644,
+              "contribution": 1.1400527814969794e-07
+            },
+            {
+              "label": "10 ~ 12",
+              "expected": 0.10222857142857143,
+              "actual": 0.10644444444444444,
+              "contribution": 0.00017037021878303461
+            },
+            {
+              "label": "12 ~ 15",
+              "expected": 0.09299047619047619,
+              "actual": 0.08795555555555555,
+              "contribution": 0.00028026799808924044
+            },
+            {
+              "label": "15 ~ 최대",
+              "expected": 0.09262857142857144,
+              "actual": 0.08968888888888889,
+              "contribution": 9.480592384029449e-05
+            }
+          ]
+        },
+        "NumberOfTimes90DaysLate": {
+          "index": 8.980950368852126e-05,
+          "grade": "안정",
+          "binning": "quantile",
+          "bins": [
+            {
+              "label": "최소 ~ 1.665e-16",
+              "expected": 0.9438380952380953,
+              "actual": 0.946,
+              "contribution": 4.946274819891567e-06
+            },
+            {
+              "label": "1.665e-16 ~ 최대",
+              "expected": 0.05616190476190476,
+              "actual": 0.054,
+              "contribution": 8.48632288686297e-05
+            }
+          ]
+        },
+        "NumberRealEstateLoansOrLines": {
+          "index": 1.697259959457039e-05,
+          "grade": "안정",
+          "binning": "quantile",
+          "bins": [
+            {
+              "label": "최소 ~ 0",
+              "expected": 0.3732666666666667,
+              "actual": 0.3735111111111111,
+              "contribution": 1.6002867333033037e-07
+            },
+            {
+              "label": "0 ~ 1",
+              "expected": 0.34981904761904764,
+              "actual": 0.3512888888888889,
+              "contribution": 6.162903736333692e-06
+            },
+            {
+              "label": "1 ~ 2",
+              "expected": 0.21053333333333332,
+              "actual": 0.20924444444444446,
+              "contribution": 7.91481570194304e-06
+            },
+            {
+              "label": "2 ~ 최대",
+              "expected": 0.06638095238095239,
+              "actual": 0.06595555555555556,
+              "contribution": 2.7348514829633283e-06
+            }
+          ]
+        },
+        "NumberOfTime60-89DaysPastDueNotWorse": {
+          "index": 0.00015043005627201847,
+          "grade": "안정",
+          "binning": "quantile",
+          "bins": [
+            {
+              "label": "최소 ~ 8.327e-17",
+              "expected": 0.9491619047619048,
+              "actual": 0.9518222222222222,
+              "contribution": 7.445918209870054e-06
+            },
+            {
+              "label": "8.327e-17 ~ 최대",
+              "expected": 0.05083809523809524,
+              "actual": 0.04817777777777778,
+              "contribution": 0.0001429841380621484
+            }
+          ]
+        },
+        "NumberOfDependents": {
+          "index": 0.00016007299911389544,
+          "grade": "안정",
+          "binning": "quantile",
+          "bins": [
+            {
+              "label": "최소 ~ 0",
+              "expected": 0.6047904761904762,
+              "actual": 0.6074666666666667,
+              "contribution": 1.1815967141688385e-05
+            },
+            {
+              "label": "0 ~ 1",
+              "expected": 0.17617142857142856,
+              "actual": 0.17435555555555557,
+              "contribution": 1.8813989462918e-05
+            },
+            {
+              "label": "1 ~ 2",
+              "expected": 0.12994285714285714,
+              "actual": 0.132,
+              "contribution": 3.231156193392612e-05
+            },
+            {
+              "label": "2 ~ 최대",
+              "expected": 0.08909523809523809,
+              "actual": 0.08617777777777778,
+              "contribution": 9.713148057536295e-05
+            }
+          ]
+        },
+        "telecom_payment_rate": {
+          "index": 0.0009027783556832502,
+          "grade": "안정",
+          "binning": "quantile",
+          "bins": [
+            {
+              "label": "최소 ~ 0.823",
+              "expected": 0.1,
+              "actual": 0.10128888888888889,
+              "contribution": 1.6506035430710704e-05
+            },
+            {
+              "label": "0.823 ~ 0.851",
+              "expected": 0.1,
+              "actual": 0.1020888888888889,
+              "contribution": 4.318465045614719e-05
+            },
+            {
+              "label": "0.851 ~ 0.8703",
+              "expected": 0.1,
+              "actual": 0.1004,
+              "contribution": 1.5967925717190077e-06
+            },
+            {
+              "label": "0.8703 ~ 0.8866",
+              "expected": 0.1,
+              "actual": 0.09982222222222223,
+              "contribution": 3.163274828118413e-07
+            },
+            {
+              "label": "0.8866 ~ 0.9015",
+              "expected": 0.1,
+              "actual": 0.09364444444444445,
+              "contribution": 0.0004173337594534891
+            },
+            {
+              "label": "0.9015 ~ 0.9163",
+              "expected": 0.1,
+              "actual": 0.10244444444444445,
+              "contribution": 5.9033875078266294e-05
+            },
+            {
+              "label": "0.9163 ~ 0.932",
+              "expected": 0.1,
+              "actual": 0.10146666666666666,
+              "contribution": 2.1354676619635997e-05
+            },
+            {
+              "label": "0.932 ~ 0.9503",
+              "expected": 0.1,
+              "actual": 0.10284444444444445,
+              "contribution": 7.97785201223917e-05
+            },
+            {
+              "label": "0.9503 ~ 0.975",
+              "expected": 0.1,
+              "actual": 0.09502222222222222,
+              "contribution": 0.0002541597570513592
+            },
+            {
+              "label": "0.975 ~ 최대",
+              "expected": 0.1,
+              "actual": 0.10097777777777778,
+              "contribution": 9.513961416719169e-06
+            }
+          ]
+        },
+        "utility_payment_rate": {
+          "index": 0.0003166559766925573,
+          "grade": "안정",
+          "binning": "quantile",
+          "bins": [
+            {
+              "label": "최소 ~ 0.7467",
+              "expected": 0.1,
+              "actual": 0.09977777777777778,
+              "contribution": 4.943717223598164e-07
+            },
+            {
+              "label": "0.7467 ~ 0.7845",
+              "expected": 0.1,
+              "actual": 0.10173333333333333,
+              "contribution": 2.9786734251232978e-05
+            },
+            {
+              "label": "0.7845 ~ 0.8103",
+              "expected": 0.1,
+              "actual": 0.09875555555555555,
+              "contribution": 1.5583429851182606e-05
+            },
+            {
+              "label": "0.8103 ~ 0.8318",
+              "expected": 0.1,
+              "actual": 0.10253333333333334,
+              "contribution": 6.337770695580137e-05
+            },
+            {
+              "label": "0.8318 ~ 0.8518",
+              "expected": 0.1,
+              "actual": 0.10088888888888889,
+              "contribution": 7.866246375229138e-06
+            },
+            {
+              "label": "0.8518 ~ 0.8717",
+              "expected": 0.1,
+              "actual": 0.09897777777777778,
+              "contribution": 1.0503051878943698e-05
+            },
+            {
+              "label": "0.8717 ~ 0.8926",
+              "expected": 0.1,
+              "actual": 0.09955555555555555,
+              "contribution": 1.979691425320346e-06
+            },
+            {
+              "label": "0.8926 ~ 0.9168",
+              "expected": 0.1,
+              "actual": 0.09622222222222222,
+              "contribution": 0.0001454801903677877
+            },
+            {
+              "label": "0.9168 ~ 0.95",
+              "expected": 0.1,
+              "actual": 0.102,
+              "contribution": 3.960486243937929e-05
+            },
+            {
+              "label": "0.95 ~ 최대",
+              "expected": 0.1,
+              "actual": 0.09955555555555555,
+              "contribution": 1.979691425320346e-06
+            }
+          ]
+        },
+        "spending_consistency": {
+          "index": 0.00021056725887022202,
+          "grade": "안정",
+          "binning": "quantile",
+          "bins": [
+            {
+              "label": "최소 ~ 86.18",
+              "expected": 0.1,
+              "actual": 0.09911111111111111,
+              "contribution": 7.936480941425587e-06
+            },
+            {
+              "label": "86.18 ~ 87.39",
+              "expected": 0.1,
+              "actual": 0.09942222222222222,
+              "contribution": 3.347919232882923e-06
+            },
+            {
+              "label": "87.39 ~ 88.23",
+              "expected": 0.1,
+              "actual": 0.1,
+              "contribution": 0.0
+            },
+            {
+              "label": "88.23 ~ 88.93",
+              "expected": 0.1,
+              "actual": 0.10257777777777778,
+              "contribution": 6.560671580739508e-05
+            },
+            {
+              "label": "88.93 ~ 89.56",
+              "expected": 0.1,
+              "actual": 0.10062222222222222,
+              "contribution": 3.859571201278095e-06
+            },
+            {
+              "label": "89.56 ~ 90.19",
+              "expected": 0.1,
+              "actual": 0.10155555555555555,
+              "contribution": 2.401101882432168e-05
+            },
+            {
+              "label": "90.19 ~ 90.87",
+              "expected": 0.1,
+              "actual": 0.10048888888888889,
+              "contribution": 2.384276120820011e-06
+            },
+            {
+              "label": "90.87 ~ 91.64",
+              "expected": 0.1,
+              "actual": 0.10004444444444445,
+              "contribution": 1.9748500704039598e-08
+            },
+            {
+              "label": "91.64 ~ 92.7",
+              "expected": 0.1,
+              "actual": 0.09688888888888889,
+              "contribution": 9.832672365499326e-05
+            },
+            {
+              "label": "92.7 ~ 최대",
+              "expected": 0.1,
+              "actual": 0.09928888888888888,
+              "contribution": 5.074804586401352e-06
+            }
+          ]
+        },
+        "regular_payment_count": {
+          "index": 0.00039753679125411224,
+          "grade": "안정",
+          "binning": "discrete",
+          "bins": [
+            {
+              "label": "8 미만 (기준 범위 밖)",
+              "expected": 0.0,
+              "actual": 0.0,
+              "contribution": 0.0
+            },
+            {
+              "label": "8",
+              "expected": 9.523809523809524e-05,
+              "actual": 8.888888888888889e-05,
+              "contribution": 4.333393013201633e-07
+            },
+            {
+              "label": "9",
+              "expected": 0.0051047619047619045,
+              "actual": 0.004577777777777778,
+              "contribution": 5.74083783827959e-05
+            },
+            {
+              "label": "10",
+              "expected": 0.08645714285714286,
+              "actual": 0.08666666666666667,
+              "contribution": 5.071485102240737e-07
+            },
+            {
+              "label": "11",
+              "expected": 0.5041809523809524,
+              "actual": 0.5086666666666667,
+              "contribution": 3.973297483375124e-05
+            },
+            {
+              "label": "12",
+              "expected": 0.38136190476190474,
+              "actual": 0.3778222222222222,
+              "contribution": 3.300756646593466e-05
+            },
+            {
+              "label": "13",
+              "expected": 0.022723809523809525,
+              "actual": 0.02191111111111111,
+              "contribution": 2.9596652090295877e-05
+            },
+            {
+              "label": "14",
+              "expected": 7.619047619047618e-05,
+              "actual": 0.0002666666666666667,
+              "contribution": 0.00023685073166979036
+            },
+            {
+              "label": "14 초과 (기준 범위 밖)",
+              "expected": 0.0,
+              "actual": 0.0,
+              "contribution": 0.0
+            }
+          ]
+        },
+        "app_login_frequency": {
+          "index": 0.00018035780586358858,
+          "grade": "안정",
+          "binning": "discrete",
+          "bins": [
+            {
+              "label": "16 미만 (기준 범위 밖)",
+              "expected": 0.0,
+              "actual": 0.0,
+              "contribution": 0.0
+            },
+            {
+              "label": "16",
+              "expected": 0.0004380952380952381,
+              "actual": 0.0004888888888888889,
+              "contribution": 5.559988581892058e-06
+            },
+            {
+              "label": "17",
+              "expected": 0.0036285714285714285,
+              "actual": 0.0037333333333333333,
+              "contribution": 2.9809720658895313e-06
+            },
+            {
+              "label": "18",
+              "expected": 0.02276190476190476,
+              "actual": 0.021244444444444444,
+              "contribution": 0.000104689182980993
+            },
+            {
+              "label": "19",
+              "expected": 0.11275238095238095,
+              "actual": 0.11413333333333334,
+              "contribution": 1.681054466909328e-05
+            },
+            {
+              "label": "20",
+              "expected": 0.3136,
+              "actual": 0.31408888888888886,
+              "contribution": 7.615608199549363e-07
+            },
+            {
+              "label": "21",
+              "expected": 0.36463809523809526,
+              "actual": 0.3624,
+              "contribution": 1.3779394424668726e-05
+            },
+            {
+              "label": "22",
+              "expected": 0.15761904761904763,
+              "actual": 0.15866666666666668,
+              "contribution": 6.939945074880175e-06
+            },
+            {
+              "label": "23",
+              "expected": 0.02337142857142857,
+              "actual": 0.024044444444444445,
+              "contribution": 1.9105909049012736e-05
+            },
+            {
+              "label": "24",
+              "expected": 0.0011238095238095239,
+              "actual": 0.0011555555555555555,
+              "contribution": 8.835723823798062e-07
+            },
+            {
+              "label": "25",
+              "expected": 6.666666666666667e-05,
+              "actual": 4.4444444444444447e-05,
+              "contribution": 8.846735814824342e-06
+            },
+            {
+              "label": "25 초과 (기준 범위 밖)",
+              "expected": 0.0,
+              "actual": 0.0,
+              "contribution": 0.0
+            }
+          ]
+        }
+      },
+      "auc": 0.8870750900374134,
+      "approval_rate": 0.7406222222222222,
+      "thin_filer_share": 0.027777777777777776,
+      "description": "1) 경기 악화"
+    },
+    "thin_influx": {
+      "name": "2) 씬파일러 유입 증가",
+      "n_expected": 105000,
+      "n_actual": 22500,
+      "score_psi": 0.0027245009133210715,
+      "score_grade": "안정",
+      "score_bins": [
+        {
+          "label": "최소 ~ 0.02562",
+          "expected": 0.1,
+          "actual": 0.09937777777777777,
+          "contribution": 3.883661172096263e-06
+        },
+        {
+          "label": "0.02562 ~ 0.0493",
+          "expected": 0.1,
+          "actual": 0.0964,
+          "contribution": 0.00013198899935308418
+        },
+        {
+          "label": "0.0493 ~ 0.07758",
+          "expected": 0.1,
+          "actual": 0.09791111111111112,
+          "contribution": 4.409630877704536e-05
+        },
+        {
+          "label": "0.07758 ~ 0.1142",
+          "expected": 0.1,
+          "actual": 0.09533333333333334,
+          "contribution": 0.00022302081354407766
+        },
+        {
+          "label": "0.1142 ~ 0.1654",
+          "expected": 0.1,
+          "actual": 0.09351111111111111,
+          "contribution": 0.0004353345424456681
+        },
+        {
+          "label": "0.1654 ~ 0.2423",
+          "expected": 0.1,
+          "actual": 0.10231111111111112,
+          "contribution": 5.2803962050817885e-05
+        },
+        {
+          "label": "0.2423 ~ 0.355",
+          "expected": 0.1,
+          "actual": 0.10426666666666666,
+          "contribution": 0.00017826613253035502
+        },
+        {
+          "label": "0.355 ~ 0.5115",
+          "expected": 0.1,
+          "actual": 0.10088888888888889,
+          "contribution": 7.866246375229138e-06
+        },
+        {
+          "label": "0.5115 ~ 0.7447",
+          "expected": 0.1,
+          "actual": 0.11288888888888889,
+          "contribution": 0.0015625550976379333
+        },
+        {
+          "label": "0.7447 ~ 최대",
+          "expected": 0.1,
+          "actual": 0.0971111111111111,
+          "contribution": 8.468514943476469e-05
+        }
+      ],
+      "csi": {
+        "RevolvingUtilizationOfUnsecuredLines": {
+          "index": 0.03157042712117576,
+          "grade": "안정"
+        },
+        "age": {
+          "index": 0.01101008892439852,
+          "grade": "안정"
+        },
+        "NumberOfTime30-59DaysPastDueNotWorse": {
+          "index": 0.003646176775720944,
+          "grade": "안정"
+        },
+        "DebtRatio": {
+          "index": 0.04959557403907655,
+          "grade": "안정"
+        },
+        "MonthlyIncome": {
+          "index": 0.010243233092547432,
+          "grade": "안정"
+        },
+        "NumberOfOpenCreditLinesAndLoans": {
+          "index": 0.07889946551616005,
+          "grade": "안정"
+        },
+        "NumberOfTimes90DaysLate": {
+          "index": 0.001890130292147181,
+          "grade": "안정"
+        },
+        "NumberRealEstateLoansOrLines": {
+          "index": 0.025613649207396613,
+          "grade": "안정"
+        },
+        "NumberOfTime60-89DaysPastDueNotWorse": {
+          "index": 0.001864409150987216,
+          "grade": "안정"
+        },
+        "NumberOfDependents": {
+          "index": 0.003078227980608526,
+          "grade": "안정"
+        },
+        "telecom_payment_rate": {
+          "index": 0.0009579501007530575,
+          "grade": "안정"
+        },
+        "utility_payment_rate": {
+          "index": 0.0014892441705519354,
+          "grade": "안정"
+        },
+        "spending_consistency": {
+          "index": 0.0008881853764829783,
+          "grade": "안정"
+        },
+        "regular_payment_count": {
+          "index": 0.0010293277233287754,
+          "grade": "안정"
+        },
+        "app_login_frequency": {
+          "index": 0.0004571305523134043,
+          "grade": "안정"
+        }
+      },
+      "flagged": [],
+      "top_bins": {},
+      "tables": {
+        "RevolvingUtilizationOfUnsecuredLines": {
+          "index": 0.03157042712117576,
+          "grade": "안정",
+          "binning": "quantile",
+          "bins": [
+            {
+              "label": "최소 ~ 0.002831",
+              "expected": 0.1,
+              "actual": 0.09671111111111111,
+              "contribution": 0.00010998553285731433
+            },
+            {
+              "label": "0.002831 ~ 0.01895",
+              "expected": 0.1,
+              "actual": 0.09222222222222222,
+              "contribution": 0.0006297528157585981
+            },
+            {
+              "label": "0.01895 ~ 0.04316",
+              "expected": 0.1,
+              "actual": 0.09168888888888889,
+              "contribution": 0.0007211391179549555
+            },
+            {
+              "label": "0.04316 ~ 0.08272",
+              "expected": 0.1,
+              "actual": 0.09168888888888889,
+              "contribution": 0.0007211391179549555
+            },
+            {
+              "label": "0.08272 ~ 0.1536",
+              "expected": 0.1,
+              "actual": 0.09311111111111112,
+              "contribution": 0.0004917008028413413
+            },
+            {
+              "label": "0.1536 ~ 0.2719",
+              "expected": 0.1,
+              "actual": 0.09617777777777778,
+              "contribution": 0.00014895757212708702
+            },
+            {
+              "label": "0.2719 ~ 0.4453",
+              "expected": 0.1,
+              "actual": 0.094,
+              "contribution": 0.00037124859256081137
+            },
+            {
+              "label": "0.4453 ~ 0.6983",
+              "expected": 0.1,
+              "actual": 0.09182222222222222,
+              "contribution": 0.0006976867424430732
+            },
+            {
+              "label": "0.6983 ~ 0.9808",
+              "expected": 0.1,
+              "actual": 0.09368888888888889,
+              "contribution": 0.0004114207774499568
+            },
+            {
+              "label": "0.9808 ~ 최대",
+              "expected": 0.1,
+              "actual": 0.15888888888888889,
+              "contribution": 0.02726739604922767
+            }
+          ]
+        },
+        "age": {
+          "index": 0.01101008892439852,
+          "grade": "안정",
+          "binning": "quantile",
+          "bins": [
+            {
+              "label": "최소 ~ 33",
+              "expected": 0.11374285714285715,
+              "actual": 0.14453333333333335,
+              "contribution": 0.0073764136319420335
+            },
+            {
+              "label": "33 ~ 39",
+              "expected": 0.09938095238095238,
+              "actual": 0.09728888888888888,
+              "contribution": 4.450962290819375e-05
+            },
+            {
+              "label": "39 ~ 44",
+              "expected": 0.10552380952380952,
+              "actual": 0.09991111111111112,
+              "contribution": 0.0003067630194868245
+            },
+            {
+              "label": "44 ~ 48",
+              "expected": 0.09860952380952381,
+              "actual": 0.09435555555555555,
+              "contribution": 0.00018758824889938914
+            },
+            {
+              "label": "48 ~ 52",
+              "expected": 0.09856190476190477,
+              "actual": 0.09671111111111111,
+              "contribution": 3.508425998411311e-05
+            },
+            {
+              "label": "52 ~ 56",
+              "expected": 0.0952,
+              "actual": 0.08715555555555556,
+              "contribution": 0.0007101993958546088
+            },
+            {
+              "label": "56 ~ 60",
+              "expected": 0.08928571428571429,
+              "actual": 0.08284444444444444,
+              "contribution": 0.0004822961588971214
+            },
+            {
+              "label": "60 ~ 65",
+              "expected": 0.11024761904761905,
+              "actual": 0.10044444444444445,
+              "contribution": 0.0009129034778428305
+            },
+            {
+              "label": "65 ~ 72",
+              "expected": 0.09436190476190476,
+              "actual": 0.09217777777777778,
+              "contribution": 5.1148125467122456e-05
+            },
+            {
+              "label": "72 ~ 최대",
+              "expected": 0.09508571428571429,
+              "actual": 0.10457777777777778,
+              "contribution": 0.000903182983116285
+            }
+          ]
+        },
+        "NumberOfTime30-59DaysPastDueNotWorse": {
+          "index": 0.003646176775720944,
+          "grade": "안정",
+          "binning": "quantile",
+          "bins": [
+            {
+              "label": "최소 ~ 0",
+              "expected": 0.8397904761904762,
+              "actual": 0.8612888888888889,
+              "contribution": 0.0005434265134428364
+            },
+            {
+              "label": "0 ~ 1",
+              "expected": 0.10716190476190476,
+              "actual": 0.0924,
+              "contribution": 0.002187896594989436
+            },
+            {
+              "label": "1 ~ 최대",
+              "expected": 0.053047619047619045,
+              "actual": 0.04631111111111111,
+              "contribution": 0.0009148536672886717
+            }
+          ]
+        },
+        "DebtRatio": {
+          "index": 0.04959557403907655,
+          "grade": "안정",
+          "binning": "quantile",
+          "bins": [
+            {
+              "label": "최소 ~ 0.01084",
+              "expected": 0.1,
+              "actual": 0.1692,
+              "contribution": 0.0363927762596379
+            },
+            {
+              "label": "0.01084 ~ 0.08175",
+              "expected": 0.10001904761904762,
+              "actual": 0.11497777777777778,
+              "contribution": 0.002084901859068381
+            },
+            {
+              "label": "0.08175 ~ 0.1572",
+              "expected": 0.09998095238095238,
+              "actual": 0.09826666666666667,
+              "contribution": 2.9647963755019728e-05
+            },
+            {
+              "label": "0.1572 ~ 0.2224",
+              "expected": 0.1,
+              "actual": 0.08671111111111111,
+              "contribution": 0.0018948177773905953
+            },
+            {
+              "label": "0.2224 ~ 0.2848",
+              "expected": 0.1,
+              "actual": 0.09013333333333333,
+              "contribution": 0.0010249398201339003
+            },
+            {
+              "label": "0.2848 ~ 0.3517",
+              "expected": 0.1,
+              "actual": 0.09151111111111111,
+              "contribution": 0.0007530396606316122
+            },
+            {
+              "label": "0.3517 ~ 0.4296",
+              "expected": 0.10000952380952381,
+              "actual": 0.08413333333333334,
+              "contribution": 0.002744369251755844
+            },
+            {
+              "label": "0.4296 ~ 0.5366",
+              "expected": 0.09999047619047619,
+              "actual": 0.08435555555555556,
+              "contribution": 0.0026584433887312867
+            },
+            {
+              "label": "0.5366 ~ 0.7495",
+              "expected": 0.1,
+              "actual": 0.0888,
+              "contribution": 0.0013303614771116717
+            },
+            {
+              "label": "0.7495 ~ 최대",
+              "expected": 0.1,
+              "actual": 0.09191111111111111,
+              "contribution": 0.0006822765808603369
+            }
+          ]
+        },
+        "MonthlyIncome": {
+          "index": 0.010243233092547432,
+          "grade": "안정",
+          "binning": "quantile",
+          "bins": [
+            {
+              "label": "최소 ~ 2302",
+              "expected": 0.10000952380952381,
+              "actual": 0.11693333333333333,
+              "contribution": 0.0026458193886997948
+            },
+            {
+              "label": "2302 ~ 3400",
+              "expected": 0.10255238095238095,
+              "actual": 0.10791111111111111,
+              "contribution": 0.00027293972395970207
+            },
+            {
+              "label": "3400 ~ 4332",
+              "expected": 0.09746666666666666,
+              "actual": 0.09653333333333333,
+              "contribution": 8.980503622517676e-06
+            },
+            {
+              "label": "4332 ~ 5351",
+              "expected": 0.09997142857142857,
+              "actual": 0.08968888888888889,
+              "contribution": 0.0011160297617710628
+            },
+            {
+              "label": "5351 ~ 5382",
+              "expected": 0.1987047619047619,
+              "actual": 0.22311111111111112,
+              "contribution": 0.002827456967407919
+            },
+            {
+              "label": "5382 ~ 5400",
+              "expected": 0.0028476190476190476,
+              "actual": 0.002711111111111111,
+              "contribution": 6.703494247479589e-06
+            },
+            {
+              "label": "5400 ~ 6600",
+              "expected": 0.09872380952380952,
+              "actual": 0.08991111111111111,
+              "contribution": 0.0008240192724547547
+            },
+            {
+              "label": "6600 ~ 8250",
+              "expected": 0.1,
+              "actual": 0.0932888888888889,
+              "contribution": 0.00046621052690044656
+            },
+            {
+              "label": "8250 ~ 1.072e+04",
+              "expected": 0.09973333333333333,
+              "actual": 0.0903111111111111,
+              "contribution": 0.0009350463695118841
+            },
+            {
+              "label": "1.072e+04 ~ 최대",
+              "expected": 0.09999047619047619,
+              "actual": 0.0896,
+              "contribution": 0.001140027083971869
+            }
+          ]
+        },
+        "NumberOfOpenCreditLinesAndLoans": {
+          "index": 0.07889946551616005,
+          "grade": "안정",
+          "binning": "quantile",
+          "bins": [
+            {
+              "label": "최소 ~ 3",
+              "expected": 0.1462857142857143,
+              "actual": 0.2568888888888889,
+              "contribution": 0.06227833078379629
+            },
+            {
+              "label": "3 ~ 4",
+              "expected": 0.07716190476190476,
+              "actual": 0.06435555555555555,
+              "contribution": 0.0023240966509082274
+            },
+            {
+              "label": "4 ~ 5",
+              "expected": 0.08584761904761905,
+              "actual": 0.07662222222222222,
+              "contribution": 0.0010487920850503765
+            },
+            {
+              "label": "5 ~ 6",
+              "expected": 0.0913047619047619,
+              "actual": 0.07711111111111112,
+              "contribution": 0.0023980676011118407
+            },
+            {
+              "label": "6 ~ 8",
+              "expected": 0.17175238095238096,
+              "actual": 0.15311111111111111,
+              "contribution": 0.0021416807803783027
+            },
+            {
+              "label": "8 ~ 9",
+              "expected": 0.07531428571428571,
+              "actual": 0.06813333333333334,
+              "contribution": 0.0007195448216282766
+            },
+            {
+              "label": "9 ~ 10",
+              "expected": 0.06448571428571429,
+              "actual": 0.05684444444444445,
+              "contribution": 0.0009637409340180227
+            },
+            {
+              "label": "10 ~ 12",
+              "expected": 0.10222857142857143,
+              "actual": 0.09368888888888889,
+              "contribution": 0.0007449225755032505
+            },
+            {
+              "label": "12 ~ 15",
+              "expected": 0.09299047619047619,
+              "actual": 0.07515555555555556,
+              "contribution": 0.003797669725146411
+            },
+            {
+              "label": "15 ~ 최대",
+              "expected": 0.09262857142857144,
+              "actual": 0.07808888888888889,
+              "contribution": 0.0024826195586190643
+            }
+          ]
+        },
+        "NumberOfTimes90DaysLate": {
+          "index": 0.001890130292147181,
+          "grade": "안정",
+          "binning": "quantile",
+          "bins": [
+            {
+              "label": "최소 ~ 1.665e-16",
+              "expected": 0.9438380952380953,
+              "actual": 0.9534222222222222,
+              "contribution": 9.6830333416719e-05
+            },
+            {
+              "label": "1.665e-16 ~ 최대",
+              "expected": 0.05616190476190476,
+              "actual": 0.04657777777777778,
+              "contribution": 0.0017932999587304621
+            }
+          ]
+        },
+        "NumberRealEstateLoansOrLines": {
+          "index": 0.025613649207396613,
+          "grade": "안정",
+          "binning": "quantile",
+          "bins": [
+            {
+              "label": "최소 ~ 0",
+              "expected": 0.3732666666666667,
+              "actual": 0.4519111111111111,
+              "contribution": 0.01503618462614777
+            },
+            {
+              "label": "0 ~ 1",
+              "expected": 0.34981904761904764,
+              "actual": 0.3072888888888889,
+              "contribution": 0.005513069945481217
+            },
+            {
+              "label": "1 ~ 2",
+              "expected": 0.21053333333333332,
+              "actual": 0.18222222222222223,
+              "contribution": 0.004088586262987354
+            },
+            {
+              "label": "2 ~ 최대",
+              "expected": 0.06638095238095239,
+              "actual": 0.05857777777777778,
+              "contribution": 0.0009758083727802691
+            }
+          ]
+        },
+        "NumberOfTime60-89DaysPastDueNotWorse": {
+          "index": 0.001864409150987216,
+          "grade": "안정",
+          "binning": "quantile",
+          "bins": [
+            {
+              "label": "최소 ~ 8.327e-17",
+              "expected": 0.9491619047619048,
+              "actual": 0.9582222222222222,
+              "contribution": 8.607588022256465e-05
+            },
+            {
+              "label": "8.327e-17 ~ 최대",
+              "expected": 0.05083809523809524,
+              "actual": 0.041777777777777775,
+              "contribution": 0.0017783332707646514
+            }
+          ]
+        },
+        "NumberOfDependents": {
+          "index": 0.003078227980608526,
+          "grade": "안정",
+          "binning": "quantile",
+          "bins": [
+            {
+              "label": "최소 ~ 0",
+              "expected": 0.6047904761904762,
+              "actual": 0.6306222222222222,
+              "contribution": 0.0010804086670559425
+            },
+            {
+              "label": "0 ~ 1",
+              "expected": 0.17617142857142856,
+              "actual": 0.16386666666666666,
+              "contribution": 0.0008909143710425543
+            },
+            {
+              "label": "1 ~ 2",
+              "expected": 0.12994285714285714,
+              "actual": 0.12533333333333332,
+              "contribution": 0.0001664851935635475
+            },
+            {
+              "label": "2 ~ 최대",
+              "expected": 0.08909523809523809,
+              "actual": 0.08017777777777778,
+              "contribution": 0.0009404197489464815
+            }
+          ]
+        },
+        "telecom_payment_rate": {
+          "index": 0.0009579501007530575,
+          "grade": "안정",
+          "binning": "quantile",
+          "bins": [
+            {
+              "label": "최소 ~ 0.823",
+              "expected": 0.1,
+              "actual": 0.10133333333333333,
+              "contribution": 1.766012689650707e-05
+            },
+            {
+              "label": "0.823 ~ 0.851",
+              "expected": 0.1,
+              "actual": 0.10275555555555556,
+              "contribution": 7.490279638587498e-05
+            },
+            {
+              "label": "0.851 ~ 0.8703",
+              "expected": 0.1,
+              "actual": 0.10404444444444444,
+              "contribution": 0.00016035244911944142
+            },
+            {
+              "label": "0.8703 ~ 0.8866",
+              "expected": 0.1,
+              "actual": 0.09946666666666666,
+              "contribution": 2.8520281108427665e-06
+            },
+            {
+              "label": "0.8866 ~ 0.9015",
+              "expected": 0.1,
+              "actual": 0.09426666666666667,
+              "contribution": 0.0003385070793018718
+            },
+            {
+              "label": "0.9015 ~ 0.9163",
+              "expected": 0.1,
+              "actual": 0.10013333333333334,
+              "contribution": 1.7765758911099023e-07
+            },
+            {
+              "label": "0.9163 ~ 0.932",
+              "expected": 0.1,
+              "actual": 0.10311111111111111,
+              "contribution": 9.531407741558428e-05
+            },
+            {
+              "label": "0.932 ~ 0.9503",
+              "expected": 0.1,
+              "actual": 0.10004444444444445,
+              "contribution": 1.9748500704039598e-08
+            },
+            {
+              "label": "0.9503 ~ 0.975",
+              "expected": 0.1,
+              "actual": 0.09488888888888888,
+              "contribution": 0.0002681443801534412
+            },
+            {
+              "label": "0.975 ~ 최대",
+              "expected": 0.1,
+              "actual": 0.09995555555555556,
+              "contribution": 1.9757279678841237e-08
+            }
+          ]
+        },
+        "utility_payment_rate": {
+          "index": 0.0014892441705519354,
+          "grade": "안정",
+          "binning": "quantile",
+          "bins": [
+            {
+              "label": "최소 ~ 0.7467",
+              "expected": 0.1,
+              "actual": 0.09644444444444444,
+              "contribution": 0.00012872064001465182
+            },
+            {
+              "label": "0.7467 ~ 0.7845",
+              "expected": 0.1,
+              "actual": 0.10657777777777777,
+              "contribution": 0.0004190322238075826
+            },
+            {
+              "label": "0.7845 ~ 0.8103",
+              "expected": 0.1,
+              "actual": 0.0992,
+              "contribution": 6.425672842330271e-06
+            },
+            {
+              "label": "0.8103 ~ 0.8318",
+              "expected": 0.1,
+              "actual": 0.10742222222222222,
+              "contribution": 0.0005314028663826073
+            },
+            {
+              "label": "0.8318 ~ 0.8518",
+              "expected": 0.1,
+              "actual": 0.09964444444444444,
+              "contribution": 1.2664376477482144e-06
+            },
+            {
+              "label": "0.8518 ~ 0.8717",
+              "expected": 0.1,
+              "actual": 0.09808888888888889,
+              "contribution": 3.6876597630685646e-05
+            },
+            {
+              "label": "0.8717 ~ 0.8926",
+              "expected": 0.1,
+              "actual": 0.09986666666666667,
+              "contribution": 1.7789462161804905e-07
+            },
+            {
+              "label": "0.8926 ~ 0.9168",
+              "expected": 0.1,
+              "actual": 0.09608888888888889,
+              "contribution": 0.000156038040783047
+            },
+            {
+              "label": "0.9168 ~ 0.95",
+              "expected": 0.1,
+              "actual": 0.10106666666666667,
+              "contribution": 1.1317411810312786e-05
+            },
+            {
+              "label": "0.95 ~ 최대",
+              "expected": 0.1,
+              "actual": 0.0956,
+              "contribution": 0.00019798638501135186
+            }
+          ]
+        },
+        "spending_consistency": {
+          "index": 0.0008881853764829783,
+          "grade": "안정",
+          "binning": "quantile",
+          "bins": [
+            {
+              "label": "최소 ~ 86.18",
+              "expected": 0.1,
+              "actual": 0.09835555555555556,
+              "contribution": 2.7266513526407188e-05
+            },
+            {
+              "label": "86.18 ~ 87.39",
+              "expected": 0.1,
+              "actual": 0.10053333333333334,
+              "contribution": 2.83685782812322e-06
+            },
+            {
+              "label": "87.39 ~ 88.23",
+              "expected": 0.1,
+              "actual": 0.09844444444444445,
+              "contribution": 2.4387462877988663e-05
+            },
+            {
+              "label": "88.23 ~ 88.93",
+              "expected": 0.1,
+              "actual": 0.10497777777777778,
+              "contribution": 0.00024181062522545593
+            },
+            {
+              "label": "88.93 ~ 89.56",
+              "expected": 0.1,
+              "actual": 0.10306666666666667,
+              "contribution": 9.263033652172208e-05
+            },
+            {
+              "label": "89.56 ~ 90.19",
+              "expected": 0.1,
+              "actual": 0.10244444444444445,
+              "contribution": 5.9033875078266294e-05
+            },
+            {
+              "label": "90.19 ~ 90.87",
+              "expected": 0.1,
+              "actual": 0.10155555555555555,
+              "contribution": 2.401101882432168e-05
+            },
+            {
+              "label": "90.87 ~ 91.64",
+              "expected": 0.1,
+              "actual": 0.09906666666666666,
+              "contribution": 8.751929760832763e-06
+            },
+            {
+              "label": "91.64 ~ 92.7",
+              "expected": 0.1,
+              "actual": 0.09435555555555555,
+              "contribution": 0.0003279390347552858
+            },
+            {
+              "label": "92.7 ~ 최대",
+              "expected": 0.1,
+              "actual": 0.0972,
+              "contribution": 7.951772208457465e-05
+            }
+          ]
+        },
+        "regular_payment_count": {
+          "index": 0.0010293277233287754,
+          "grade": "안정",
+          "binning": "discrete",
+          "bins": [
+            {
+              "label": "8 미만 (기준 범위 밖)",
+              "expected": 0.0,
+              "actual": 0.0,
+              "contribution": 0.0
+            },
+            {
+              "label": "8",
+              "expected": 9.523809523809524e-05,
+              "actual": 8.888888888888889e-05,
+              "contribution": 4.333393013201633e-07
+            },
+            {
+              "label": "9",
+              "expected": 0.0051047619047619045,
+              "actual": 0.003777777777777778,
+              "contribution": 0.0003993811774311422
+            },
+            {
+              "label": "10",
+              "expected": 0.08645714285714286,
+              "actual": 0.08804444444444444,
+              "contribution": 2.887729540858232e-05
+            },
+            {
+              "label": "11",
+              "expected": 0.5041809523809524,
+              "actual": 0.5114666666666666,
+              "contribution": 0.00010452924351990915
+            },
+            {
+              "label": "12",
+              "expected": 0.38136190476190474,
+              "actual": 0.37555555555555553,
+              "contribution": 8.908306414889618e-05
+            },
+            {
+              "label": "13",
+              "expected": 0.022723809523809525,
+              "actual": 0.0208,
+              "contribution": 0.00017017287184913505
+            },
+            {
+              "label": "14",
+              "expected": 7.619047619047618e-05,
+              "actual": 0.0002666666666666667,
+              "contribution": 0.00023685073166979036
+            },
+            {
+              "label": "14 초과 (기준 범위 밖)",
+              "expected": 0.0,
+              "actual": 0.0,
+              "contribution": 0.0
+            }
+          ]
+        },
+        "app_login_frequency": {
+          "index": 0.0004571305523134043,
+          "grade": "안정",
+          "binning": "discrete",
+          "bins": [
+            {
+              "label": "16 미만 (기준 범위 밖)",
+              "expected": 0.0,
+              "actual": 0.0,
+              "contribution": 0.0
+            },
+            {
+              "label": "16",
+              "expected": 0.0004380952380952381,
+              "actual": 0.0004,
+              "contribution": 3.45732973368186e-06
+            },
+            {
+              "label": "17",
+              "expected": 0.0036285714285714285,
+              "actual": 0.0034222222222222223,
+              "contribution": 1.2078093609755552e-05
+            },
+            {
+              "label": "18",
+              "expected": 0.02276190476190476,
+              "actual": 0.020355555555555557,
+              "contribution": 0.0002688595355689249
+            },
+            {
+              "label": "19",
+              "expected": 0.11275238095238095,
+              "actual": 0.11493333333333333,
+              "contribution": 4.178265642962606e-05
+            },
+            {
+              "label": "20",
+              "expected": 0.3136,
+              "actual": 0.31653333333333333,
+              "contribution": 2.7310027361807814e-05
+            },
+            {
+              "label": "21",
+              "expected": 0.36463809523809526,
+              "actual": 0.366,
+              "contribution": 5.077155608383795e-06
+            },
+            {
+              "label": "22",
+              "expected": 0.15761904761904763,
+              "actual": 0.15435555555555555,
+              "contribution": 6.827928019133654e-05
+            },
+            {
+              "label": "23",
+              "expected": 0.02337142857142857,
+              "actual": 0.022755555555555557,
+              "contribution": 1.6446150646819765e-05
+            },
+            {
+              "label": "24",
+              "expected": 0.0011238095238095239,
+              "actual": 0.0012,
+              "contribution": 4.993587348243678e-06
+            },
+            {
+              "label": "25",
+              "expected": 6.666666666666667e-05,
+              "actual": 4.4444444444444447e-05,
+              "contribution": 8.846735814824342e-06
+            },
+            {
+              "label": "25 초과 (기준 범위 밖)",
+              "expected": 0.0,
+              "actual": 0.0,
+              "contribution": 0.0
+            }
+          ]
+        }
+      },
+      "auc": 0.880702956744528,
+      "approval_rate": 0.7825777777777778,
+      "thin_filer_share": 0.15,
+      "description": "2) 씬파일러 유입 증가"
+    },
+    "app_login_change": {
+      "name": "3) 앱 로그인 집계 변경",
+      "n_expected": 105000,
+      "n_actual": 22500,
+      "score_psi": 0.08386892622043936,
+      "score_grade": "안정",
+      "score_bins": [
+        {
+          "label": "최소 ~ 0.02562",
+          "expected": 0.1,
+          "actual": 0.03822222222222222,
+          "contribution": 0.059413971173285
+        },
+        {
+          "label": "0.02562 ~ 0.0493",
+          "expected": 0.1,
+          "actual": 0.07395555555555555,
+          "contribution": 0.007857670151259133
+        },
+        {
+          "label": "0.0493 ~ 0.07758",
+          "expected": 0.1,
+          "actual": 0.09537777777777778,
+          "contribution": 0.00021874244838151712
+        },
+        {
+          "label": "0.07758 ~ 0.1142",
+          "expected": 0.1,
+          "actual": 0.10048888888888889,
+          "contribution": 2.384276120820011e-06
+        },
+        {
+          "label": "0.1142 ~ 0.1654",
+          "expected": 0.1,
+          "actual": 0.10586666666666666,
+          "contribution": 0.00033445690998717704
+        },
+        {
+          "label": "0.1654 ~ 0.2423",
+          "expected": 0.1,
+          "actual": 0.1116888888888889,
+          "contribution": 0.001292159861984408
+        },
+        {
+          "label": "0.2423 ~ 0.355",
+          "expected": 0.1,
+          "actual": 0.1116,
+          "contribution": 0.0012730979646924183
+        },
+        {
+          "label": "0.355 ~ 0.5115",
+          "expected": 0.1,
+          "actual": 0.1112,
+          "contribution": 0.0011889829128095566
+        },
+        {
+          "label": "0.5115 ~ 0.7447",
+          "expected": 0.1,
+          "actual": 0.1313777777777778,
+          "contribution": 0.008563133571589866
+        },
+        {
+          "label": "0.7447 ~ 최대",
+          "expected": 0.1,
+          "actual": 0.12022222222222222,
+          "contribution": 0.003724326950329468
+        }
+      ],
+      "csi": {
+        "RevolvingUtilizationOfUnsecuredLines": {
+          "index": 0.0005869934068748322,
+          "grade": "안정"
+        },
+        "age": {
+          "index": 0.00045658140990882114,
+          "grade": "안정"
+        },
+        "NumberOfTime30-59DaysPastDueNotWorse": {
+          "index": 2.870240613172044e-05,
+          "grade": "안정"
+        },
+        "DebtRatio": {
+          "index": 0.0006159393752719241,
+          "grade": "안정"
+        },
+        "MonthlyIncome": {
+          "index": 0.00038124910086163345,
+          "grade": "안정"
+        },
+        "NumberOfOpenCreditLinesAndLoans": {
+          "index": 0.0010069545462095084,
+          "grade": "안정"
+        },
+        "NumberOfTimes90DaysLate": {
+          "index": 8.980950368852126e-05,
+          "grade": "안정"
+        },
+        "NumberRealEstateLoansOrLines": {
+          "index": 1.697259959457039e-05,
+          "grade": "안정"
+        },
+        "NumberOfTime60-89DaysPastDueNotWorse": {
+          "index": 0.00015043005627201847,
+          "grade": "안정"
+        },
+        "NumberOfDependents": {
+          "index": 0.00016007299911389544,
+          "grade": "안정"
+        },
+        "telecom_payment_rate": {
+          "index": 0.0009027783556832502,
+          "grade": "안정"
+        },
+        "utility_payment_rate": {
+          "index": 0.0003166559766925573,
+          "grade": "안정"
+        },
+        "spending_consistency": {
+          "index": 0.00021056725887022202,
+          "grade": "안정"
+        },
+        "regular_payment_count": {
+          "index": 0.00039753679125411224,
+          "grade": "안정"
+        },
+        "app_login_frequency": {
+          "index": 26.156264198609183,
+          "grade": "경고"
+        }
+      },
+      "flagged": [
+        "app_login_frequency"
+      ],
+      "top_bins": {
+        "app_login_frequency": {
+          "label": "16 미만 (기준 범위 밖)",
+          "expected": 0.0,
+          "actual": 1.0,
+          "contribution": 13.815511557963774
+        }
+      },
+      "tables": {
+        "RevolvingUtilizationOfUnsecuredLines": {
+          "index": 0.0005869934068748322,
+          "grade": "안정",
+          "binning": "quantile",
+          "bins": [
+            {
+              "label": "최소 ~ 0.002831",
+              "expected": 0.1,
+              "actual": 0.09484444444444444,
+              "contribution": 0.0002728913907741103
+            },
+            {
+              "label": "0.002831 ~ 0.01895",
+              "expected": 0.1,
+              "actual": 0.09844444444444445,
+              "contribution": 2.4387462877988663e-05
+            },
+            {
+              "label": "0.01895 ~ 0.04316",
+              "expected": 0.1,
+              "actual": 0.0992,
+              "contribution": 6.425672842330271e-06
+            },
+            {
+              "label": "0.04316 ~ 0.08272",
+              "expected": 0.1,
+              "actual": 0.09902222222222222,
+              "contribution": 9.607444399926929e-06
+            },
+            {
+              "label": "0.08272 ~ 0.1536",
+              "expected": 0.1,
+              "actual": 0.1028,
+              "contribution": 7.732170505393335e-05
+            },
+            {
+              "label": "0.1536 ~ 0.2719",
+              "expected": 0.1,
+              "actual": 0.10413333333333333,
+              "contribution": 0.00016740639172964112
+            },
+            {
+              "label": "0.2719 ~ 0.4453",
+              "expected": 0.1,
+              "actual": 0.10088888888888889,
+              "contribution": 7.866246375229138e-06
+            },
+            {
+              "label": "0.4453 ~ 0.6983",
+              "expected": 0.1,
+              "actual": 0.09942222222222222,
+              "contribution": 3.347919232882923e-06
+            },
+            {
+              "label": "0.6983 ~ 0.9808",
+              "expected": 0.1,
+              "actual": 0.10133333333333333,
+              "contribution": 1.766012689650707e-05
+            },
+            {
+              "label": "0.9808 ~ 최대",
+              "expected": 0.1,
+              "actual": 0.09991111111111112,
+              "contribution": 7.904669228231046e-08
+            }
+          ]
+        },
+        "age": {
+          "index": 0.00045658140990882114,
+          "grade": "안정",
+          "binning": "quantile",
+          "bins": [
+            {
+              "label": "최소 ~ 33",
+              "expected": 0.11374285714285715,
+              "actual": 0.11124444444444445,
+              "contribution": 5.5489950499789496e-05
+            },
+            {
+              "label": "33 ~ 39",
+              "expected": 0.09938095238095238,
+              "actual": 0.10026666666666667,
+              "contribution": 7.858717149308656e-06
+            },
+            {
+              "label": "39 ~ 44",
+              "expected": 0.10552380952380952,
+              "actual": 0.10457777777777778,
+              "contribution": 8.51943676342127e-06
+            },
+            {
+              "label": "44 ~ 48",
+              "expected": 0.09860952380952381,
+              "actual": 0.09835555555555556,
+              "contribution": 6.549308643468016e-07
+            },
+            {
+              "label": "48 ~ 52",
+              "expected": 0.09856190476190477,
+              "actual": 0.10226666666666667,
+              "contribution": 0.0001367004823002593
+            },
+            {
+              "label": "52 ~ 56",
+              "expected": 0.0952,
+              "actual": 0.0936,
+              "contribution": 2.711900601067592e-05
+            },
+            {
+              "label": "56 ~ 60",
+              "expected": 0.08928571428571429,
+              "actual": 0.08777777777777777,
+              "contribution": 2.568459229473514e-05
+            },
+            {
+              "label": "60 ~ 65",
+              "expected": 0.11024761904761905,
+              "actual": 0.10755555555555556,
+              "contribution": 6.655098935026055e-05
+            },
+            {
+              "label": "65 ~ 72",
+              "expected": 0.09436190476190476,
+              "actual": 0.09715555555555555,
+              "contribution": 8.150647819189297e-05
+            },
+            {
+              "label": "72 ~ 최대",
+              "expected": 0.09508571428571429,
+              "actual": 0.0972,
+              "contribution": 4.649682648413108e-05
+            }
+          ]
+        },
+        "NumberOfTime30-59DaysPastDueNotWorse": {
+          "index": 2.870240613172044e-05,
+          "grade": "안정",
+          "binning": "quantile",
+          "bins": [
+            {
+              "label": "최소 ~ 0",
+              "expected": 0.8397904761904762,
+              "actual": 0.8410222222222222,
+              "contribution": 1.805313292121141e-06
+            },
+            {
+              "label": "0 ~ 1",
+              "expected": 0.10716190476190476,
+              "actual": 0.10555555555555556,
+              "contribution": 2.4261126075515872e-05
+            },
+            {
+              "label": "1 ~ 최대",
+              "expected": 0.053047619047619045,
+              "actual": 0.053422222222222225,
+              "contribution": 2.635966764083427e-06
+            }
+          ]
+        },
+        "DebtRatio": {
+          "index": 0.0006159393752719241,
+          "grade": "안정",
+          "binning": "quantile",
+          "bins": [
+            {
+              "label": "최소 ~ 0.01084",
+              "expected": 0.1,
+              "actual": 0.10235555555555556,
+              "contribution": 5.484245546506751e-05
+            },
+            {
+              "label": "0.01084 ~ 0.08175",
+              "expected": 0.10001904761904762,
+              "actual": 0.09915555555555555,
+              "contribution": 7.487056242128652e-06
+            },
+            {
+              "label": "0.08175 ~ 0.1572",
+              "expected": 0.09998095238095238,
+              "actual": 0.10351111111111111,
+              "contribution": 0.0001224927233101676
+            },
+            {
+              "label": "0.1572 ~ 0.2224",
+              "expected": 0.1,
+              "actual": 0.0971111111111111,
+              "contribution": 8.468514943476469e-05
+            },
+            {
+              "label": "0.2224 ~ 0.2848",
+              "expected": 0.1,
+              "actual": 0.10026666666666667,
+              "contribution": 7.101575530678821e-07
+            },
+            {
+              "label": "0.2848 ~ 0.3517",
+              "expected": 0.1,
+              "actual": 0.10315555555555556,
+              "contribution": 9.803555411205434e-05
+            },
+            {
+              "label": "0.3517 ~ 0.4296",
+              "expected": 0.10000952380952381,
+              "actual": 0.0971111111111111,
+              "contribution": 8.524035464670169e-05
+            },
+            {
+              "label": "0.4296 ~ 0.5366",
+              "expected": 0.09999047619047619,
+              "actual": 0.09613333333333333,
+              "contribution": 0.000151733926358326
+            },
+            {
+              "label": "0.5366 ~ 0.7495",
+              "expected": 0.1,
+              "actual": 0.10102222222222222,
+              "contribution": 1.0396232522053849e-05
+            },
+            {
+              "label": "0.7495 ~ 최대",
+              "expected": 0.1,
+              "actual": 0.10017777777777778,
+              "contribution": 3.1576562759185844e-07
+            }
+          ]
+        },
+        "MonthlyIncome": {
+          "index": 0.00038124910086163345,
+          "grade": "안정",
+          "binning": "quantile",
+          "bins": [
+            {
+              "label": "최소 ~ 2302",
+              "expected": 0.10000952380952381,
+              "actual": 0.09804444444444445,
+              "contribution": 3.899568052604345e-05
+            },
+            {
+              "label": "2302 ~ 3400",
+              "expected": 0.10255238095238095,
+              "actual": 0.1020888888888889,
+              "contribution": 2.09950965321287e-06
+            },
+            {
+              "label": "3400 ~ 4332",
+              "expected": 0.09746666666666666,
+              "actual": 0.09582222222222223,
+              "contribution": 2.7981275186580824e-05
+            },
+            {
+              "label": "4332 ~ 5351",
+              "expected": 0.09997142857142857,
+              "actual": 0.09622222222222222,
+              "contribution": 0.00014330857586339606
+            },
+            {
+              "label": "5351 ~ 5382",
+              "expected": 0.1987047619047619,
+              "actual": 0.20173333333333332,
+              "contribution": 4.581169517730854e-05
+            },
+            {
+              "label": "5382 ~ 5400",
+              "expected": 0.0028476190476190476,
+              "actual": 0.0029333333333333334,
+              "contribution": 2.5410815704188743e-06
+            },
+            {
+              "label": "5400 ~ 6600",
+              "expected": 0.09872380952380952,
+              "actual": 0.09911111111111111,
+              "contribution": 1.5164278808458424e-06
+            },
+            {
+              "label": "6600 ~ 8250",
+              "expected": 0.1,
+              "actual": 0.10328888888888889,
+              "contribution": 0.00010642615656160083
+            },
+            {
+              "label": "8250 ~ 1.072e+04",
+              "expected": 0.09973333333333333,
+              "actual": 0.09964444444444444,
+              "contribution": 7.925813921004014e-08
+            },
+            {
+              "label": "1.072e+04 ~ 최대",
+              "expected": 0.09999047619047619,
+              "actual": 0.10111111111111111,
+              "contribution": 1.2489440303016103e-05
+            }
+          ]
+        },
+        "NumberOfOpenCreditLinesAndLoans": {
+          "index": 0.0010069545462095084,
+          "grade": "안정",
+          "binning": "quantile",
+          "bins": [
+            {
+              "label": "최소 ~ 3",
+              "expected": 0.1462857142857143,
+              "actual": 0.14955555555555555,
+              "contribution": 7.228352594370575e-05
+            },
+            {
+              "label": "3 ~ 4",
+              "expected": 0.07716190476190476,
+              "actual": 0.0748888888888889,
+              "contribution": 6.796305340936496e-05
+            },
+            {
+              "label": "4 ~ 5",
+              "expected": 0.08584761904761905,
+              "actual": 0.08768888888888889,
+              "contribution": 3.907376982419065e-05
+            },
+            {
+              "label": "5 ~ 6",
+              "expected": 0.0913047619047619,
+              "actual": 0.08746666666666666,
+              "contribution": 0.00016482582526452106
+            },
+            {
+              "label": "6 ~ 8",
+              "expected": 0.17175238095238096,
+              "actual": 0.174,
+              "contribution": 2.9222261946877667e-05
+            },
+            {
+              "label": "8 ~ 9",
+              "expected": 0.07531428571428571,
+              "actual": 0.07791111111111111,
+              "contribution": 8.802796383012898e-05
+            },
+            {
+              "label": "9 ~ 10",
+              "expected": 0.06448571428571429,
+              "actual": 0.0644,
+              "contribution": 1.1400527814969794e-07
+            },
+            {
+              "label": "10 ~ 12",
+              "expected": 0.10222857142857143,
+              "actual": 0.10644444444444444,
+              "contribution": 0.00017037021878303461
+            },
+            {
+              "label": "12 ~ 15",
+              "expected": 0.09299047619047619,
+              "actual": 0.08795555555555555,
+              "contribution": 0.00028026799808924044
+            },
+            {
+              "label": "15 ~ 최대",
+              "expected": 0.09262857142857144,
+              "actual": 0.08968888888888889,
+              "contribution": 9.480592384029449e-05
+            }
+          ]
+        },
+        "NumberOfTimes90DaysLate": {
+          "index": 8.980950368852126e-05,
+          "grade": "안정",
+          "binning": "quantile",
+          "bins": [
+            {
+              "label": "최소 ~ 1.665e-16",
+              "expected": 0.9438380952380953,
+              "actual": 0.946,
+              "contribution": 4.946274819891567e-06
+            },
+            {
+              "label": "1.665e-16 ~ 최대",
+              "expected": 0.05616190476190476,
+              "actual": 0.054,
+              "contribution": 8.48632288686297e-05
+            }
+          ]
+        },
+        "NumberRealEstateLoansOrLines": {
+          "index": 1.697259959457039e-05,
+          "grade": "안정",
+          "binning": "quantile",
+          "bins": [
+            {
+              "label": "최소 ~ 0",
+              "expected": 0.3732666666666667,
+              "actual": 0.3735111111111111,
+              "contribution": 1.6002867333033037e-07
+            },
+            {
+              "label": "0 ~ 1",
+              "expected": 0.34981904761904764,
+              "actual": 0.3512888888888889,
+              "contribution": 6.162903736333692e-06
+            },
+            {
+              "label": "1 ~ 2",
+              "expected": 0.21053333333333332,
+              "actual": 0.20924444444444446,
+              "contribution": 7.91481570194304e-06
+            },
+            {
+              "label": "2 ~ 최대",
+              "expected": 0.06638095238095239,
+              "actual": 0.06595555555555556,
+              "contribution": 2.7348514829633283e-06
+            }
+          ]
+        },
+        "NumberOfTime60-89DaysPastDueNotWorse": {
+          "index": 0.00015043005627201847,
+          "grade": "안정",
+          "binning": "quantile",
+          "bins": [
+            {
+              "label": "최소 ~ 8.327e-17",
+              "expected": 0.9491619047619048,
+              "actual": 0.9518222222222222,
+              "contribution": 7.445918209870054e-06
+            },
+            {
+              "label": "8.327e-17 ~ 최대",
+              "expected": 0.05083809523809524,
+              "actual": 0.04817777777777778,
+              "contribution": 0.0001429841380621484
+            }
+          ]
+        },
+        "NumberOfDependents": {
+          "index": 0.00016007299911389544,
+          "grade": "안정",
+          "binning": "quantile",
+          "bins": [
+            {
+              "label": "최소 ~ 0",
+              "expected": 0.6047904761904762,
+              "actual": 0.6074666666666667,
+              "contribution": 1.1815967141688385e-05
+            },
+            {
+              "label": "0 ~ 1",
+              "expected": 0.17617142857142856,
+              "actual": 0.17435555555555557,
+              "contribution": 1.8813989462918e-05
+            },
+            {
+              "label": "1 ~ 2",
+              "expected": 0.12994285714285714,
+              "actual": 0.132,
+              "contribution": 3.231156193392612e-05
+            },
+            {
+              "label": "2 ~ 최대",
+              "expected": 0.08909523809523809,
+              "actual": 0.08617777777777778,
+              "contribution": 9.713148057536295e-05
+            }
+          ]
+        },
+        "telecom_payment_rate": {
+          "index": 0.0009027783556832502,
+          "grade": "안정",
+          "binning": "quantile",
+          "bins": [
+            {
+              "label": "최소 ~ 0.823",
+              "expected": 0.1,
+              "actual": 0.10128888888888889,
+              "contribution": 1.6506035430710704e-05
+            },
+            {
+              "label": "0.823 ~ 0.851",
+              "expected": 0.1,
+              "actual": 0.1020888888888889,
+              "contribution": 4.318465045614719e-05
+            },
+            {
+              "label": "0.851 ~ 0.8703",
+              "expected": 0.1,
+              "actual": 0.1004,
+              "contribution": 1.5967925717190077e-06
+            },
+            {
+              "label": "0.8703 ~ 0.8866",
+              "expected": 0.1,
+              "actual": 0.09982222222222223,
+              "contribution": 3.163274828118413e-07
+            },
+            {
+              "label": "0.8866 ~ 0.9015",
+              "expected": 0.1,
+              "actual": 0.09364444444444445,
+              "contribution": 0.0004173337594534891
+            },
+            {
+              "label": "0.9015 ~ 0.9163",
+              "expected": 0.1,
+              "actual": 0.10244444444444445,
+              "contribution": 5.9033875078266294e-05
+            },
+            {
+              "label": "0.9163 ~ 0.932",
+              "expected": 0.1,
+              "actual": 0.10146666666666666,
+              "contribution": 2.1354676619635997e-05
+            },
+            {
+              "label": "0.932 ~ 0.9503",
+              "expected": 0.1,
+              "actual": 0.10284444444444445,
+              "contribution": 7.97785201223917e-05
+            },
+            {
+              "label": "0.9503 ~ 0.975",
+              "expected": 0.1,
+              "actual": 0.09502222222222222,
+              "contribution": 0.0002541597570513592
+            },
+            {
+              "label": "0.975 ~ 최대",
+              "expected": 0.1,
+              "actual": 0.10097777777777778,
+              "contribution": 9.513961416719169e-06
+            }
+          ]
+        },
+        "utility_payment_rate": {
+          "index": 0.0003166559766925573,
+          "grade": "안정",
+          "binning": "quantile",
+          "bins": [
+            {
+              "label": "최소 ~ 0.7467",
+              "expected": 0.1,
+              "actual": 0.09977777777777778,
+              "contribution": 4.943717223598164e-07
+            },
+            {
+              "label": "0.7467 ~ 0.7845",
+              "expected": 0.1,
+              "actual": 0.10173333333333333,
+              "contribution": 2.9786734251232978e-05
+            },
+            {
+              "label": "0.7845 ~ 0.8103",
+              "expected": 0.1,
+              "actual": 0.09875555555555555,
+              "contribution": 1.5583429851182606e-05
+            },
+            {
+              "label": "0.8103 ~ 0.8318",
+              "expected": 0.1,
+              "actual": 0.10253333333333334,
+              "contribution": 6.337770695580137e-05
+            },
+            {
+              "label": "0.8318 ~ 0.8518",
+              "expected": 0.1,
+              "actual": 0.10088888888888889,
+              "contribution": 7.866246375229138e-06
+            },
+            {
+              "label": "0.8518 ~ 0.8717",
+              "expected": 0.1,
+              "actual": 0.09897777777777778,
+              "contribution": 1.0503051878943698e-05
+            },
+            {
+              "label": "0.8717 ~ 0.8926",
+              "expected": 0.1,
+              "actual": 0.09955555555555555,
+              "contribution": 1.979691425320346e-06
+            },
+            {
+              "label": "0.8926 ~ 0.9168",
+              "expected": 0.1,
+              "actual": 0.09622222222222222,
+              "contribution": 0.0001454801903677877
+            },
+            {
+              "label": "0.9168 ~ 0.95",
+              "expected": 0.1,
+              "actual": 0.102,
+              "contribution": 3.960486243937929e-05
+            },
+            {
+              "label": "0.95 ~ 최대",
+              "expected": 0.1,
+              "actual": 0.09955555555555555,
+              "contribution": 1.979691425320346e-06
+            }
+          ]
+        },
+        "spending_consistency": {
+          "index": 0.00021056725887022202,
+          "grade": "안정",
+          "binning": "quantile",
+          "bins": [
+            {
+              "label": "최소 ~ 86.18",
+              "expected": 0.1,
+              "actual": 0.09911111111111111,
+              "contribution": 7.936480941425587e-06
+            },
+            {
+              "label": "86.18 ~ 87.39",
+              "expected": 0.1,
+              "actual": 0.09942222222222222,
+              "contribution": 3.347919232882923e-06
+            },
+            {
+              "label": "87.39 ~ 88.23",
+              "expected": 0.1,
+              "actual": 0.1,
+              "contribution": 0.0
+            },
+            {
+              "label": "88.23 ~ 88.93",
+              "expected": 0.1,
+              "actual": 0.10257777777777778,
+              "contribution": 6.560671580739508e-05
+            },
+            {
+              "label": "88.93 ~ 89.56",
+              "expected": 0.1,
+              "actual": 0.10062222222222222,
+              "contribution": 3.859571201278095e-06
+            },
+            {
+              "label": "89.56 ~ 90.19",
+              "expected": 0.1,
+              "actual": 0.10155555555555555,
+              "contribution": 2.401101882432168e-05
+            },
+            {
+              "label": "90.19 ~ 90.87",
+              "expected": 0.1,
+              "actual": 0.10048888888888889,
+              "contribution": 2.384276120820011e-06
+            },
+            {
+              "label": "90.87 ~ 91.64",
+              "expected": 0.1,
+              "actual": 0.10004444444444445,
+              "contribution": 1.9748500704039598e-08
+            },
+            {
+              "label": "91.64 ~ 92.7",
+              "expected": 0.1,
+              "actual": 0.09688888888888889,
+              "contribution": 9.832672365499326e-05
+            },
+            {
+              "label": "92.7 ~ 최대",
+              "expected": 0.1,
+              "actual": 0.09928888888888888,
+              "contribution": 5.074804586401352e-06
+            }
+          ]
+        },
+        "regular_payment_count": {
+          "index": 0.00039753679125411224,
+          "grade": "안정",
+          "binning": "discrete",
+          "bins": [
+            {
+              "label": "8 미만 (기준 범위 밖)",
+              "expected": 0.0,
+              "actual": 0.0,
+              "contribution": 0.0
+            },
+            {
+              "label": "8",
+              "expected": 9.523809523809524e-05,
+              "actual": 8.888888888888889e-05,
+              "contribution": 4.333393013201633e-07
+            },
+            {
+              "label": "9",
+              "expected": 0.0051047619047619045,
+              "actual": 0.004577777777777778,
+              "contribution": 5.74083783827959e-05
+            },
+            {
+              "label": "10",
+              "expected": 0.08645714285714286,
+              "actual": 0.08666666666666667,
+              "contribution": 5.071485102240737e-07
+            },
+            {
+              "label": "11",
+              "expected": 0.5041809523809524,
+              "actual": 0.5086666666666667,
+              "contribution": 3.973297483375124e-05
+            },
+            {
+              "label": "12",
+              "expected": 0.38136190476190474,
+              "actual": 0.3778222222222222,
+              "contribution": 3.300756646593466e-05
+            },
+            {
+              "label": "13",
+              "expected": 0.022723809523809525,
+              "actual": 0.02191111111111111,
+              "contribution": 2.9596652090295877e-05
+            },
+            {
+              "label": "14",
+              "expected": 7.619047619047618e-05,
+              "actual": 0.0002666666666666667,
+              "contribution": 0.00023685073166979036
+            },
+            {
+              "label": "14 초과 (기준 범위 밖)",
+              "expected": 0.0,
+              "actual": 0.0,
+              "contribution": 0.0
+            }
+          ]
+        },
+        "app_login_frequency": {
+          "index": 26.156264198609183,
+          "grade": "경고",
+          "binning": "discrete",
+          "bins": [
+            {
+              "label": "16 미만 (기준 범위 밖)",
+              "expected": 0.0,
+              "actual": 1.0,
+              "contribution": 13.815511557963774
+            },
+            {
+              "label": "16",
+              "expected": 0.0004380952380952381,
+              "actual": 0.0,
+              "contribution": 0.002665685250566886
+            },
+            {
+              "label": "17",
+              "expected": 0.0036285714285714285,
+              "actual": 0.0,
+              "contribution": 0.02974292776513909
+            },
+            {
+              "label": "18",
+              "expected": 0.02276190476190476,
+              "actual": 0.0,
+              "contribution": 0.22836762989482368
+            },
+            {
+              "label": "19",
+              "expected": 0.11275238095238095,
+              "actual": 0.0,
+              "contribution": 1.3116437394392129
+            },
+            {
+              "label": "20",
+              "expected": 0.3136,
+              "actual": 0.0,
+              "contribution": 3.9688829507533563
+            },
+            {
+              "label": "21",
+              "expected": 0.36463809523809526,
+              "actual": 0.0,
+              "contribution": 4.669797335123481
+            },
+            {
+              "label": "22",
+              "expected": 0.15761904761904763,
+              "actual": 0.0,
+              "contribution": 1.8863757230861
+            },
+            {
+              "label": "23",
+              "expected": 0.02337142857142857,
+              "actual": 0.0,
+              "contribution": 0.23510049984289536
+            },
+            {
+              "label": "24",
+              "expected": 0.0011238095238095239,
+              "actual": 0.0,
+              "contribution": 0.007895176577141387
+            },
+            {
+              "label": "25",
+              "expected": 6.666666666666667e-05,
+              "actual": 0.0,
+              "contribution": 0.00028097291269157856
+            },
+            {
+              "label": "25 초과 (기준 범위 밖)",
+              "expected": 0.0,
+              "actual": 0.0,
+              "contribution": 0.0
+            }
+          ]
+        }
+      },
+      "auc": 0.8859661528741036,
+      "approval_rate": 0.7411555555555556,
+      "thin_filer_share": 0.027777777777777776,
+      "description": "3) 앱 로그인 집계 변경"
+    }
+  },
+  "disclaimer": "본 시스템은 교육 목적으로 개발되었으며, 실제 금융 의사결정에 사용할 수 없습니다."
+}
