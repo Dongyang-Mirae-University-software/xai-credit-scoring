@@ -2,7 +2,7 @@
 import pytest
 from fastapi.testclient import TestClient
 
-from src.api import model
+from src.api import model, reports
 from src.api.main import app
 from src.api.schemas import CUSTOMER_EXAMPLE
 
@@ -13,7 +13,7 @@ def test_health_lists_report_sources():
     body = client.get('/health').json()
     assert body['status'] in ('healthy', 'degraded')
     assert body['disclaimer']
-    assert set(body['reports']) == {'metrics', 'shap_summary', 'reference_values', 'fairness', 'fairness_mitigation', 'anova'}
+    assert set(body['reports']) == {'metrics', 'shap_summary', 'reference_values', 'fairness', 'fairness_mitigation', 'anova', 'drift'}
 
 
 @pytest.mark.parametrize('path, keys', [
@@ -116,3 +116,30 @@ def test_metrics_has_cv_thin_filer_uplift():
     cv = m['thin_filer_uplift_cv']
     assert cv['ci_low'] <= cv['uplift'] <= cv['ci_high']
     assert m['pass']['thin_filer_uplift'] == cv['pass']
+
+
+def test_drift_tables_only_on_request():
+    if reports.load('drift', fallback=False) is None:
+        pytest.skip('python main_bonus_drift.py 를 먼저 실행')
+    body = client.get('/drift').json()
+    assert {'method', 'thresholds', 'scenarios'} <= set(body)
+    assert all('tables' not in s for s in body['scenarios'].values())
+    full = client.get('/drift', params={'include_tables': 'true'}).json()
+    assert all('tables' in s for s in full['scenarios'].values())
+
+
+def test_drift_default_call_does_not_strip_later_tables():
+    if reports.load('drift', fallback=False) is None:
+        pytest.skip('python main_bonus_drift.py 를 먼저 실행')
+    client.get('/drift')
+    full = client.get('/drift', params={'include_tables': 'true'}).json()
+    assert all('tables' in s for s in full['scenarios'].values())
+
+
+def test_drift_missing_file_returns_example(tmp_path, monkeypatch):
+    monkeypatch.setattr(reports, 'OUTPUTS_DIR', tmp_path)
+    for params in ({}, {'include_tables': 'true'}):
+        r = client.get('/drift', params=params)
+        assert r.status_code == 200, r.text
+        assert r.json()['scenarios'].keys() == {'baseline', 'app_login_change'}
+        assert all('tables' not in s for s in r.json()['scenarios'].values())
