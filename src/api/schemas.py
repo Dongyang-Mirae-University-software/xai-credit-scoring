@@ -312,6 +312,16 @@ class AnovaResponse(BaseModel):
     interpretation: Optional[dict[str, list[str]]] = None
 
 
+# ---------- 06 모니터링 ----------
+class DriftResponse(BaseModel):
+    model_config = _with_example(example('drift'))
+
+    method: str
+    thresholds: dict[str, float] = Field(description='PSI/CSI 등급 기준 (stable 미만 안정, caution 이상 경고)')
+    model: Optional[str] = None
+    scenarios: dict[str, dict] = Field(description='시나리오별 점수 PSI·칸별 CSI·AUC·승인율. tables 는 include_tables=true 일 때만')
+
+
 # ---------- 시스템 ----------
 class HealthResponse(BaseModel):
     model_config = ConfigDict(json_schema_extra={'examples': [{

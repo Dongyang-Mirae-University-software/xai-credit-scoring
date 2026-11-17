@@ -1,6 +1,5 @@
 import json
 
-import mlflow
 from mlflow.tracking import MlflowClient
 
 from scripts import seed_mlflow as s
@@ -16,8 +15,7 @@ def test_build_records_has_final_with_auc_ks():
 
 
 def test_seed_is_idempotent(tmp_path):
-    mlflow.set_tracking_uri(tmp_path.as_uri())  # 파일 저장소: venv 의 sqlalchemy 버전과 무관
-    c = MlflowClient()
+    c = MlflowClient(tracking_uri=tmp_path.as_uri())  # 파일 저장소. 전역 set_tracking_uri 는 다른 테스트로 새어 나간다
     recs = s.build_records(json.loads(s.META.read_text(encoding='utf-8')))
     s.seed(c, recs)
     s.seed(c, recs)  # 두 번 돌려도 run 이 늘지 않는다
