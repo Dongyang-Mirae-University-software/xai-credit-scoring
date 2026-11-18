@@ -749,7 +749,7 @@ main_step3\~5 ──▶ outputs/ (검증 결과 JSON)    ──▶   (/predict �
 
 ### 10.2 API (FastAPI)
 
-과제 노션 「다음 7개 엔드포인트가 구현되어 있다」의 7개에, 대시보드 화면에 필요한 5개와 보너스 4 드리프트 결과 1개를 더해 13개를 만들었다. Swagger(`localhost:8000/docs`)에서는 대시보드 화면 순서대로 태그를 묶어, 어느 화면이 어느 엔드포인트를 쓰는지 바로 보이게 했다.
+과제 노션 「다음 7개 엔드포인트가 구현되어 있다」의 7개에, 대시보드 화면에 필요한 5개와 보너스 과제용 2개(반사실적 설명, 드리프트 결과)를 더해 14개를 만들었다. Swagger(`localhost:8000/docs`)에서는 대시보드 화면 순서대로 태그를 묶어, 어느 화면이 어느 엔드포인트를 쓰는지 바로 보이게 했다.
 
 | 화면 | 엔드포인트 | 응답 | 데이터 출처 |
 |---|---|---|---|
@@ -759,6 +759,7 @@ main_step3\~5 ──▶ outputs/ (검증 결과 JSON)    ──▶   (/predict �
 | 고객 심사 | `POST /screenings` (추가) | 심사 결과 저장 | SQLite (`data/screenings.db`) |
 | 고객 심사 | `GET /screenings` (추가) | 최근 심사 목록 | SQLite (`data/screenings.db`) |
 | XAI 분석 | `POST /explain` | 거절 사유 Top 5(문장 포함), 칸별 SHAP 값 | SHAP 즉시 계산 |
+| XAI 분석 | `POST /counterfactual` (추가) | 거절 고객이 승인되려면 바꿀 칸과 값(여러 칸 함께 / 한 칸만), 바꾼 뒤 부도 확률 · 신용점수 (7.7, PR #147) | 최종 모델 즉시 계산 |
 | XAI 분석 | `GET /explain/summary` (추가) | 전역 중요도 상위 칸 | `shap_summary.json` |
 | 공정성 | `GET /fairness` | DI Ratio, TPR · FPR 차이, 집단별 승인율 | `fairness.json` |
 | 공정성 | `GET /fairness/mitigation` | 완화 전 · 후 비교 | `fairness_mitigation.json` |
