@@ -13,6 +13,8 @@ imbalanced-learn==0.14.2
 
 # XAI & Explainability
 shap==0.54.1
+lime==0.2.0.1  # 보너스 1: LIME 비교
+scikit-image==0.26.0  # lime 이 버전 제한 없이 끌어와서 함께 고정
 
 # Fairness
 fairlearn==0.15.0
