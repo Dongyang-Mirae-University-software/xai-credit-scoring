@@ -32,19 +32,30 @@ def _artifacts():
     return joblib.load(MODEL_PATH), joblib.load(SCALER_PATH)
 
 
-def _scaled_frame(features):
-    """원래 값 dict → 스케일러·모델이 학습한 칸 순서의 1행 DataFrame."""
-    import pandas as pd
+def _scaled(frame):
+    """원래 값 DataFrame(여러 행) → 스케일러·모델이 학습한 칸 순서의 DataFrame."""
     model, scaler = _artifacts()
     cols = list(scaler.feature_names_in_)
-    X = pd.DataFrame([features])[cols].astype(float)
+    X = frame[cols].astype(float).copy()
     X[cols] = scaler.transform(X)
     return X[list(getattr(model, 'feature_names_in_', cols))]
 
 
-def default_probability(features):
+def _scaled_frame(features):
+    """원래 값 dict → 1행 DataFrame (SHAP 설명용)."""
+    import pandas as pd
+    return _scaled(pd.DataFrame([features]))
+
+
+def batch_default_probability(frame):
+    """원래 값 DataFrame(여러 행) → 부도 확률 배열. /counterfactual 이 후보 여러 개를 한 번에 계산할 때 쓴다."""
     model, _ = _artifacts()
-    return float(model.predict_proba(_scaled_frame(features))[:, 1][0])
+    return model.predict_proba(_scaled(frame))[:, 1]
+
+
+def default_probability(features):
+    import pandas as pd
+    return float(batch_default_probability(pd.DataFrame([features]))[0])
 
 
 def is_thin_filer(features):
