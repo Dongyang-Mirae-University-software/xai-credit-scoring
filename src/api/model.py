@@ -5,6 +5,7 @@
 MODEL_PATH / SCALER_PATH / APPROVAL_THRESHOLD 는 환경 변수로 바꿀 수 있다.
 """
 import logging
+import math
 import os
 from functools import lru_cache
 from pathlib import Path
@@ -20,8 +21,18 @@ APPROVAL_THRESHOLD = float(os.getenv('APPROVAL_THRESHOLD', '0.5'))
 MODEL_STAGE = os.getenv('MODEL_STAGE', 'Staging')
 MODEL_VERSION = MODEL_PATH.stem
 
-# 대시보드 config.GRADE_SCALE 과 같은 구간: 점수가 상한 미만이면 그 등급
-GRADE_SCALE = [('E', 300), ('D', 500), ('C', 650), ('B', 800), ('A', 1001)]
+# PDO 스코어카드 (이슈 #157): Score = Offset + Factor·ln(good:bad odds), Factor = PDO/ln2, Offset = 기준점수 − Factor·ln(기준 odds)
+# 600점 @ 50:1, PDO 20 은 스코어카드 교과서에서 흔히 쓰는 관례 값이다 (기관마다 다름). 20점 오를 때마다 odds 가 2배
+SCORE_BASE, SCORE_BASE_ODDS, SCORE_PDO = 600, 50, 20
+SCORE_MIN, SCORE_MAX = 300, 850
+SCORE_FACTOR = SCORE_PDO / math.log(2)
+SCORE_OFFSET = SCORE_BASE - SCORE_FACTOR * math.log(SCORE_BASE_ODDS)
+SCORE_METHOD = f'pdo-{SCORE_BASE}-{SCORE_BASE_ODDS}-{SCORE_PDO}'
+
+# 등급 구간 (등급, 상한): 점수가 상한 미만이면 그 등급. API·대시보드(/health 로 받음)가 이 값 하나를 쓴다.
+# shortcut: 확률 보정 없이 test 점수 분포 분위수로 정함 (이전 등급 비율 E11·D9·C10·B15·A55% 유지 = 이전 부도확률 경계 0.7·0.5·0.35·0.2).
+#           모델 확률을 보정하면 다시 정할 것
+GRADE_SCALE = [('E', 463), ('D', 487), ('C', 505), ('B', 527), ('A', SCORE_MAX + 1)]
 
 
 def ready():
@@ -68,8 +79,14 @@ def is_thin_filer(features):
 
 
 def credit_score(prob):
-    # shortcut: (1-p)*1000 선형 환산, 스코어카드 점수식이 확정되면 교체
-    return int(round((1 - prob) * 1000))
+    prob = min(max(prob, 1e-9), 1 - 1e-9)  # p = 0 또는 1 이면 ln(odds) 가 무한대
+    score = SCORE_OFFSET + SCORE_FACTOR * math.log((1 - prob) / prob)
+    return int(min(max(round(score), SCORE_MIN), SCORE_MAX))
+
+
+def approval_score():
+    """승인 기준 부도확률(APPROVAL_THRESHOLD)에 해당하는 점수. 대시보드 점선 위치."""
+    return credit_score(APPROVAL_THRESHOLD)
 
 
 def risk_grade(score):

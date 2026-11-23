@@ -48,7 +48,8 @@ def test_predict_and_explain_with_real_model():
     p = client.post('/predict', json=CUSTOMER_EXAMPLE)
     assert p.status_code == 200, p.text
     body = p.json()
-    assert 0 <= body['credit_score'] <= 1000 and body['risk_grade'] in 'ABCDE'
+    assert model.SCORE_MIN <= body['credit_score'] <= model.SCORE_MAX and body['risk_grade'] in 'ABCDE'
+    assert body['risk_grade'] == model.risk_grade(body['credit_score']) and body['score_method'] == 'pdo-600-50-20'
     assert body['approval_status'] == ('APPROVED' if body['default_probability'] < body['approval_threshold'] else 'REJECTED')
 
     e = client.post('/explain', json=CUSTOMER_EXAMPLE)
@@ -65,6 +66,25 @@ def test_thin_filer_rule():
     features = {k: v for k, v in thin.items() if k != 'customer_id'}
     assert model.is_thin_filer(features) is True
     assert model.is_thin_filer({k: v for k, v in CUSTOMER_EXAMPLE.items() if k != 'customer_id'}) is False
+
+
+# ---------- PDO 점수 (이슈 #157) ----------
+def test_pdo_score_anchor_and_clipping():
+    assert model.credit_score(1 / 51) == 600  # 기준점: good:bad 50:1 → 600점
+    assert model.credit_score(1 / 101) - model.credit_score(1 / 51) in (19, 20, 21)  # odds 2배 → +PDO(20)점
+    assert (model.credit_score(0.0), model.credit_score(1.0)) == (model.SCORE_MAX, model.SCORE_MIN)
+    assert model.approval_score() == model.credit_score(model.APPROVAL_THRESHOLD) == 487
+
+
+def test_grade_boundaries():
+    assert [model.risk_grade(s) for s in (300, 462, 463, 486, 487, 504, 505, 526, 527, 850)] == \
+        ['E', 'E', 'D', 'D', 'C', 'C', 'B', 'B', 'A', 'A']
+
+
+def test_health_sends_score_scale_for_dashboard():
+    h = client.get('/health').json()
+    assert h['grade_scale'] == [list(g) for g in model.GRADE_SCALE] and h['score_range'] == [300, 850]
+    assert h['approval_score'] == 487 and h['score_method'] == model.SCORE_METHOD
 
 
 # ---------- 대시보드 시안용 추가 (이슈 #116) ----------
