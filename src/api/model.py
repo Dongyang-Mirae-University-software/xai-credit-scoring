@@ -12,8 +12,10 @@ from pathlib import Path
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 MODEL_PATH = Path(os.getenv('MODEL_PATH', PROJECT_ROOT / 'models' / 'lightgbm_is_unbalance_integrated_v1.0.joblib'))
 SCALER_PATH = Path(os.getenv('SCALER_PATH', PROJECT_ROOT / 'models' / 'preprocess_scaler_v1.0.joblib'))
-# 월소득은 API 바깥에서 원, 모델은 원본 GMSC 단위(달러 규모)로 학습했다. 원 ÷ 이 값 = 모델 단위 (기본 1000원 = 1)
-INCOME_KRW_PER_UNIT = float(os.getenv('INCOME_KRW_PER_UNIT', '1000'))
+# 월소득은 API 바깥에서 원, 모델은 원본 GMSC 단위(달러)로 학습했다. 원 ÷ 이 값 = 모델 단위 (국제달러)
+# 기본값: World Bank 한국 PPP 환산계수 (PA.NUS.PPP, GDP 기준, 2025년 816.33원/국제달러, 2026-11 조회)
+# 한계: GMSC 시점(2008~2011년경)과의 물가 차이, 미·한 소득 구조 차이는 PPP 로 보정되지 않는다
+INCOME_KRW_PER_UNIT = float(os.getenv('INCOME_KRW_PER_UNIT', '816.33'))
 APPROVAL_THRESHOLD = float(os.getenv('APPROVAL_THRESHOLD', '0.5'))
 MODEL_STAGE = os.getenv('MODEL_STAGE', 'Staging')
 MODEL_VERSION = MODEL_PATH.stem

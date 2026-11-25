@@ -53,7 +53,7 @@ class CustomerInput(BaseModel):
     age: int = Field(..., ge=18, le=120, description='나이')
     past_due_30_59: int = Field(0, ge=0, alias='NumberOfTime30-59DaysPastDueNotWorse', description='최근 2년 30~59일 연체 횟수')
     DebtRatio: float = Field(..., ge=0, description='부채비율 % (월 대출 상환액 ÷ 월소득 × 100). 서버가 ÷100')
-    MonthlyIncome: float = Field(..., ge=0, description='월소득 (원). 서버가 INCOME_KRW_PER_UNIT(기본 1000)으로 나눠 모델 단위로 바꾼다')
+    MonthlyIncome: float = Field(..., ge=0, description='월소득 (원). 서버가 INCOME_KRW_PER_UNIT(기본 816.33, 한국 PPP)으로 나눠 모델 단위(국제달러)로 바꾼다')
     NumberOfOpenCreditLinesAndLoans: int = Field(0, ge=0, description='보유 대출·신용 한도 개수')
     NumberOfTimes90DaysLate: int = Field(0, ge=0, description='90일 이상 연체 횟수')
     NumberRealEstateLoansOrLines: int = Field(0, ge=0, description='부동산 담보대출 개수')
