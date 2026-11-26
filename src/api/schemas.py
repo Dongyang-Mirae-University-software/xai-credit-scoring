@@ -9,7 +9,7 @@ import json
 from pathlib import Path
 from typing import Optional
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from src.api.model import INCOME_KRW_PER_UNIT
 from src.explainer.performance import DISCLAIMER
@@ -73,6 +73,45 @@ class CustomerInput(BaseModel):
             values[key] = values[key] / 100
         values['MonthlyIncome'] = values['MonthlyIncome'] / INCOME_KRW_PER_UNIT
         return values
+
+
+# 본인 확인 → 고객 정보 조회 (POST /customers/lookup). 예시는 data/customers.json 의 C100001
+# (scripts/add_customer_identity.py 가 붙인 가짜 이름 · 주민등록번호, 검증 숫자를 일부러 틀리게 만들어 실존 번호가 아니다)
+LOOKUP_EXAMPLE = {"name": "최민은", "rrn": "810408-2182892"}
+
+
+class CustomerLookup(BaseModel):
+    """이름 + 주민등록번호. 주민등록번호는 URL 에 남지 않도록 본문으로 받는다."""
+    model_config = ConfigDict(json_schema_extra={'examples': [LOOKUP_EXAMPLE]})
+
+    name: str = Field(..., min_length=1, max_length=20, description='이름')
+    rrn: str = Field(..., description="주민등록번호 13자리 ('-' 는 있어도 없어도 된다)")
+
+    @field_validator('name')
+    @classmethod
+    def _name(cls, v):
+        v = ' '.join(v.split())
+        if not v:
+            raise ValueError('이름을 입력해 주세요')
+        return v
+
+    @field_validator('rrn')
+    @classmethod
+    def _rrn(cls, v):
+        digits = v.replace('-', '').strip()
+        if len(digits) != 13 or not digits.isdigit():
+            raise ValueError('주민등록번호는 숫자 13자리여야 합니다')
+        return digits
+
+
+class CustomerProfile(CustomerInput):
+    """은행이 가진 고객 정보: /predict 입력 15칸 + 이름 · 성별(표시 · 공정성 점검용). 주민등록번호는 돌려주지 않는다."""
+    model_config = ConfigDict(populate_by_name=True, json_schema_extra={'examples': [
+        {**CUSTOMER_EXAMPLE, "customer_id": "C100001", "name": "최민은", "gender": "여성"}]})
+
+    customer_id: str = Field(..., description='고객 번호')
+    name: str = Field(..., description='이름')
+    gender: Optional[str] = Field(None, description='성별 (점수에는 쓰지 않는다)')
 
 
 PREDICT_EXAMPLE = {
