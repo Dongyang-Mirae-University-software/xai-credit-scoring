@@ -11,7 +11,6 @@
 '대시보드는 모델을 직접 읽지 않는다' 규칙에 맞다.
 """
 import json
-from datetime import datetime
 from html import escape
 from pathlib import Path
 
@@ -25,7 +24,6 @@ CSS = Path(__file__).with_suffix(".css").read_text(encoding="utf-8")
 # 심사 업무 화면(고객 심사 · XAI 분석) 공통 톤. 두 화면이 맨 앞에 넣는다
 WORKSPACE_CSS = Path(__file__).with_name("workspace.css").read_text(encoding="utf-8")
 SCREENING_PAGE = "views/screening.py"
-HISTORY_LIMIT = 5
 NEW_ID_LOOKUP = 100  # 신규 고객 ID 를 고를 때 피할 서버 이력 수 (GET /screenings 최대치)
 
 # 신용카드 이용 기간(개월). 원래 과제의 씬파일러 기준 '카드 거래 이력 12개월 미만' 을 API 가 판정할 수 있게 보낸다.
@@ -85,7 +83,6 @@ def init_state():
     ss = st.session_state
     ss.setdefault("scr_current", None)   # 지금 보고 있는 심사 결과 {profile, result}. 있으면 고객 심사 = 결과 화면
     ss.setdefault("scr_step", "identify")  # 결과가 없을 때: identify 1/2 본인 확인 · confirm 2/2 정보 확인
-    ss.setdefault("scr_history", [])     # 이번 세션에서 심사한 것 [{profile, result, at}]. 서버 이력과 합쳐 보인다
     ss.setdefault("customers", {})       # 심사한 고객 {id: {payload, result, profile}} (XAI 분석 고객 목록)
     ss.setdefault("xai_explain", {})     # /explain 응답 캐시
 
@@ -149,7 +146,7 @@ def _payload(profile):
 
 
 def _save(payload, result):
-    """POST /screenings: 서버 이력에 남긴다. 저장이 실패해도 심사 결과는 보여 준다 (이번 세션 목록에는 남는다)."""
+    """POST /screenings: 서버 이력에 남긴다. 저장이 실패해도 심사 결과는 보여 준다."""
     try:
         api_client.save_screening({"input": payload, "result": result})
     except Exception:
@@ -158,7 +155,7 @@ def _save(payload, result):
 
 def run_predict(profile, record=True):
     """심사 실행: POST /predict 와 POST /explain 을 함께 부른다 (승인이든 거절이든).
-    결과를 현재 심사 · XAI 고객 목록에 넣고, record 면 심사 이력에도 쌓는다. /predict 가 실패하면 예외를 올린다.
+    결과를 현재 심사 · XAI 고객 목록에 넣고, record 면 서버 이력(POST /screenings)에 남긴다. /predict 가 실패하면 예외를 올린다.
     /explain 이 실패하면 그 예외를 캐시에 넣어 두고 결과 화면이 안내한다 (화면을 그릴 때 다시 부르지 않는다)."""
     ss = st.session_state
     payload = _payload(profile)
@@ -173,8 +170,6 @@ def run_predict(profile, record=True):
     ss.scr_current = {"profile": profile, "result": result}
     if record:
         _save(payload, result)
-        history = [h for h in ss.scr_history if h["result"]["customer_id"] != customer_id]
-        ss.scr_history = ([{"profile": profile, "result": result, "at": datetime.now()}] + history)[:HISTORY_LIMIT]
 
 
 def get_explain(customer_id):
