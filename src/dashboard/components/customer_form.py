@@ -114,7 +114,8 @@ def find_customer(customer_id):
     """시연용 샘플 파일 → 이번 세션에서 심사한 고객 순서로 찾는다. 없으면 None. API 는 부르지 않는다."""
     found = CUSTOMERS.get(customer_id)
     if found:
-        return {"customer_id": customer_id, "gender": found.get("gender"), **{k: found.get(k) for k in REQUEST_KEYS}}
+        return {"customer_id": customer_id, "name": found.get("name"), "gender": found.get("gender"),
+                **{k: found.get(k) for k in REQUEST_KEYS}}
     entry = st.session_state.customers.get(customer_id)
     if entry and "profile" in entry:
         return entry["profile"]
@@ -298,7 +299,7 @@ def _open_confirm(profile, source):
     ss.frm_shown = {}
     for field, _, _, scale, decimals, *_ in ALL_FIELDS:
         ss[f"frm_{field}"] = ss.frm_shown[field] = _shown(profile.get(field), scale, decimals)
-    ss.frm_gender = ss.frm_gender_last = profile.get("gender")
+    ss.frm_gender = profile.get("gender")
     ss.scr_step = "confirm"
     ss.pop("idn_notice", None)
     ss.pop("idn_errors", None)
@@ -317,14 +318,6 @@ def take_pending():
     if pending:
         st.session_state.scr_current = None
         _open_confirm(*pending)
-
-
-def _keep_gender():
-    """성별 토글은 고른 칸을 다시 누르면 선택이 풀린다 → 풀리지 않게 직전 값으로 되돌린다."""
-    ss = st.session_state
-    if ss.frm_gender is None:
-        ss.frm_gender = ss.frm_gender_last
-    ss.frm_gender_last = ss.frm_gender
 
 
 def _form_profile():
@@ -420,17 +413,14 @@ def render_confirm(disabled=False):
         st.html(f'<div class="frm-id-card"><div class="frm-id-cells">{cells}</div>{badge}</div>')
 
         with st.container(key="frm-sec-basic"):
-            caption = "주민등록번호로 확인한 정보예요" if profile.get("rrn_masked") else "나이와 성별을 확인해 주세요"
+            caption = "주민등록번호로 확인한 정보라 고칠 수 없어요" if profile.get("rrn_masked") else "고칠 수 없는 정보예요"
             st.html(f'<div class="frm-sec-head"><h2>기본 정보</h2><p>{caption}</p></div>')
-            _row(*BASIC_FIELDS[0])
-            with st.container(key="frm-row-gender", horizontal=True, vertical_alignment="center", gap="small"):
-                st.html('<div class="frm-label"><span>성별</span><small>공정성 점검용, 점수 미반영</small></div>')
-                if profile.get("rrn_masked"):
-                    # 주민등록번호로 정해진 값이라 고칠 수 없다 → 다른 칸처럼 값만 보여 준다
-                    st.html(f'<b class="frm-fixed">{escape(ss.frm_gender or "-")}</b>')
-                else:
-                    st.segmented_control("성별", ["여성", "남성"], key="frm_gender", label_visibility="collapsed",
-                                         on_change=_keep_gender)
+            age = ss.frm_age
+            for label, hint, value, unit in (("나이", "만 나이", "-" if age is None else str(age), "세"),
+                                             ("성별", "공정성 점검용, 점수 미반영", ss.frm_gender or "-", "")):
+                st.html(f'<div class="frm-fixed-row"><div class="frm-label"><span>{label}</span>'
+                        f'<small>{hint}</small></div><b class="frm-fixed">{escape(value)}</b>'
+                        f'<span class="frm-unit">{unit}</span></div>')
         _section("credit", "신용정보", "신용정보원(CB)에 있는 금융 기록이에요", CREDIT_FIELDS)
         _section("alt", "대안정보", "통신 · 공과금 · 결제 기록에서 모은 정보예요", ALT_FIELDS)
 

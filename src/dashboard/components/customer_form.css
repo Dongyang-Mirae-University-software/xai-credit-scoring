@@ -108,21 +108,12 @@
 [class*="st-key-frm-row-"] > .stElementContainer:has(.frm-unit) { flex: 0 0 40px; width: 40px !important; }
 .frm-unit { display: block; font-size: 15px; color: var(--ink-3); }
 
-/* 성별: 주민등록번호로 정해졌으면 값만, 고를 수 있으면 회색 트랙 + 흰 선택 칸 */
-.st-key-frm-row-gender > .stElementContainer:not(:has(.frm-label)) { flex: 0 0 auto; width: auto !important; }
-.frm-fixed { display: block; padding-right: 66px; font-size: 17px; font-weight: 700; color: var(--ink); }
-.st-key-frm-row-gender [data-testid="stButtonGroup"] > div {
-  display: flex; gap: 2px; padding: 3px; border-radius: 12px; background: var(--fill);
+/* 나이 · 성별: 고칠 수 없는 값 (입력칸 없이 글자만, 값은 다른 줄의 숫자와 같은 자리) */
+.frm-fixed-row {
+  display: grid; grid-template-columns: minmax(0, 1fr) auto 40px; align-items: center; column-gap: 8px;
+  min-height: 60px; border-top: 1px solid var(--divider);
 }
-.st-key-frm-row-gender [data-testid="stButtonGroup"] button {
-  min-height: 36px; height: 36px; padding: 0 18px; margin: 0; border: 0 !important; border-radius: 9px !important;
-  background: transparent; box-shadow: none;
-}
-.st-key-frm-row-gender [data-testid="stButtonGroup"] button p { font-size: 15px; font-weight: 600; color: var(--ink-3); }
-.st-key-frm-row-gender [data-testid="stButtonGroup"] button[kind$="Active"] {
-  background: #FFF; box-shadow: 0 1px 3px rgba(0, 0, 0, .1);
-}
-.st-key-frm-row-gender [data-testid="stButtonGroup"] button[kind$="Active"] p { color: var(--ink); font-weight: 700; }
+.frm-fixed { padding-right: 12px; font-size: 17px; font-weight: 700; color: var(--ink); white-space: nowrap; text-align: right; }
 
 .frm-missing {
   margin: 0; padding: 14px 18px; border-radius: var(--radius-ctl);
