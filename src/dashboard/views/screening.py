@@ -29,7 +29,7 @@ HISTORY_FETCH = 100  # GET /screenings 최대치 (서버 le=100, 고객당 최�
 # 조회 기간 버튼: (이름, 며칠 - 오늘 포함). 마지막 '직접 설정' 은 날짜 두 칸 + 조회
 HISTORY_PRESETS = [("오늘", 1), ("최근 7일", 7), ("최근 30일", 30)]
 HISTORY_CUSTOM = "직접 설정"
-RISK_DOT = {"low": "#0E7C5A", "mid": "#E39A1B", "high": "#C62828"}
+RISK_DOT = {"low": "#03A94D", "mid": "#FFB331", "high": "#F04452"}  # workspace.css 의 ok · mid · fail
 REASON_LIMIT = 3  # 결과 화면의 주요 거절 사유 수 (전체 5개는 XAI 분석)
 
 # 등급 → 위험도 (A·B 저위험 / C 중위험 / D·E 고위험) → 색 (ok / mid / fail)
@@ -108,7 +108,7 @@ def _history_row(r):
             f'<span>{RISK_LABELS[risk]}</span></span></td>'
             f'<td class="num">{r["credit_score"]}</td>'
             f'<td class="scr-time">{_time_label(r["at"])}</td>'
-            f'<td class="scr-go">{ui.icon("chevron", "#8A94A6", 16)}</td></tr>')
+            f'<td class="scr-go">{ui.icon("chevron", "#B0B8C1", 16)}</td></tr>')
 
 
 def _time_label(at):
@@ -414,7 +414,7 @@ def _action_card(key, title, caption):
     """카드 전체가 눌리는 버튼 (보이는 내용은 HTML, 위에 투명 버튼을 덮는다)."""
     with st.container(key=f"scr-act-{key}"):
         st.html(f'<div class="scr-act"><div><b>{escape(title)}</b><span>{escape(caption)}</span></div>'
-                f'{ui.icon("chevron", "#5B6577", 20)}</div>')
+                f'{ui.icon("chevron", "#8B95A1", 20)}</div>')
         return st.button(title, key=f"scr-act-btn-{key}")
 
 

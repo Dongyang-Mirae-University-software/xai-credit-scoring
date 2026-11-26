@@ -252,7 +252,7 @@ def _waterfall(explain, entry):
     return f"""
     <div class="xai-flow">
       <div><span>평균 고객 부도 확률</span><strong>{_pct(_sigmoid(base))}</strong></div>
-      <span class="xai-arrow">{ui.icon("arrow", "#5B6577", 22)}</span>
+      <span class="xai-arrow">{ui.icon("arrow", "#8B95A1", 22)}</span>
       <div><span>이 고객 부도 확률</span><strong class="{'' if approved else 'fail'}">{_pct(result["default_probability"])}</strong></div>
       <em>위험을 높인 정보 {n_up}개, 낮춘 정보 {n_down}개</em>
     </div>
@@ -265,9 +265,9 @@ def _waterfall(explain, entry):
 # 상세 2: SHAP Summary (beeswarm) + 대안 데이터 비중
 # ---------------------------------------------------------------------------
 def _dot_color(t):
-    """변수 값 0(낮음)~1(높음) → 파랑(#1F6FD8)~빨강(#D1343F)."""
+    """변수 값 0(낮음)~1(높음) → 파랑(#3182F6)~빨강(#F04452). workspace.css 의 --risk-down · --risk-up 과 같다."""
     t = min(max(float(t), 0.0), 1.0)
-    a, b = (31, 111, 216), (209, 52, 63)
+    a, b = (49, 130, 246), (240, 68, 82)
     return "rgb({},{},{})".format(*(round(a[i] + (b[i] - a[i]) * t) for i in range(3)))
 
 
@@ -366,7 +366,7 @@ customer_id = _head(ids)
 
 if customer_id is None:
     with st.container(key="xai-empty-box"):
-        st.html(f'<div class="xai-empty-icon">{ui.icon("xai", "#1F4FD8", 28)}</div>'
+        st.html(f'<div class="xai-empty-icon">{ui.icon("xai", "#3182F6", 28)}</div>'
                 '<div class="xai-empty-text"><h2>아직 분석할 고객이 없어요</h2>'
                 '<p>고객 심사에서 심사를 실행하면, 그 고객의 판단 근거가 여기에 표시돼요.</p></div>')
         if st.button("고객 심사로 가기", key="xai-go", type="primary"):

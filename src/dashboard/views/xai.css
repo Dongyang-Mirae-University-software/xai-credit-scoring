@@ -1,4 +1,4 @@
-/* XAI 분석 (디자인 05). 섹션 간격 36px */
+/* XAI 분석. 섹션 간격 36px, 색 · 글자 토큰은 components/workspace.css */
 [data-testid="stMainBlockContainer"] > [data-testid="stVerticalBlock"]:has(.st-key-xai-head) { gap: 36px; }
 
 /* 머리: 제목 + 분석 대상 */
@@ -10,20 +10,22 @@
 .xai-pick-label { font-size: 13px; color: var(--ink-3); white-space: nowrap; }
 .st-key-xai-pick .stSelectbox { width: 220px; }
 .st-key-xai-pick [data-baseweb="select"] > div {
-  height: 44px; min-height: 44px; border: 1px solid var(--input); border-radius: 8px; background: #FFF;
+  height: 44px; min-height: 44px; border: 2px solid transparent; border-radius: 12px; background: var(--card);
 }
+.st-key-xai-pick [data-baseweb="select"] > div:focus-within { border-color: var(--accent); }
 .st-key-xai-pick [data-baseweb="select"] div { font-size: 14px; color: var(--ink); }
 .st-key-xai-rescreen button {
-  height: 44px; min-height: 44px; padding: 0 16px; border: 1px solid var(--input); border-radius: 8px; background: #FFF;
+  height: 44px; min-height: 44px; padding: 0 16px; border: 0; border-radius: 12px; background: var(--accent-bg);
 }
-.st-key-xai-rescreen button p { font-size: 14px; font-weight: 700; color: var(--ink-2); white-space: nowrap; }
+.st-key-xai-rescreen button:hover { background: #D6E8FF; }
+.st-key-xai-rescreen button p { font-size: 14px; font-weight: 700; color: var(--accent); white-space: nowrap; }
 
 /* 고객 줄: 칸 사이 세로선 */
 .xai-strip {
-  margin-top: -16px; background: var(--card); border: 1px solid var(--border); border-radius: 12px;
+  margin-top: -16px; background: var(--card); border-radius: var(--radius-card);
   padding: 16px 24px; display: flex; align-items: center;
 }
-.xai-strip > div { display: flex; flex-direction: column; gap: 2px; padding: 0 28px; border-left: 1px solid var(--border); }
+.xai-strip > div { display: flex; flex-direction: column; gap: 2px; padding: 0 28px; border-left: 1px solid var(--divider); }
 .xai-strip > div:first-child { padding-left: 0; border-left: 0; }
 .xai-strip span { font-size: 12px; color: var(--ink-3); line-height: 1.5; }
 .xai-strip b { font-size: 15px; font-weight: 700; color: var(--ink); line-height: 1.5; white-space: nowrap; }
@@ -33,7 +35,7 @@
 
 /* 한 줄 요약 */
 .xai-summary {
-  background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 24px 28px;
+  background: var(--card); border-radius: var(--radius-card); padding: 24px 28px;
   display: grid; grid-template-columns: minmax(0, 1.6fr) repeat(3, minmax(0, 1fr)); gap: 24px; align-items: center;
 }
 .xai-summary-main { display: flex; flex-direction: column; gap: 6px; }
@@ -49,20 +51,20 @@
 .st-key-xai-reasons-head > .stElementContainer:first-child { flex: 1 1 auto; width: auto !important; min-width: 0; }
 .st-key-xai-reasons-head > [data-testid="stLayoutWrapper"] { flex: 0 0 100px; width: 100px !important; }
 .st-key-xai-copy { gap: 0; }
-.xai-rr { background: var(--card); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; }
+.xai-rr { background: var(--card); border-radius: var(--radius-card); overflow: hidden; }
 .xai-rr-row {
   display: grid; grid-template-columns: 56px 290px minmax(0, 1fr) 88px 88px 200px; column-gap: 24px;
   align-items: center; padding: 0 24px; min-height: 72px;
 }
 .xai-rr-row + .xai-rr-row { border-top: 1px solid var(--divider); }
 .xai-rr-headrow {
-  min-height: 44px; height: 44px; background: #F8FAFC; border-bottom: 1px solid var(--border);
+  min-height: 44px; height: 44px; background: var(--card); border-bottom: 1px solid var(--border);
   font-size: 12px; color: var(--ink-3);
 }
 .xai-rr-headrow + .xai-rr-row { border-top: 0; }
 .xai-rr-row .num { text-align: right; }
 .xai-rank {
-  width: 28px; height: 28px; border-radius: 50%; background: var(--divider); color: var(--ink-2);
+  width: 28px; height: 28px; border-radius: 50%; background: var(--fill); color: var(--ink-2);
   font-style: normal; font-size: 14px; font-weight: 700; display: flex; align-items: center; justify-content: center;
 }
 /* 항목: 한글 이름 + 묶음 태그, 아래 줄에 변수 이름 (한 줄 고정) */
@@ -73,7 +75,7 @@
   padding: 0; background: none; font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
   font-size: 11px; color: var(--ink-3); white-space: nowrap;
 }
-.xai-tag { flex: 0 0 auto; padding: 2px 8px; border-radius: 4px; background: var(--divider); color: #4A5568; font-size: 12px; font-weight: 700; }
+.xai-tag { flex: 0 0 auto; padding: 2px 8px; border-radius: 999px; background: var(--fill); color: var(--ink-2); font-size: 12px; font-weight: 700; }
 .xai-tag.alt { background: var(--accent-bg); color: var(--accent); }
 .xai-rr-text { font-size: 14px; line-height: 1.5; color: var(--ink-2); padding: 12px 0; }
 .xai-rr-row b.num { font-size: 15px; font-weight: 700; color: var(--ink); }
@@ -94,12 +96,12 @@ strong.down { color: var(--risk-down); }
 .xai-detail { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: 28px; align-items: start; }
 .xai-detail > section { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
 .xai-card {
-  background: var(--card); border: 1px solid var(--border); border-radius: 14px; min-width: 0;
+  background: var(--card); border-radius: var(--radius-card); min-width: 0;
   padding: 20px 24px; display: flex; flex-direction: column; gap: 16px; overflow: hidden;
 }
 .xai-card .xai-note { margin: 0; }
 
-.xai-flow { display: flex; align-items: center; padding: 14px 18px; border-radius: 10px; background: var(--page); }
+.xai-flow { display: flex; align-items: center; padding: 16px 20px; border-radius: 14px; background: var(--fill); }
 .xai-flow > div { display: flex; flex-direction: column; gap: 2px; padding-right: 24px; }
 .xai-flow > div + .xai-arrow + div { padding: 0 0 0 24px; }
 .xai-flow span { font-size: 12px; color: var(--ink-3); }
@@ -139,7 +141,7 @@ strong.wf-label { color: var(--ink); font-weight: 700; }
 .wf-ticks em { position: absolute; transform: translateX(-50%); font-style: normal; font-size: 11px; color: var(--ink-3); }
 
 /* 영향력 비중 */
-.xai-share { display: flex; flex-direction: column; gap: 8px; padding: 14px 18px; border-radius: 10px; background: var(--page); }
+.xai-share { display: flex; flex-direction: column; gap: 8px; padding: 16px 20px; border-radius: 14px; background: var(--fill); }
 .xai-share > span { font-size: 13px; color: var(--ink-2); }
 .xai-share > span strong { color: var(--accent); font-size: 15px; font-weight: 700; }
 .xai-share-bar { display: flex; height: 10px; border-radius: 999px; overflow: hidden; gap: 2px; }
@@ -158,7 +160,7 @@ strong.wf-label { color: var(--ink); font-weight: 700; }
   padding: 0 8px; margin: 0;
 }
 .bs li { height: 34px; border-radius: 6px; }
-.bs li.mine { background: #FFF6F6; }
+.bs li.mine { background: var(--fail-bg); }
 .bs-rank { font-size: 12px; color: var(--ink-3); text-align: right; }
 .bs-name { display: flex; align-items: center; gap: 6px; min-width: 0; font-size: 13px; white-space: nowrap; color: var(--ink); }
 .bs-name > span { white-space: nowrap; }
@@ -176,11 +178,11 @@ strong.wf-label { color: var(--ink); font-weight: 700; }
 .bs-axis > span:nth-child(3) { display: flex; justify-content: space-between; }
 .bs-axis em { font-style: normal; }
 .bs-color { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--ink-3); }
-.bs-color i { width: 72px; height: 8px; border-radius: 999px; background: linear-gradient(90deg, #1F6FD8, #D1343F); }
+.bs-color i { width: 72px; height: 8px; border-radius: 999px; background: linear-gradient(90deg, var(--risk-down), var(--risk-up)); }
 
 /* 고객이 없을 때 */
 .st-key-xai-empty-box {
-  background: var(--card); border: 1px solid var(--border); border-radius: 14px;
+  background: var(--card); border-radius: var(--radius-card);
   padding: 64px 32px; gap: 18px; align-items: center; text-align: center;
 }
 .xai-empty-text { display: flex; flex-direction: column; gap: 6px; margin-top: 18px; }
@@ -191,5 +193,5 @@ strong.wf-label { color: var(--ink); font-weight: 700; }
   display: flex; align-items: center; justify-content: center;
 }
 .st-key-xai-empty-box .stElementContainer:has(.stButton) { width: auto !important; align-self: center; }
-.st-key-xai-go button { height: 44px; padding: 0 18px; border-radius: 10px; background: var(--accent); border: 0; }
+.st-key-xai-go button { height: 52px; padding: 0 24px; border-radius: var(--radius-ctl); background: var(--accent); border: 0; }
 .st-key-xai-go button p { font-size: 15px; font-weight: 700; color: #FFF; }
