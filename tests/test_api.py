@@ -143,3 +143,48 @@ def test_drift_missing_file_returns_example(tmp_path, monkeypatch):
         assert r.status_code == 200, r.text
         assert r.json()['scenarios'].keys() == {'baseline', 'app_login_change'}
         assert all('tables' not in s for s in r.json()['scenarios'].values())
+
+
+def test_lookup_by_name_and_rrn():
+    """POST /customers/lookup: Swagger 예시 그대로 조회되고, 응답은 /customers/{id} 와 같으며 주민등록번호는 없다."""
+    from src.api.schemas import LOOKUP_EXAMPLE
+    r = client.post('/customers/lookup', json=LOOKUP_EXAMPLE)
+    assert r.status_code == 200, r.text
+    body = r.json()
+    assert body['customer_id'] == 'C100001' and body['name'] == LOOKUP_EXAMPLE['name']
+    assert 'rrn' not in body
+    same = client.get('/customers/C100001').json()
+    assert 'rrn' not in same
+    assert {k: v for k, v in body.items()} == {k: same[k] for k in body}
+    # '-' 없이 보내도, 이름에 공백이 섞여도 같은 고객
+    digits = LOOKUP_EXAMPLE['rrn'].replace('-', '')
+    assert client.post('/customers/lookup', json={'name': f" {LOOKUP_EXAMPLE['name']} ", 'rrn': digits}).status_code == 200
+    if model.ready():  # 조회 결과를 그대로 /predict 에 넣을 수 있어야 한다
+        assert client.post('/predict', json=body).status_code == 200
+
+
+def test_lookup_not_found_and_bad_format():
+    from src.api.schemas import LOOKUP_EXAMPLE
+    r = client.post('/customers/lookup', json={**LOOKUP_EXAMPLE, 'name': '없는사람'})
+    assert r.status_code == 404
+    assert r.json()['detail'] != 'Not Found'   # 대시보드는 기본 404('경로 없음')와 '고객 없음'을 이 문구로 구분한다
+    assert client.post('/customers/lookup', json={**LOOKUP_EXAMPLE, 'rrn': '0000000000000'}).status_code == 404
+    assert client.post('/customers/lookup', json={**LOOKUP_EXAMPLE, 'rrn': '81040821'}).status_code == 422
+
+
+def test_customer_identity_matches_age_and_gender():
+    """가짜 주민등록번호: 기준일 만 나이 = age, 뒷자리 첫 숫자 = 성별, 검증 숫자는 일부러 틀림, 번호는 모두 다름."""
+    import json
+    from datetime import date
+    from scripts.add_customer_identity import PATH, REFERENCE_DATE, check_digit
+    customers = json.loads(PATH.read_text(encoding='utf-8'))
+    assert len({c['rrn'] for c in customers}) == len(customers)
+    for c in customers:
+        rrn = c['rrn']
+        century = 1900 if rrn[6] in '12' else 2000
+        born = date(century + int(rrn[:2]), int(rrn[2:4]), int(rrn[4:6]))
+        age = REFERENCE_DATE.year - born.year - ((REFERENCE_DATE.month, REFERENCE_DATE.day) < (born.month, born.day))
+        assert age == c['age'], c['customer_id']
+        assert (rrn[6] in '13') == (c['gender'] == '남성'), c['customer_id']
+        assert int(rrn[12]) != check_digit(rrn[:12]), c['customer_id']
+        assert c['name']
