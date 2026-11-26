@@ -166,3 +166,54 @@ def screenings(limit=20):
         if _missing(e):
             return []
         raise
+
+
+# ---------------------------------------------------------------------------
+# 보너스 과제 결과 (#140). API 가 아직 없으면(404) NOT_READY 를 돌려준다 → 화면은 'API 준비 중' 안내
+#   산출물이 없으면 None (/health 의 reports 에 'missing' 으로 오면). 다른 오류는 그대로 올린다
+# ---------------------------------------------------------------------------
+NOT_READY = "not_ready"
+
+
+def _bonus(name, path):
+    try:
+        return _report(name, path)
+    except requests.HTTPError as e:
+        if _missing(e):
+            return NOT_READY
+        raise
+
+
+def counterfactual(customer):
+    """POST /counterfactual (보너스 2, #147): 거절 고객이 승인되려면 바꿔야 할 정보.
+    형식: {approval_status, default_probability, approval_threshold, already_approved,
+           combined: {success, changes[], new_probability, new_credit_score} | None,
+           single_changes[], immutable_features[]}
+    changes[]: {feature, feature_name_kr, current_value, suggested_value, unit, explanation, new_probability}"""
+    try:
+        return request("POST", "/counterfactual", customer, timeout=config.COUNTERFACTUAL_TIMEOUT)
+    except requests.HTTPError as e:
+        if _missing(e):
+            return NOT_READY
+        raise
+
+
+def drift():
+    """GET /drift (보너스 4, #149 · API #139): outputs/monitoring/drift_report.json 에서 구간별 상세(tables)를 뺀 것.
+    형식: {thresholds: {stable, caution}, scenarios: {키: {name, score_psi, score_grade, csi: {칸: {index, grade}},
+           flagged[], top_bins: {칸: {label, expected, actual}}, auc, approval_rate, thin_filer_share}}}"""
+    return _bonus("drift", "/drift")
+
+
+def two_way_anova():
+    """GET /anova/two-way (보너스 3, #148): outputs/statistics/two_way_anova.json 에서 records 를 뺀 것.
+    형식: {design, anova: {table[], n_per_cell, cell_means, cell_std}, paired_checks: {simple_effects, interaction_did},
+           interpretation[]}"""
+    return _bonus("two_way_anova", "/anova/two-way")
+
+
+def ab_test():
+    """GET /ab-test (보너스 5, #150): outputs/evaluation/ab_test/ab_test.json 그대로.
+    형식: {models: {a, b}, test_auc: {a, b}, policies: {a, threshold_a, policies: {same_threshold, same_approval_rate,
+           same_bad_rate}}, ab_single, ab_repeated, required_sample_size}"""
+    return _bonus("ab_test", "/ab-test")

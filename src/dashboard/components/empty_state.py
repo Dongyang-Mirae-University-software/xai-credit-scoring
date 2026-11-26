@@ -20,6 +20,10 @@ REPORTS = {
     "fairness": ("아직 공정성 분석 결과가 없어요", "python main_step4.py --model models/{model}.joblib"),
     "fairness_mitigation": ("아직 완화 전 / 후 비교 결과가 없어요", "python main_step4.py --model models/{model}.joblib"),
     "anova": ("아직 통계 검증 결과가 없어요", "python main_step5.py"),
+    # 보너스 과제 (#140)
+    "drift": ("아직 드리프트 탐지 결과가 없어요", "python main_bonus_drift.py"),
+    "two_way_anova": ("아직 Two-way ANOVA 결과가 없어요", "python main_bonus_two_way_anova.py"),
+    "ab_test": ("아직 A/B 테스트 시뮬레이션 결과가 없어요", "python main_bonus_ab_test.py"),
 }
 
 
@@ -67,3 +71,11 @@ def ghost_card(title, card_cls, title_cls, message="결과가 나오면 여기�
 def ghost_metric(label, card_cls):
     """값 자리를 '-' 로 둔 지표 카드."""
     return (f'<div class="{card_cls} es-ghost-metric"><span>{label}</span><b>-</b></div>')
+
+
+def pending_html(endpoint, issue):
+    """API 가 아직 없을 때(404) 섹션 자리에 두는 한 줄 안내."""
+    return (f"<style>{CSS_PATH.read_text(encoding='utf-8')}</style>"
+            f'<div class="es-box es-pending"><span class="es-icon"></span>'
+            f'<div class="es-text"><b>API가 준비되면 여기에 표시돼요</b>'
+            f'<span>{escape(endpoint)} API가 아직 서버에 없어요 ({escape(issue)})</span></div></div>')

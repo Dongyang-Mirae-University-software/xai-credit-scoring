@@ -67,6 +67,8 @@ EXACT_METRICS = {
     'test_ks': 'KS of the chosen model on test data. Goal: 0.28 or higher.',
     'test_psi': 'PSI of the model score: how much the score distribution moved between train and test. Below 0.1 = stable.',
     'feature_psi_max': 'The largest PSI among the 15 inputs. Below 0.1 = every input is stable.',
+    'feature_csi_max': 'The largest CSI among the 15 inputs (train vs test). Like PSI, but inputs with few values also count '
+                       'new values outside the train range. Below 0.1 = stable, 0.1 to 0.25 = watch, 0.25 or more = warning.',
     'thin_uplift': 'Thin-filer AUC gain: AUC with alternative data minus AUC without it, for people with little credit history. Goal: +0.03 or more.',
     'thin_ci_low': 'Lower end of the 95% range for the thin-filer AUC gain (from 1,000 resamples).',
     'thin_ci_high': 'Upper end of the 95% range for the thin-filer AUC gain.',
@@ -107,6 +109,10 @@ def explain_key(key):
     if key.startswith('psi_'):
         name = key[4:]
         return f"PSI for one input ({FEATURE_EN.get(name, name)}): how much it moved between train and test. Below 0.1 = stable."
+    if key.startswith('csi_'):
+        name = key[4:]
+        return (f"CSI for one input ({FEATURE_EN.get(name, name)}): how much it moved between train and test. "
+                f"Below 0.1 = stable, 0.1 to 0.25 = watch, 0.25 or more = warning. The verdict is in tag csi_grade_{name}.")
     m = re.fullmatch(r'fold_(\d+)_(\w+)', key)
     if m and m.group(2) in BASE_METRICS:
         return f"{BASE_METRICS[m.group(2)]} Measured on fold {m.group(1)} of 5."
@@ -122,7 +128,8 @@ def metrics_guide_md(metric_keys=None, param_keys=None):
     """지표·파라미터 이름표 (Markdown). 키를 안 주면 우리 프로젝트에서 쓰는 키 전체."""
     if metric_keys is None:
         metric_keys = (list(EXACT_METRICS) + [f'{b}_{s}' for b in BASE_METRICS for s in ('mean', 'std')]
-                       + [f'fold_1_{b}' for b in BASE_METRICS] + [f'psi_{f}' for f in FEATURE_EN])
+                       + [f'fold_1_{b}' for b in BASE_METRICS] + [f'psi_{f}' for f in FEATURE_EN]
+                       + [f'csi_{f}' for f in FEATURE_EN])
     if param_keys is None:
         param_keys = list(PARAM_GUIDE)
     lines = ['# What the names mean', '',
