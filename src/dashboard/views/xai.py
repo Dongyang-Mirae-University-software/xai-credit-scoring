@@ -62,11 +62,6 @@ def _option_label(customer_id):
     return f'{customer_id} ({"승인" if result["approval_status"] == "APPROVED" else "거절"})'
 
 
-def _rescreen():
-    """조건 바꿔 재심사: 이 화면 위에 그 고객 값이 채워진 입력 창을 연다. 심사 실행 → 고객 심사 결과 화면."""
-    CF.open_form(st.session_state.customers[st.session_state.xai_customer]["profile"], loaded=True)
-
-
 def _head(ids):
     with st.container(key="xai-head", horizontal=True, vertical_alignment="bottom"):
         st.html('<div class="ui-page-head"><div><h1>XAI 분석</h1>'
@@ -79,7 +74,10 @@ def _head(ids):
             st.html('<span class="xai-pick-label">분석 대상</span>')
             customer_id = st.selectbox("분석 대상", ids, key="xai_customer", format_func=_option_label,
                                        label_visibility="collapsed")
-            st.button("조건 바꿔 재심사", key="xai-rescreen", on_click=_rescreen, disabled=connection.is_down())
+            if st.button("조건 바꿔 재심사", key="xai-rescreen", disabled=connection.is_down()):
+                # 고객 심사의 2/2 정보 확인으로 (그 고객 값이 채워진다). 심사 실행 → 고객 심사 결과 화면
+                CF.edit(st.session_state.customers[customer_id]["profile"])
+                st.switch_page(CF.SCREENING_PAGE)
     return customer_id
 
 
@@ -361,7 +359,7 @@ def _detail(explain, entry):
 # ---------------------------------------------------------------------------
 # 페이지
 # ---------------------------------------------------------------------------
-st.html(f"<style>{CSS_PATH.read_text(encoding='utf-8')}{CF.CSS}</style>")
+st.html(f"<style>{CF.WORKSPACE_CSS}{CSS_PATH.read_text(encoding='utf-8')}</style>")
 _init_state()
 ids = list(reversed(st.session_state.customers.keys()))  # 최근에 심사한 고객이 먼저
 customer_id = _head(ids)
@@ -387,4 +385,3 @@ else:
         counterfactual.render(customer_id, entry["payload"], entry["result"])
         _detail(explain, entry)
 
-CF.render(on_screening=False)

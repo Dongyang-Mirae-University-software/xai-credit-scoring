@@ -1,12 +1,11 @@
-"""고객 심사 페이지 (디자인 01~04)
+"""고객 심사 페이지 (은행 창구 기준, 한 화면씩 넘긴다)
 
-흐름 (디자인 시안의 프로토타입 동작과 같다)
-- 첫 화면: 불러오기 · 시연용 샘플 칩 → 값이 채워진 입력 창 (제목 옆 고객 ID), 신규 고객 심사 → 빈 입력 창
-- 입력 창(components/customer_form)에서 심사 실행 → 결과 화면 (결과는 서버 이력에 바로 남는다)
+흐름 (components/customer_form)
+- 1/2 본인 확인: 이름 + 주민등록번호 → 정보 조회 (아래에 심사 이력)
+- 2/2 정보 확인: 은행이 가진 정보가 채워진 입력 목록 → 틀린 항목만 고치고 심사 실행 (결과는 서버 이력에 바로 남는다)
+- 결과 화면: 정보 수정 → 2/2, 이전 → 1/2. 주소는 ?customer=<고객 ID> 라 새로고침 · 공유해도 그 결과가 열린다
 - 심사 이력 줄 → 그 고객의 결과 화면 바로
-- 결과 화면: 정보 수정 → 입력 창, 이전 → 첫 화면. 주소는 ?customer=<고객 ID> 라 새로고침·공유해도 그 결과가 열린다
-- 로고 · 사이드바 '고객 심사' → 언제나 첫 화면
-'불러오기'·샘플은 API 를 부르지 않고 로컬 고객 파일(samples.json)과 이번 세션에서 심사한 고객에서 찾는다.
+- 로고 · 사이드바 '고객 심사' → 언제나 1/2
 심사 이력은 서버 이력(GET /screenings)과 이번 세션에서 심사한 것을 합쳐 보여 준다 (새로고침해도 남는다).
 조회 기간은 오늘(기본) · 최근 7일 · 최근 30일 · 직접 설정(시작일~종료일 + 조회) 중에서 고른다.
 """
@@ -47,27 +46,6 @@ CONTRIBUTION_SUFFIX = re.compile(r"\s*\(기여도:\s*[-+−]?[\d.]+\)\s*$")
 def _toast_later(message, error=False):
     """콜백 안에서 띄운 안내를 다음 렌더에서 토스트로 보여 준다."""
     st.session_state.scr_toast = (message, error)
-
-
-def _load_by_id():
-    """불러오기: 찾으면 '불러왔어요' 입력 창, 비었거나 없으면 오류 토스트 + 입력칸 빨간 테두리."""
-    ss = st.session_state
-    customer_id = (ss.scr_load_id or "").strip().upper()
-    ss.scr_load_invalid = True
-    if not customer_id:
-        _toast_later(f"고객 ID를 입력해 주세요. 예: {CF.SAMPLE_CHIPS[0][0]}", error=True)
-        return
-    profile = CF.find_customer(customer_id)
-    if not profile:
-        _toast_later(f"{customer_id} 고객을 찾을 수 없어요. 고객 ID를 다시 확인해 주세요.", error=True)
-        return
-    ss.scr_load_invalid = False
-    CF.open_form(profile, loaded=True)
-
-
-def _open_sample(customer_id):
-    """시연용 샘플 칩: 그 고객 값이 채워진 입력 창을 연다 (고객 파일에서 읽는다)."""
-    CF.open_form(CF.find_customer(customer_id), loaded=True)
 
 
 def _open_history(customer_id):
@@ -218,40 +196,17 @@ def _history():
 
 
 def _start_view():
-    down = connection.is_down()  # API 가 꺼져 있으면 심사로 이어지는 버튼을 끈다 (시안 #api-down)
-    with st.container(key="scr-start-head", horizontal=True, vertical_alignment="bottom"):
-        st.html('<div class="ui-page-head"><div><h1>고객 심사</h1>'
-                '<p>기존 고객은 ID로 불러오고, 처음 오신 고객은 신규 심사로 시작하세요.</p></div></div>')
-        st.button("신규 고객 심사", key="scr-new", type="primary", disabled=down,
-                  on_click=lambda: CF.open_form(CF.new_profile(), loaded=False))
-    if st.session_state.get("scr_load_invalid"):
-        st.html("<style>.st-key-scr-load [data-baseweb=\"input\"]{border-color:var(--fail)!important;"
-                "box-shadow:0 0 0 3px rgba(198,40,40,.15)}</style>")
-
-    with st.container(key="scr-load-card", horizontal=True, vertical_alignment="bottom"):
-        with st.container(key="scr-load-box"):
-            st.html('<span class="scr-load-label">고객 ID로 불러오기</span>')
-            with st.form("scr-load-form", border=False, enter_to_submit=True):
-                with st.container(key="scr-load", horizontal=True, gap="small"):
-                    st.text_input("고객 ID", key="scr_load_id", label_visibility="collapsed",
-                                  placeholder=f"고객 ID 입력 (예: {CF.SAMPLE_CHIPS[0][0]})")
-                    st.form_submit_button("불러오기", on_click=_load_by_id, disabled=down)
-        with st.container(key="scr-samples"):
-            st.html('<span class="scr-samples-label">시연용 샘플 불러오기</span>')
-            with st.container(key="scr-sample-chips", horizontal=True, gap="small"):
-                for customer_id, label in CF.SAMPLE_CHIPS:
-                    st.button(label, key=f"scr-sample-{customer_id}", on_click=_open_sample, args=(customer_id,),
-                              disabled=down)
-
+    """1/2 본인 확인 카드 + 심사 이력."""
+    CF.render_identify(disabled=connection.is_down())  # API 가 꺼져 있으면 조회 · 진행 버튼을 끈다 (시안 #api-down)
     _history()
+
 
 # ---------------------------------------------------------------------------
 # 결과 화면 (디자인 03 승인 / 04 거절)
 # ---------------------------------------------------------------------------
 def _back():
-    """이전: 결과 화면을 닫고 첫 화면으로 (주소의 ?customer= 도 지운다)."""
+    """이전: 결과 화면을 닫고 1/2 본인 확인으로 (주소의 ?customer= 도 지운다)."""
     CF.clear_result()
-    st.session_state.scr_load_invalid = False
 
 
 def _sync_query():
@@ -291,7 +246,8 @@ def _completed_at(result):
 def _summary_html(profile, result):
     counts = [profile[f] for f, _ in CF.DELINQUENCY_FIELDS if profile[f] is not None]  # None = 기록 없음
     late = sum(int(c) for c in counts)
-    cells = [
+    cells = [("이름", profile["name"])] if profile.get("name") else []  # 시연용 샘플은 이름이 없다
+    cells += [
         ("고객 ID", profile["customer_id"]),
         ("나이", f'{profile["age"]}세'),
         ("성별", profile.get("gender") or "-"),
@@ -474,7 +430,7 @@ def _result_view():
 
     with st.container(key="scr-summary-card", horizontal=True, vertical_alignment="center"):
         st.html(_summary_html(profile, result))
-        st.button("정보 수정", key="scr-edit", on_click=CF.open_form, args=(profile, True),
+        st.button("정보 수정", key="scr-edit", on_click=CF.edit, args=(profile,),
                   disabled=connection.is_down())
 
     st.html(_decision_html(result))
@@ -491,21 +447,22 @@ def _result_view():
 # ---------------------------------------------------------------------------
 # 페이지
 # ---------------------------------------------------------------------------
-st.html(f"<style>{CSS_PATH.read_text(encoding='utf-8')}{CF.CSS}"
-        + ui.mask_css(".st-key-scr-new button::before", "plus", 16)
+st.html(f"<style>{CF.WORKSPACE_CSS}{CSS_PATH.read_text(encoding='utf-8')}{CF.CSS}"
+        + ui.mask_css(".st-key-frm-back button::before", "chevron", 16)
         + ui.mask_css(".st-key-scr-back button::before", "chevron", 16)
         + ui.mask_css(".st-key-scr-edit button::before", "pencil", 14)
         + "</style>")
 CF.init_state()
+CF.take_pending()
 
 _sync_query()
 toast = st.session_state.pop("scr_toast", None)
 if toast:
     st.toast(toast[0], icon=":material/error:" if toast[1] else ":material/check_circle:")
 
-if st.session_state.scr_current is None:
-    _start_view()
-else:
+if st.session_state.scr_current is not None:
     _result_view()
-
-CF.render(on_screening=True)
+elif st.session_state.scr_step == "confirm":
+    CF.render_confirm(disabled=connection.is_down())
+else:
+    _start_view()

@@ -29,9 +29,9 @@ pages = [
 ]
 pg = st.navigation(pages, position="hidden")
 # 화면을 옮기면 떠난 화면의 입력·선택 상태를 지운다 (위젯 값은 Streamlit 이 지우고, 위젯이 아닌 상태만 여기서).
-# 입력 창은 열 때마다 새로 채운다 (components/customer_form.open_form)
+# 2/2 정보 확인의 입력칸 값도 지워지므로 고객 심사는 1/2 부터 다시 (다른 화면에서 맡긴 고객은 frm_pending 으로 남는다)
 if st.session_state.get("_page") not in (None, pg.url_path):
-    for key in ("scr_load_id", "scr_load_invalid", "dlg_open"):
+    for key in ("scr_step", "idn_notice", "idn_errors"):
         st.session_state.pop(key, None)
 st.session_state._page = pg.url_path
 render_header(pg)
