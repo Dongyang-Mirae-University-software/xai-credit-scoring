@@ -457,7 +457,8 @@ xai-credit-scoring/
 ├── notebooks/01_eda.ipynb   # 탐색적 데이터 분석
 ├── docs/                    # report_draft.md(실험 리포트 초안) · column_spec.md(칸 이름·단위)
 ├── tests/                   # pytest 단위 테스트
-├── scripts/                 # add_dashboard_fields.py (대시보드 시안용 고객 예시·결과 JSON 추가 필드 생성, #116)
+├── scripts/                 # add_dashboard_fields.py (대시보드 시안용 고객 예시·결과 JSON 추가 필드 생성, #116),
+│                            # add_customer_identity.py (고객 조회용 가짜 이름 · 주민등록번호, 예: 최민은 810408-2182892)
 ├── mlflow/                  # 팀 MLflow 서버 배포 설정 (서버용, 로컬 실행에는 필요 없음)
 ├── docker-compose.yml       # api(8000) · dashboard(8501) · mlflow(5000) · mlflow-seed(기록 채우기, 일회성)
 ├── Dockerfile
