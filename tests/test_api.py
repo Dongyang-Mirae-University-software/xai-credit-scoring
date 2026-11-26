@@ -146,21 +146,27 @@ def test_drift_missing_file_returns_example(tmp_path, monkeypatch):
 
 
 def test_lookup_by_name_and_rrn():
-    """POST /customers/lookup: Swagger 예시 그대로 조회되고, 응답은 /customers/{id} 와 같으며 주민등록번호는 없다."""
-    from src.api.schemas import LOOKUP_EXAMPLE
+    """POST /customers/lookup: Swagger 예시 그대로 조회된다. 은행 기록(CB · 대안정보)만 주고 주민등록번호는 없다."""
+    from src.api.schemas import LOOKUP_EXAMPLE, CustomerProfile
     r = client.post('/customers/lookup', json=LOOKUP_EXAMPLE)
     assert r.status_code == 200, r.text
     body = r.json()
     assert body['customer_id'] == 'C100001' and body['name'] == LOOKUP_EXAMPLE['name']
-    assert 'rrn' not in body
-    same = client.get('/customers/C100001').json()
-    assert 'rrn' not in same
-    assert {k: v for k, v in body.items()} == {k: same[k] for k in body}
+    # 고객이 신청서에 적는 값(월소득 · 부양가족 수)과 그걸로 계산하는 부채비율은 주지 않는다
+    assert not {'rrn', 'MonthlyIncome', 'NumberOfDependents', 'DebtRatio'} & set(body)
+    record = client.get('/customers/C100001').json()
+    assert 'rrn' not in record
+    assert body['MonthlyRepayment'] == round(record['DebtRatio'] / 100 * record['MonthlyIncome'])
+    assert body == CustomerProfile.model_config['json_schema_extra']['examples'][0]   # Swagger 응답 예시 = 실제 응답
     # '-' 없이 보내도, 이름에 공백이 섞여도 같은 고객
     digits = LOOKUP_EXAMPLE['rrn'].replace('-', '')
     assert client.post('/customers/lookup', json={'name': f" {LOOKUP_EXAMPLE['name']} ", 'rrn': digits}).status_code == 200
-    if model.ready():  # 조회 결과를 그대로 /predict 에 넣을 수 있어야 한다
-        assert client.post('/predict', json=body).status_code == 200
+    if model.ready():  # 조회 결과 + 고객이 적은 월소득 · 부양가족 수 → 부채비율을 만들어 /predict 에 넣을 수 있어요
+        income = 4_000_000
+        payload = {k: v for k, v in body.items() if k not in ('name', 'gender', 'MonthlyRepayment')}
+        payload |= {'MonthlyIncome': income, 'NumberOfDependents': 1,
+                    'DebtRatio': body['MonthlyRepayment'] / income * 100}
+        assert client.post('/predict', json=payload).status_code == 200
 
 
 def test_lookup_not_found_and_bad_format():
