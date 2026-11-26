@@ -1,6 +1,6 @@
 """XAI 분석 페이지 (디자인 05)
 
-결론(한 줄 요약·부도 확률) → 근거(거절 사유 Top 5) → 상세(SHAP Waterfall · SHAP Summary).
+결론(한 줄 요약·부도 확률) → 근거(거절 사유 Top 5 · 거절이면 승인되려면) → 상세(SHAP Waterfall · SHAP Summary).
 기여도는 모두 '부도 위험' 기준: + 는 위험을 높였다, - 는 낮췄다.
 (POST /explain 의 rejection_reasons[].shap_contribution 은 승인 쪽 기준(음수)이라 부호를 뒤집어 보여 준다.)
 """
@@ -17,6 +17,7 @@ import config
 import features as F
 from components import connection
 from components import customer_form as CF
+from components import counterfactual
 from components import ui
 from components.api_error import api_error_html, render_api_error
 from components.empty_state import render_no_report
@@ -383,6 +384,7 @@ else:
     if explain:
         st.html(_summary_html(explain, entry["result"]))
         _reasons(explain, entry["result"])
+        counterfactual.render(customer_id, entry["payload"], entry["result"])
         _detail(explain, entry)
 
 CF.render(on_screening=False)

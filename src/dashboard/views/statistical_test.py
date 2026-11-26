@@ -1,7 +1,8 @@
 """통계 검증 페이지 (디자인 08)
 
-결론(두 ANOVA 요약 표) → 근거/상세(검증별 결론 문장 · 그룹별 평균 AUC 막대 · Tukey HSD 표).
-데이터: GET /anova, 최종 모델 강조는 GET /health 의 model_version.
+결론(두 ANOVA 요약 표) → 근거/상세(검증별 결론 문장 · 그룹별 평균 AUC 막대 · Tukey HSD 표)
+→ 보너스(고객 유형 × 모델 구성 Two-way ANOVA, #140).
+데이터: GET /anova, 최종 모델 강조는 GET /health 의 model_version. 보너스는 GET /anova/two-way.
 """
 import math
 import re
@@ -12,7 +13,7 @@ import streamlit as st
 
 import api_client
 import features as F
-from components import ui
+from components import two_way_anova, ui
 from components.api_error import render_api_error
 from components.empty_state import render_no_report
 from components.page_header import render_page_header
@@ -212,6 +213,7 @@ def _main():
     for (key, title, question), highlight in zip(TESTS, (data_group, algo_group)):
         if key in anova:
             st.html(_test_section(key, title, question, anova[key], highlight))
+    two_way_anova.render()
 
 
 _main()
