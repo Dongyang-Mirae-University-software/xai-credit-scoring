@@ -31,9 +31,6 @@ WORKSPACE_CSS = Path(__file__).with_name("workspace.css").read_text(encoding="ut
 SCREENING_PAGE = "views/screening.py"
 NEW_ID_LOOKUP = 100  # 신규 고객 ID 를 고를 때 피할 서버 이력 수 (GET /screenings 최대치)
 
-# 신용카드 이용 기간(개월). 원래 과제의 씬파일러 기준 '카드 거래 이력 12개월 미만' 을 API 가 판정할 수 있게 보낸다.
-# 비우면 null. (API 에 이 칸이 아직 없으면 서버가 무시한다)
-CARD_FIELD = "credit_card_months"
 # 월 대출 상환액(원, CB 대출 정보). 부채비율(DebtRatio %) = 상환액 ÷ 고객이 적은 월소득 × 100 으로 만들어 /predict 에 넣는다
 REPAY_FIELD = "MonthlyRepayment"
 
@@ -57,7 +54,6 @@ CREDIT_FIELDS = [
     ("NumberOfTime30-59DaysPastDueNotWorse", "30~59일 연체", "회", 1, 0, 0, None, False),
     ("NumberOfTime60-89DaysPastDueNotWorse", "60~89일 연체", "회", 1, 0, 0, None, False),
     ("NumberOfTimes90DaysLate", "90일 이상 연체", "회", 1, 0, 0, None, False),
-    (CARD_FIELD, "신용카드 이용 기간", "개월", 1, 0, 0, 600, False),
 ]
 ALT_FIELDS = [
     ("telecom_payment_rate", "통신비 정상납부율", "%", 1, 1, 0, 100, True),
@@ -70,7 +66,6 @@ ALL_FIELDS = BASIC_FIELDS + APPLY_FIELDS + CREDIT_FIELDS + ALT_FIELDS
 FIELD_HINTS = {
     "NumberOfTime30-59DaysPastDueNotWorse": "최근 2년",
     "NumberOfTime60-89DaysPastDueNotWorse": "최근 2년",
-    CARD_FIELD: "선택",
     "app_login_frequency": "한 달 기준",
     "regular_payment_count": "한 달 기준",
 }
@@ -117,7 +112,7 @@ def _blank_profile():
     """직접 입력: 필수 칸은 비우고(None), 횟수 · 비율 칸은 0 으로 시작한다."""
     profile = {"customer_id": new_id(), "gender": None, **{f: None for f in FORM_KEYS + ["DebtRatio"]}}
     for field, _, _, _, _, _, _, required in CREDIT_FIELDS:
-        if not required and field != CARD_FIELD:
+        if not required:
             profile[field] = 0
     return profile
 
@@ -141,7 +136,7 @@ def clear_result():
 
 
 def _payload(profile):
-    """심사 요청 본문 (GMSC 10 + 대안 5 + 신용카드 이용 기간). 성별 · 이름 · 가린 주민등록번호는 보내지 않는다."""
+    """심사 요청 본문 (GMSC 10 + 대안 5). 성별 · 이름 · 가린 주민등록번호는 보내지 않는다."""
     return {k: v for k, v in profile.items() if k not in DISPLAY_KEYS}
 
 
