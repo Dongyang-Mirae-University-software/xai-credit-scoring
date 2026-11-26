@@ -6,10 +6,87 @@
 >
 > 같은 문구가 대시보드 모든 페이지(사이드바 하단), API 응답의 `disclaimer` 필드, 실험 리포트에 들어 있습니다.
 
-## 프로젝트 개요
+## 프로젝트 소개
 
-금융 이력이 부족해 기존 CB(신용평가) 모델로는 평가가 어려운 **씬파일러**를 위해, 통신비·공과금 납부율 같은 비금융 **대안 데이터**를 더해 신용을 평가하는 시스템입니다.
-Give Me Some Credit(GMSC) 데이터에 대안 데이터 시뮬레이터를 결합해 모델을 학습하고, SHAP 설명(XAI)·공정성 검증·ANOVA 통계 검증을 거쳐 FastAPI(API)와 Streamlit(대시보드)으로 제공합니다. 모든 실험은 MLflow로 기록합니다.
+금융 이력이 부족해 기존 CB(신용평가) 모델로는 평가가 어려운 **씬파일러**(사회초년생 · 프리랜서 · 주부 등)를 위해, 통신비 · 공과금 납부율 같은 비금융 **대안 데이터**를 더해 신용을 평가하는 시스템입니다.
+
+| | 내용 |
+|---|---|
+| 문제 | 금융 기록만 보는 신용평가는 기록이 적은 사람을 판단할 근거가 없어 거절하기 쉽다 |
+| 해결 | 금융 정보 10개 + 대안 데이터 5개로 부도 확률을 예측하고, 왜 그런 결과가 나왔는지(SHAP)와 성별 · 나이로 차별하지 않는지(공정성)를 함께 보여 준다 |
+| 사용자 | 대출 심사 담당자 - 고객 정보를 넣으면 승인 여부 · 신용 점수 · 거절 사유 5가지를 한 화면에서 확인 |
+| 데이터 | Give Me Some Credit(GMSC) 150,000명 + 대안 데이터 시뮬레이터 |
+
+모델 학습부터 SHAP 설명(XAI) · 공정성 검증 · ANOVA 통계 검증까지 거쳐 FastAPI(API)와 Streamlit(대시보드)으로 제공하고, 모든 실험은 MLflow로 기록합니다.
+
+## 결과 화면
+
+| 고객 심사 - 승인 (일반 고객) | 고객 심사 - 거절 (씬파일러) |
+|---|---|
+| ![승인된 일반 고객의 심사 결과: A등급, 845점, 부도 확률 15.5%](docs/images/screening_approved.png) | ![거절된 씬파일러의 심사 결과: E등급, 37점, 거절 사유 표](docs/images/screening_rejected.png) |
+| **XAI 분석** - 거절 사유 Top 5와 SHAP 기여도 | **공정성** - 성별 · 연령대 승인율, 보정 전후 비교 |
+| ![XAI 분석 화면: 한 줄 요약과 거절 사유 Top 5](docs/images/xai.png) | ![공정성 화면: 4개 항목 통과, 집단별 승인율](docs/images/fairness.png) |
+| **모델 성능** - 성능 목표 4개, ROC · PR 곡선 | **통계 검증** - ANOVA 2종과 Tukey HSD |
+| ![모델 성능 화면: AUC 0.889, KS 0.613, 씬파일러 AUC 향상 +0.066](docs/images/performance.png) | ![통계 검증 화면: 두 검증 모두 p < 0.001](docs/images/statistical_test.png) |
+
+## 주요 기능
+
+| 기능 | 설명 | 화면 · API |
+|---|---|---|
+| 고객 심사 | 고객 ID로 불러오거나 새로 입력하면 승인 · 거절, 신용 점수, 등급, 부도 확률을 보여 주고 심사 이력을 저장 | 고객 심사 · `POST /predict`, `GET/POST /screenings` |
+| 거절 사유 설명 (XAI) | SHAP으로 결과에 가장 크게 영향을 준 정보 5개를 고르고, 동일 연령대 평균과 비교한 안내 문장을 만든다 | XAI 분석 · `POST /explain`, `GET /explain/summary` |
+| 공정성 점검 | 성별 · 연령대별 승인율 비율(DI Ratio)과 Equalized Odds를 계산하고, 기준을 넘으면 집단별 승인 기준선을 조정(Bias Mitigation) | 공정성 · `GET /fairness`, `GET /fairness/mitigation` |
+| 모델 성능 | Test AUC · KS · PSI · 씬파일러 AUC 향상과 후보 모델 18개 비교 | 모델 성능 · `GET /metrics`, `GET /metrics/comparison` |
+| 통계 검증 | 데이터 종류별 · 알고리즘별 성능 차이가 우연이 아닌지 One-way ANOVA와 Tukey HSD로 확인 | 통계 검증 · `GET /anova` |
+| 추가 과제 | LIME과 SHAP 비교, 승인 조건 제안(무엇을 바꾸면 승인되는지), 이원 분산분석, PSI · CSI 데이터 변화 탐지, 기존 신용평가 모델과의 비교 실험 모의 시행 | `main_bonus_*.py` · `POST /counterfactual`, `GET /drift` |
+
+## 핵심 결과
+
+최종 모델은 통합 데이터(금융 + 대안) · LightGBM · `is_unbalance` 입니다. Test 22,500명에서 한 번만 평가했습니다.
+
+| 항목 | 목표 (과제 기준) | 결과 | 판정 |
+|---|---|---|---|
+| Test AUC-ROC | 0.78 이상 | 0.889 | 통과 |
+| Test KS | 0.28 이상 | 0.613 | 통과 |
+| PSI (Train vs Test 점수 분포) | 0.1 미만 | 0.0004 | 통과 |
+| 씬파일러 AUC 향상 (대안 데이터 포함 vs 미포함) | +0.03 이상 | +0.066 (교차검증, 95% 구간 +0.042 \~ +0.089) | 통과 |
+| 공정성 (연령대 DI Ratio) | 0.8 \~ 1.25 | 보정 전 1.254 → 보정 후 0.988 | 통과 (보정 후) |
+| ANOVA | 1개 이상 p < 0.05 | 두 검증 모두 p < 0.001 | 통과 |
+
+- 대안 데이터는 일반 고객(+0.027)보다 씬파일러(+0.070)에게 더 크게 도움이 됐습니다 (이원 분산분석).
+- 기존 신용평가 모델(금융 정보만)과 같은 승인율로 비교하면 부도율이 2.07%에서 1.72%로 16.5% 줄었습니다 (모의 시행).
+- 대안 데이터는 실제 데이터가 아니라 시뮬레이터로 만든 값이라, 실제 데이터에서도 같은 효과가 난다는 보장은 없습니다. 자세한 실험 과정과 한계는 [`docs/report_draft.md`](docs/report_draft.md)에 있습니다.
+
+## 시스템 구성
+
+```mermaid
+flowchart LR
+    subgraph P["학습 파이프라인 (main_step1~6)"]
+        D["GMSC 원본<br/>+ 대안 데이터 시뮬레이터"] --> T["전처리 · 분할<br/>Train / Validation / Test"]
+        T --> M["모델 18개 학습<br/>5-Fold CV"]
+        M --> V["검증<br/>성능 · SHAP · 공정성 · ANOVA"]
+    end
+    M -- "최종 모델 (models/)" --> A
+    V -- "검증 결과 JSON (outputs/)" --> A
+    M -. "실험 기록" .-> F[("MLflow")]
+    A["FastAPI<br/>:8000"] <--> S["Streamlit 대시보드<br/>:8501"]
+    U(["대출 심사 담당자"]) --> S
+```
+
+## 사용 기술
+
+| 분야 | 기술 |
+|---|---|
+| 언어 | Python 3.12 |
+| 데이터 · 모델 | pandas, NumPy, scikit-learn, XGBoost, LightGBM, imbalanced-learn (SMOTE) |
+| 설명 (XAI) | SHAP, LIME |
+| 공정성 · 통계 | Fairlearn (지표 교차 확인), SciPy (One-way ANOVA, Tukey HSD) |
+| API | FastAPI, Pydantic, Uvicorn |
+| 대시보드 | Streamlit, Plotly |
+| 실험 관리 | MLflow |
+| 배포 · 테스트 | Docker, Docker Compose, pytest |
+
+## 데이터와 모델
 
 ### 데이터
 | 항목 | 값 |
@@ -47,10 +124,12 @@ Give Me Some Credit(GMSC) 데이터에 대안 데이터 시뮬레이터를 결�
 
 | 이름 | 역할 | 담당 |
 |---|---|---|
+| 이윤아 (팀장) | 프론트엔드 | 화면 설계, Streamlit 대시보드 5개 페이지, 시각화, GitHub 저장소 · Docker 구성 |
 | 이재희 | 데이터·모델 | 데이터 로드, 대안 데이터 시뮬레이터, 전처리·분할, 모델 학습 (`main_step1·2`) |
-| 이하늘 | 백엔드·인프라 | FastAPI·Pydantic 스키마, Docker Compose, MLflow 서버 |
-| 이윤아 | 프론트엔드 | 화면 설계, Streamlit 대시보드 5개 페이지, 시각화 |
-| 남궁명진 | 모델 분석 | 성능 비교, XAI·SHAP, 공정성·통계 검증 (`main_step3~6`), 실험 리포트 |
+| 이하늘 | 백엔드·인프라 | API · DB 설계, FastAPI·Pydantic 스키마, Docker Compose, MLflow 서버 |
+| 남궁명진 | 모델 분석 | 성능 비교, XAI·SHAP, 공정성·통계 검증 (`main_step3~6`), 추가 과제 5종 (`main_bonus_*`), 실험 리포트 |
+
+통합 테스트 · 버그 수정, 리포트 · 문서, 발표는 전원이 함께 했습니다.
 
 ## 실행 방법
 
