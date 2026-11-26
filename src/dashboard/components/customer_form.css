@@ -39,6 +39,7 @@
 }
 .idn-notice.pending { background: var(--mid-bg); color: var(--mid-text); }
 .st-key-idn-manual { margin-top: 10px; }
+.st-key-idn-manual button { background: var(--fill); }
 
 .st-key-idn-samples { justify-content: center; flex-wrap: wrap; }
 .idn-samples-label { font-size: 13px; color: var(--ink-3); margin-right: 4px; }
@@ -54,17 +55,18 @@
 .st-key-frm-back button:hover { background: var(--fill); }
 
 .frm-id-card {
-  position: relative; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px;
+  display: flex; align-items: flex-start; gap: 16px;
   margin-top: 12px; padding: 20px 24px; border-radius: var(--radius-card); background: var(--card);
 }
-.frm-id-card > div { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
-.frm-id-card span { font-size: 13px; color: var(--ink-3); }
-.frm-id-card b { font-size: 16px; font-weight: 700; color: var(--ink); }
+.frm-id-cells { flex: 1 1 auto; min-width: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.frm-id-cells > div { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.frm-id-cells span { font-size: 13px; color: var(--ink-3); }
+.frm-id-cells b { font-size: 16px; font-weight: 700; color: var(--ink); white-space: nowrap; }
 .frm-badge {
-  position: absolute; top: -10px; right: 20px; padding: 4px 10px; border-radius: 999px;
-  font-style: normal; font-size: 12px; font-weight: 700; background: var(--accent-bg); color: var(--accent);
+  flex: none; padding: 5px 10px; border-radius: 8px; white-space: nowrap;
+  font-style: normal; font-size: 12px; font-weight: 700; line-height: 1.4; background: var(--accent-bg); color: var(--accent);
 }
-.frm-badge.manual, .frm-badge.sample { background: var(--fill-hover); color: var(--ink-2); }
+.frm-badge.manual, .frm-badge.sample { background: var(--fill); color: var(--ink-2); }
 
 /* 묶음 카드: 머리 + 한 줄씩 (라벨 ··· 값 단위) */
 [class*="st-key-frm-sec-"] {
@@ -106,18 +108,21 @@
 [class*="st-key-frm-row-"] > .stElementContainer:has(.frm-unit) { flex: 0 0 40px; width: 40px !important; }
 .frm-unit { display: block; font-size: 15px; color: var(--ink-3); }
 
-/* 성별: 두 칸 알약 */
-.st-key-frm-row-gender > .stElementContainer:has(.stRadio) { flex: 0 0 auto; width: auto !important; }
-.st-key-frm-row-gender [role="radiogroup"] { gap: 6px; flex-wrap: nowrap; }
-.st-key-frm-row-gender [role="radiogroup"] > label {
-  margin: 0; padding: 8px 16px; border-radius: 999px; background: var(--fill); cursor: pointer;
+/* 성별: 주민등록번호로 정해졌으면 값만, 고를 수 있으면 회색 트랙 + 흰 선택 칸 */
+.st-key-frm-row-gender > .stElementContainer:not(:has(.frm-label)) { flex: 0 0 auto; width: auto !important; }
+.frm-fixed { display: block; padding-right: 66px; font-size: 17px; font-weight: 700; color: var(--ink); }
+.st-key-frm-row-gender [data-testid="stButtonGroup"] > div {
+  display: flex; gap: 2px; padding: 3px; border-radius: 12px; background: var(--fill);
 }
-.st-key-frm-row-gender [role="radiogroup"] > label > div:first-child { display: none; }
-.st-key-frm-row-gender [role="radiogroup"] > label p { font-size: 15px; color: var(--ink-2); font-weight: 600; }
-.st-key-frm-row-gender [role="radiogroup"] > label:has(input:checked) { background: var(--accent); }
-.st-key-frm-row-gender [role="radiogroup"] > label:has(input:checked) p { color: #FFF; }
-.st-key-frm-row-gender [role="radiogroup"] > label:has(input:disabled) { cursor: default; }
-.st-key-frm-row-gender [role="radiogroup"] > label:has(input:disabled:not(:checked)) { opacity: .45; }
+.st-key-frm-row-gender [data-testid="stButtonGroup"] button {
+  min-height: 36px; height: 36px; padding: 0 18px; margin: 0; border: 0 !important; border-radius: 9px !important;
+  background: transparent; box-shadow: none;
+}
+.st-key-frm-row-gender [data-testid="stButtonGroup"] button p { font-size: 15px; font-weight: 600; color: var(--ink-3); }
+.st-key-frm-row-gender [data-testid="stButtonGroup"] button[kind$="Active"] {
+  background: #FFF; box-shadow: 0 1px 3px rgba(0, 0, 0, .1);
+}
+.st-key-frm-row-gender [data-testid="stButtonGroup"] button[kind$="Active"] p { color: var(--ink); font-weight: 700; }
 
 .frm-missing {
   margin: 0; padding: 14px 18px; border-radius: var(--radius-ctl);
