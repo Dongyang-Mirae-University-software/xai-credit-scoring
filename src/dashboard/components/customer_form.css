@@ -184,18 +184,6 @@
 .st-key-frm-submit button { height: 56px; min-height: 56px; }
 .st-key-frm-submit button p { font-size: 17px; }
 
-/* ---------- 화면 높이 채우기 ----------
-   1/3 · 2/3: 카드 폭은 그대로, 세로는 화면 높이까지 늘리고 '다음' 버튼은 카드 바닥에 붙인다.
-   (화면 높이 - 헤더 64 - 위 여백 32 - 아래 여백 · 면책 줄, 1/3 은 시연용 샘플 줄도 뺀다) */
-.st-key-idn-card { min-height: calc(100vh - 220px); }
-.st-key-apl-card { min-height: calc(100vh - 160px); }
-.st-key-idn-card > .stElementContainer:has([data-testid="stForm"]),
-.st-key-idn-card > [data-testid="stLayoutWrapper"]:has([data-testid="stForm"]) { flex: 1 1 auto; display: flex; flex-direction: column; }
-.st-key-idn-card [data-testid="stForm"] { flex: 1 1 auto; display: flex; flex-direction: column; }
-.st-key-idn-card [data-testid="stForm"] > [data-testid="stVerticalBlock"] { flex: 1 1 auto; }
-.st-key-idn-card [data-testid="stForm"] .stElementContainer:has([data-testid="stFormSubmitButton"]) { margin-top: auto; }
-.st-key-apl-card > .st-key-apl-next { margin-top: auto; }
-
 /* ---------- 3/3: 본문 폭 전체, 좌우 두 칸, 한 화면에 들어오게 촘촘히 ---------- */
 .st-key-frm-wrap { width: 100%; max-width: none; gap: 16px !important; padding-bottom: 0; }
 .st-key-frm-top { justify-content: space-between; flex-wrap: wrap; gap: 16px; }
@@ -232,4 +220,17 @@
 @media (max-width: 900px) {
   .st-key-frm-top { flex-wrap: wrap; }
   .st-key-frm-top > .stElementContainer:has(.frm-id-card) { width: 100% !important; }
+}
+/* 오른쪽 칸(신용정보 · 심사 실행)을 왼쪽 칸과 같은 높이로: 신용정보 카드가 남는 높이를 채우고 줄 간격을 고르게 벌린다.
+   (줄 하나하나도 가로 묶음(stHorizontalBlock)이라, 두 칸 묶음만 골라 늘린다) */
+.st-key-frm-wrap [data-testid="stHorizontalBlock"]:has(> [data-testid="stColumn"]) { align-items: stretch; }
+.st-key-frm-wrap [data-testid="stColumn"] { display: flex; flex-direction: column; }
+.st-key-frm-wrap [data-testid="stColumn"] > [data-testid="stVerticalBlock"] { flex: 1 1 auto; }
+.st-key-frm-wrap [data-testid="stColumn"] > [data-testid="stVerticalBlock"] > :has(> .st-key-frm-sec-credit),
+.st-key-frm-wrap .st-key-frm-sec-credit { flex: 1 1 auto; display: flex; flex-direction: column; }
+.st-key-frm-wrap .st-key-frm-sec-credit { padding-bottom: 8px; }
+.st-key-frm-wrap .st-key-frm-sec-credit > :has([class*="st-key-frm-row-"]) { flex: 1 1 0; display: flex; }
+.st-key-frm-wrap .st-key-frm-sec-credit [class*="st-key-frm-row-"] { flex: 1 1 auto; }
+@media (max-width: 640px) {
+  .st-key-frm-wrap .st-key-frm-sec-credit > :has([class*="st-key-frm-row-"]) { flex: none; }
 }
