@@ -58,8 +58,10 @@ def _get_explain(customer_id):
 # 머리: 제목 + 분석 대상 선택 + 조건 바꿔 재심사
 # ---------------------------------------------------------------------------
 def _option_label(customer_id):
-    result = st.session_state.customers[customer_id]["result"]
-    return f'{customer_id} ({"승인" if result["approval_status"] == "APPROVED" else "거절"})'
+    entry = st.session_state.customers[customer_id]
+    status = "승인" if entry["result"]["approval_status"] == "APPROVED" else "거절"
+    name = entry["profile"].get("name")
+    return f'{name} · {customer_id} ({status})' if name else f'{customer_id} ({status})'
 
 
 def _head(ids):
@@ -84,7 +86,8 @@ def _head(ids):
 def _customer_strip(entry):
     profile, result = entry["profile"], entry["result"]
     approved = result["approval_status"] == "APPROVED"
-    cells = [
+    cells = [("이름", profile["name"])] if profile.get("name") else []
+    cells += [
         ("고객 ID", result["customer_id"]),
         ("나이", f'{profile["age"]}세'),
         ("성별", profile.get("gender") or "-"),
