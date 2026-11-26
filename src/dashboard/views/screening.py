@@ -3,7 +3,8 @@
 흐름 (components/customer_form)
 - 1/2 본인 확인: 이름 + 주민등록번호 → 정보 조회
 - 2/2 정보 확인: 은행이 가진 정보가 채워진 입력 목록 → 틀린 항목만 고치고 심사 실행 (결과는 서버 이력에 바로 남는다)
-- 결과 화면: 정보 수정 → 2/2, 이전 → 1/2. 주소는 ?customer=<고객 ID> 라 새로고침 · 공유해도 그 결과가 열린다
+- 결과 화면: 정보 수정 → 2/2, 이전 → 1/2
+고객 번호(customer_id)는 화면에 보이지 않는다. 고객 구분 · 서버 이력 · XAI 목록 같은 내부 구분에만 쓴다.
 - 로고 · 사이드바 '고객 심사' → 언제나 1/2
 """
 import re
@@ -35,26 +36,6 @@ CONTRIBUTION_SUFFIX = re.compile(r"\s*\(기여도:\s*[-+−]?[\d.]+\)\s*$")
 # ---------------------------------------------------------------------------
 # 첫 화면 (디자인 01)
 # ---------------------------------------------------------------------------
-def _toast_later(message, error=False):
-    """콜백 안에서 띄운 안내를 다음 렌더에서 토스트로 보여 준다."""
-    st.session_state.scr_toast = (message, error)
-
-
-def _open_result(customer_id):
-    """주소의 ?customer= 로 그 고객의 결과 화면을 연다 (새로고침 · 공유 · 뒤로 가기).
-    이번 세션에서 심사한 고객이면 그 결과를, 아니면 시연용 샘플 파일의 입력값으로 다시 심사해 보여 준다."""
-    if CF.show_result(customer_id):
-        return
-    profile = CF.find_customer(customer_id)
-    if not profile:
-        _toast_later(f"{customer_id} 고객의 입력값을 찾을 수 없어 결과를 열지 못했어요.", error=True)
-        return
-    try:
-        CF.run_predict(profile, record=False)
-    except Exception as e:
-        _toast_later(f"{customer_id} 고객의 결과를 불러오지 못했어요: {type(e).__name__}", error=True)
-
-
 def _start_view():
     """1/2 본인 확인 카드."""
     CF.render_identify(disabled=connection.is_down())  # API 가 꺼져 있으면 조회 · 진행 버튼을 끈다 (시안 #api-down)
@@ -64,34 +45,8 @@ def _start_view():
 # 결과 화면 (디자인 03 승인 / 04 거절)
 # ---------------------------------------------------------------------------
 def _back():
-    """이전: 결과 화면을 닫고 1/2 본인 확인으로 (주소의 ?customer= 도 지운다)."""
+    """이전: 결과 화면을 닫고 1/2 본인 확인으로."""
     CF.clear_result()
-
-
-def _sync_query():
-    """결과 화면과 주소(?customer=)를 맞춘다. 브라우저 뒤로·앞으로 가기도 이걸로 따라간다.
-    - 주소에 고객 ID 가 있는데 지금 결과와 다르면 그 고객 결과를 연다 (이번 세션 결과 → 없으면 고객 파일 값으로 다시 심사)
-    - 주소에서 고객 ID 가 빠졌는데 직전에 주소에 붙여 둔 결과를 보고 있으면 = 뒤로 가기 → 첫 화면
-    - 결과를 보고 있으면 주소에 그 고객 ID 를 붙인다 (새로고침·공유해도 같은 결과)
-    st.query_params 에 값을 넣을 때마다 브라우저 기록이 하나 쌓이므로 (pushState), 주소와 다를 때만 넣는다."""
-    ss = st.session_state
-    wanted = (st.query_params.get(CF.RESULT_QUERY) or "").strip().upper()
-    current = ss.scr_current["result"]["customer_id"] if ss.scr_current else None
-    if wanted and wanted != current:
-        _open_result(wanted)
-        if ss.scr_current is None or ss.scr_current["result"]["customer_id"] != wanted:
-            st.query_params.pop(CF.RESULT_QUERY, None)  # 열 수 없는 고객이면 첫 화면 (안내는 토스트)
-    elif not wanted and current and ss.get("scr_query_synced") == current:
-        CF.clear_result()  # 뒤로 가기로 주소의 ?customer= 가 빠졌다
-        ss.scr_query_synced = None
-        st.rerun()
-    if ss.scr_current:
-        customer_id = ss.scr_current["result"]["customer_id"]
-        if st.query_params.get(CF.RESULT_QUERY) != customer_id:
-            st.query_params[CF.RESULT_QUERY] = customer_id
-        ss.scr_query_synced = customer_id
-    else:
-        ss.scr_query_synced = None
 
 
 def _completed_at(result):
@@ -105,9 +60,8 @@ def _completed_at(result):
 def _summary_html(profile, result):
     counts = [profile[f] for f, _ in CF.DELINQUENCY_FIELDS if profile[f] is not None]  # None = 기록 없음
     late = sum(int(c) for c in counts)
-    cells = [("이름", profile["name"])] if profile.get("name") else []  # 시연용 샘플은 이름이 없다
-    cells += [
-        ("고객 ID", profile["customer_id"]),
+    cells = [
+        ("이름", profile.get("name") or "-"),
         ("나이", f'{profile["age"]}세'),
         ("성별", profile.get("gender") or "-"),
         ("월 소득", f'{profile["MonthlyIncome"] / 10_000:,.0f}만원'),
@@ -260,7 +214,7 @@ def _factors_section(result, profile, approved):
         st.html(ui.section_head("주요 거절 사유",
                                 "자동화 평가 결과는 고객에게 주요 사유를 설명해야 해요 (신용정보법 제36조의2)."))
         notice = "\n".join(
-            [f"[대출 심사 결과 안내] 고객 ID {result['customer_id']}",
+            [f"[대출 심사 결과 안내] {profile['name'] + ' ' if profile.get('name') else ''}고객님",
              "고객님의 대출 신청은 아래 사유로 승인되지 않았습니다.", ""]
             + [f"{i}. {F.label(r['feature'])}: {_reason_text(r)}" for i, r in enumerate(reasons, 1)]
             + ["", config.DISCLAIMER])
@@ -314,10 +268,6 @@ st.html(f"<style>{CF.WORKSPACE_CSS}{CSS_PATH.read_text(encoding='utf-8')}{CF.CSS
 CF.init_state()
 CF.take_pending()
 
-_sync_query()
-toast = st.session_state.pop("scr_toast", None)
-if toast:
-    st.toast(toast[0], icon=":material/error:" if toast[1] else ":material/check_circle:")
 
 if st.session_state.scr_current is not None:
     _result_view()

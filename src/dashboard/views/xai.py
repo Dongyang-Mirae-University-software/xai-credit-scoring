@@ -60,8 +60,10 @@ def _get_explain(customer_id):
 def _option_label(customer_id):
     entry = st.session_state.customers[customer_id]
     status = "승인" if entry["result"]["approval_status"] == "APPROVED" else "거절"
-    name = entry["profile"].get("name")
-    return f'{name} · {customer_id} ({status})' if name else f'{customer_id} ({status})'
+    profile = entry["profile"]
+    # 고객 번호는 보여 주지 않는다. 이름이 같은 고객도 나이 · 성별로 구분되게 붙인다
+    who = " · ".join(str(v) for v in (profile.get("name"), f'{profile.get("age")}세', profile.get("gender")) if v)
+    return f'{who} ({status})'
 
 
 def _head(ids):
@@ -86,9 +88,8 @@ def _head(ids):
 def _customer_strip(entry):
     profile, result = entry["profile"], entry["result"]
     approved = result["approval_status"] == "APPROVED"
-    cells = [("이름", profile["name"])] if profile.get("name") else []
-    cells += [
-        ("고객 ID", result["customer_id"]),
+    cells = [
+        ("이름", profile.get("name") or "-"),
         ("나이", f'{profile["age"]}세'),
         ("성별", profile.get("gender") or "-"),
         ("월 소득", f'{profile["MonthlyIncome"] / 10_000:,.0f}만원'),
@@ -152,7 +153,7 @@ def _tag(feature):
     return f'<span class="xai-tag {"alt" if group == "alternative" else ""}">{F.GROUP_LABELS[group]}</span>'
 
 
-def _reasons(explain, result):
+def _reasons(explain, result, name=None):
     reasons = explain.get("rejection_reasons") or []
     approved = result["approval_status"] == "APPROVED"
     title = "위험을 높인 정보 Top 5" if approved else "거절 사유 Top 5"
@@ -162,7 +163,7 @@ def _reasons(explain, result):
         st.html(ui.section_head(title, sub))
         if not approved and reasons:
             notice = "\n".join(
-                [f"[대출 심사 결과 안내] 고객 ID {result['customer_id']}",
+                [f"[대출 심사 결과 안내] {name + ' ' if name else ''}고객님",
                  "고객님의 대출 신청은 아래 사유로 승인되지 않았습니다.", ""]
                 + [f"{i}. {F.label(r['feature'])}: {CONTRIBUTION_SUFFIX.sub('', r.get('explanation') or '')}"
                    for i, r in enumerate(reasons, 1)]
@@ -384,7 +385,7 @@ else:
         render_api_error("POST /explain", e)
     if explain:
         st.html(_summary_html(explain, entry["result"]))
-        _reasons(explain, entry["result"])
+        _reasons(explain, entry["result"], entry["profile"].get("name"))
         counterfactual.render(customer_id, entry["payload"], entry["result"])
         _detail(explain, entry)
 

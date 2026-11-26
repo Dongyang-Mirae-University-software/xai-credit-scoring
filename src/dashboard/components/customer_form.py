@@ -122,23 +122,10 @@ def find_customer(customer_id):
     return None
 
 
-RESULT_QUERY = "customer"  # 결과 화면 주소: 고객 심사?customer=C001234
-
-
 def clear_result():
-    """첫 화면(1/2 본인 확인)으로: 보고 있던 결과와 주소의 ?customer= 를 지운다 (버튼 on_click 에서 불러도 된다)."""
+    """첫 화면(1/2 본인 확인)으로: 보고 있던 결과를 닫는다 (버튼 on_click 에서 불러도 된다)."""
     st.session_state.scr_current = None
     st.session_state.scr_step = "identify"
-    st.query_params.pop(RESULT_QUERY, None)
-
-
-def show_result(customer_id):
-    """이미 심사한 고객의 결과를 고객 심사 화면에 띄운다. 심사한 적 없으면 False."""
-    entry = st.session_state.customers.get(customer_id)
-    if not entry:
-        return False
-    st.session_state.scr_current = {"profile": entry["profile"], "result": entry["result"]}
-    return True
 
 
 def _payload(profile):
@@ -179,7 +166,7 @@ def get_explain(customer_id):
     if isinstance(explain, Exception):
         raise explain
     if explain is None:
-        raise LookupError(f"{customer_id} 고객의 설명(/explain)이 없어요. 다시 심사해 주세요.")
+        raise LookupError("이 고객의 설명(/explain)이 없어요. 다시 심사해 주세요.")
     return explain
 
 
@@ -406,8 +393,8 @@ def render_confirm(disabled=False):
         st.button("이전", key="frm-back", type="tertiary", on_click=_back_to_identify)
         st.html(f'<div class="tz-step">2 / 2</div><h1 class="tz-title">{title}</h1><p class="tz-sub">{sub}</p>')
 
-        rows = [("이름", name), ("주민등록번호", profile.get("rrn_masked")), ("고객번호", profile["customer_id"])]
-        rows = [(label, value) for label, value in rows if value]  # 시연용 샘플은 이름 · 주민등록번호가 없다
+        # 고객 번호는 보여 주지 않는다 (내부 구분용)
+        rows = [("이름", name or "-"), ("주민등록번호", profile.get("rrn_masked") or "-")]
         cells = "".join(f'<div><span>{label}</span><b>{escape(str(value))}</b></div>' for label, value in rows)
         badge = f'<i class="frm-badge {source}">{SOURCES[source]}</i>'
         st.html(f'<div class="frm-id-card"><div class="frm-id-cells">{cells}</div>{badge}</div>')
