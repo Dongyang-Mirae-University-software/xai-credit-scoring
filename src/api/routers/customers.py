@@ -45,8 +45,9 @@ def get_customer(customer_id: str):
 
 @router.post('/customers/lookup', response_model=CustomerProfile, response_model_by_alias=True,
              summary='고객 정보 조회 (이름 + 주민등록번호)',
-             description='창구에서 본인 확인한 이름 · 주민등록번호로 은행이 가진 신용정보 · 대안정보를 불러온다. '
-                         '응답은 `/predict` 입력과 같은 단위라 그대로 심사에 넣을 수 있다. '
+             description='창구에서 본인 확인한 이름 · 주민등록번호로 은행이 가진 신용정보(CB) · 대안정보를 불러온다. '
+                         '월소득 · 부양가족 수는 고객이 신청서에 적는 값이라 주지 않는다. '
+                         '부채비율 대신 월 대출 상환액(원)을 주며, `/predict` 의 DebtRatio = 상환액 ÷ 월소득 × 100 이다. '
                          '주민등록번호와 이름이 모두 맞아야 하고, 어느 쪽이 틀렸는지는 알려 주지 않는다. '
                          '데이터의 이름 · 주민등록번호는 시연용 가짜 값이다.',
              responses={404: {'description': '일치하는 고객 없음'}, 422: {'description': '주민등록번호 형식 오류'}})
@@ -55,4 +56,6 @@ def lookup_customer(body: CustomerLookup):
     customer = by_id.get(by_rrn.get(body.rrn))
     if customer is None or ' '.join(customer.get('name', '').split()) != body.name:
         raise HTTPException(404, NOT_FOUND)
-    return customer
+    # 은행 기록만: 월 상환액은 부채비율 × 기록상 월소득 (데이터에 상환액 칸이 없어 거꾸로 계산한다)
+    repayment = int(round(customer['DebtRatio'] / 100 * customer['MonthlyIncome']))
+    return {**customer, 'MonthlyRepayment': repayment}
