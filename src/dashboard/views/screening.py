@@ -1,11 +1,12 @@
 """고객 심사 페이지 (은행 창구 기준, 한 화면씩 넘긴다)
 
 흐름 (components/customer_form)
-- 1/2 본인 확인: 이름 + 주민등록번호 → 정보 조회
-- 2/2 정보 확인: 은행이 가진 정보가 채워진 입력 목록 → 틀린 항목만 고치고 심사 실행 (결과는 서버 이력에 바로 남는다)
-- 결과 화면: 정보 수정 → 2/2, 이전 → 1/2
+- 1/3 본인 확인: 이름 + 주민등록번호 → 정보 조회
+- 2/3 신청 정보: 월소득 · 부양가족 수 → 불러오기 연출
+- 3/3 전체 확인: 모든 정보 → 틀린 항목만 고치고 심사 실행 (결과는 서버 이력에 바로 남는다)
+- 결과 화면: 정보 수정 → 3/3, 이전 → 1/3
 고객 번호(customer_id)는 화면에 보이지 않는다. 고객 구분 · 서버 이력 · XAI 목록 같은 내부 구분에만 쓴다.
-- 로고 · 사이드바 '고객 심사' → 언제나 1/2
+- 로고 · 사이드바 '고객 심사' → 언제나 1/3
 """
 import re
 from datetime import datetime
@@ -37,7 +38,7 @@ CONTRIBUTION_SUFFIX = re.compile(r"\s*\(기여도:\s*[-+−]?[\d.]+\)\s*$")
 # 첫 화면 (디자인 01)
 # ---------------------------------------------------------------------------
 def _start_view():
-    """1/2 본인 확인 카드."""
+    """1/3 본인 확인 카드."""
     CF.render_identify(disabled=connection.is_down())  # API 가 꺼져 있으면 조회 · 진행 버튼을 끈다 (시안 #api-down)
 
 
@@ -45,7 +46,7 @@ def _start_view():
 # 결과 화면 (디자인 03 승인 / 04 거절)
 # ---------------------------------------------------------------------------
 def _back():
-    """이전: 결과 화면을 닫고 1/2 본인 확인으로."""
+    """이전: 결과 화면을 닫고 1/3 본인 확인으로."""
     CF.clear_result()
 
 
@@ -262,6 +263,7 @@ def _result_view():
 # ---------------------------------------------------------------------------
 st.html(f"<style>{CF.WORKSPACE_CSS}{CSS_PATH.read_text(encoding='utf-8')}{CF.CSS}"
         + ui.mask_css(".st-key-frm-back button::before", "chevron", 16)
+        + ui.mask_css(".st-key-apl-back button::before", "chevron", 16)
         + ui.mask_css(".st-key-scr-back button::before", "chevron", 16)
         + ui.mask_css(".st-key-scr-edit button::before", "pencil", 14)
         + "</style>")
@@ -271,6 +273,10 @@ CF.take_pending()
 
 if st.session_state.scr_current is not None:
     _result_view()
+elif st.session_state.scr_step == "apply":
+    CF.render_apply(disabled=connection.is_down())
+elif st.session_state.scr_step == "loading":
+    CF.render_loading()
 elif st.session_state.scr_step == "confirm":
     CF.render_confirm(disabled=connection.is_down())
 else:

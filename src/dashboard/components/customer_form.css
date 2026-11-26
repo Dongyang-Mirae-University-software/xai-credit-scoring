@@ -1,7 +1,7 @@
 /* 고객 심사 1/2 본인 확인 · 2/2 정보 확인 (components/customer_form) */
 
 /* ---------- 1/2 본인 확인 ---------- */
-.st-key-idn-card, .st-key-idn-samples, .st-key-frm-wrap {
+.st-key-idn-card, .st-key-idn-samples, .st-key-frm-wrap, .st-key-apl-card {
   width: 100%; max-width: 600px; margin: 0 auto; box-sizing: border-box;
 }
 .st-key-idn-card {
@@ -46,7 +46,61 @@
 .st-key-idn-samples button { height: 34px; min-height: 34px; padding: 0 14px; border-radius: 999px; background: #FFF !important; }
 .st-key-idn-samples button p { font-size: 13px; }
 
-/* ---------- 2/2 정보 확인 ---------- */
+/* ---------- 2/3 신청 정보 ---------- */
+.st-key-apl-card {
+  padding: 28px 40px 32px; border-radius: var(--radius-card); background: var(--card); gap: 0 !important;
+}
+.st-key-apl-back { margin: 0 0 12px -12px; }
+.st-key-apl-back button { height: 36px; min-height: 36px; padding: 0 12px; gap: 2px; border-radius: 10px; }
+.st-key-apl-back button::before { transform: rotate(180deg); }
+.st-key-apl-back button p { font-size: 15px; color: var(--ink-2); font-weight: 600; }
+.st-key-apl-back button:hover { background: var(--fill); }
+.st-key-apl-income { margin-top: 32px; }
+.st-key-apl-income, .st-key-apl-dep { margin-bottom: 12px; }
+.st-key-apl-card [data-testid="stWidgetLabel"] p { font-size: 14px; color: var(--ink-3); font-weight: 500; }
+.st-key-apl-card [data-testid="stNumberInputContainer"] { height: 56px; border: 0; background: none; }
+.st-key-apl-card [data-baseweb="input"] {
+  height: 56px; border: 2px solid transparent !important; border-radius: var(--radius-ctl); background: var(--fill);
+  padding-right: 16px; transition: border-color .15s, background .15s;
+}
+.st-key-apl-card [data-baseweb="input"]:focus-within { border-color: var(--accent) !important; background: #FFF; }
+.st-key-apl-card [data-baseweb="base-input"] { background: transparent; }
+.st-key-apl-card input { font-size: 18px; font-weight: 600; color: var(--ink); padding: 0 16px; }
+.st-key-apl-card input::placeholder { color: var(--ink-3); font-weight: 400; }
+.st-key-apl-card [data-testid="stNumberInputStepDown"], .st-key-apl-card [data-testid="stNumberInputStepUp"],
+.st-key-apl-card [data-testid="InputInstructions"] { display: none; }
+.st-key-apl-card [data-baseweb="input"]::after { align-self: center; font-size: 16px; color: var(--ink-3); white-space: nowrap; }
+.st-key-apl-income [data-baseweb="input"]::after { content: "만원"; }
+.st-key-apl-dep [data-baseweb="input"]::after { content: "명"; }
+.st-key-apl-next { margin-top: 20px; }
+.st-key-apl-next button { height: 56px; min-height: 56px; }
+.st-key-apl-next button p { font-size: 17px; }
+
+/* ---------- 불러오기 연출 ---------- */
+.ld-card {
+  width: 100%; max-width: 600px; margin: 0 auto; box-sizing: border-box;
+  padding: 48px 40px 40px; border-radius: var(--radius-card); background: var(--card); text-align: center;
+}
+.ld-card .tz-title { margin-top: 24px; }
+.ld-spin {
+  width: 56px; height: 56px; margin: 0 auto; border-radius: 50%;
+  border: 5px solid var(--accent-bg); border-top-color: var(--accent); animation: ld-rot .9s linear infinite;
+}
+.ld-spin.ok { animation: none; border-color: var(--accent); }
+@keyframes ld-rot { to { transform: rotate(360deg); } }
+.ld-steps { list-style: none; margin: 32px 0 0; padding: 0; display: flex; flex-direction: column; gap: 14px; text-align: left; }
+.ld-steps li { display: flex; align-items: center; gap: 12px; margin: 0; font-size: 16px; color: var(--ink-3); transition: color .2s; }
+.ld-steps li i {
+  flex: none; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+  background: var(--fill);
+}
+.ld-steps li.done { color: var(--ink); }
+.ld-steps li.done i { background: var(--accent); }
+.ld-steps li.doing { color: var(--ink-2); font-weight: 600; }
+.ld-steps li.doing i { border: 3px solid var(--accent-bg); border-top-color: var(--accent); box-sizing: border-box; background: none;
+  animation: ld-rot .9s linear infinite; }
+
+/* ---------- 3/3 전체 확인 ---------- */
 .st-key-frm-wrap { gap: 16px !important; padding-bottom: 8px; }
 .st-key-frm-back { margin-left: -12px; }
 .st-key-frm-back button { height: 36px; min-height: 36px; padding: 0 12px; gap: 2px; border-radius: 10px; }
