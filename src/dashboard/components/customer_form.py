@@ -30,6 +30,8 @@ NEW_ID_LOOKUP = 100  # 신규 고객 ID 를 고를 때 피할 서버 이력 수 
 # 신용카드 이용 기간(개월). 원래 과제의 씬파일러 기준 '카드 거래 이력 12개월 미만' 을 API 가 판정할 수 있게 보낸다.
 # 비우면 null. (API 에 이 칸이 아직 없으면 서버가 무시한다)
 CARD_FIELD = "credit_card_months"
+# 월 대출 상환액(원, CB 대출 정보). 부채비율(DebtRatio %) = 상환액 ÷ 고객이 적은 월소득 × 100 으로 만들어 /predict 에 넣는다
+REPAY_FIELD = "MonthlyRepayment"
 
 # 입력 목록 칸: (요청 키, 라벨, 단위, 화면 배율, 소수 자릿수, 최소, 최대, 필수)
 # 화면 값 = 요청 값 × 배율. 요청 단위는 실제 API(CustomerInput)와 같다: 월소득 원, 부채비율 · 납부율 %, 한도 사용률 0~1
@@ -44,7 +46,7 @@ APPLY_FIELDS = [
 APPLY_KEYS = {f for f, *_ in APPLY_FIELDS}
 APPLY_SOURCES = {"bank", "manual"}  # 이 출처에서는 신청 정보를 빈칸으로 시작한다
 CREDIT_FIELDS = [
-    ("DebtRatio", "부채비율", "%", 1, 1, 0, None, False),
+    (REPAY_FIELD, "월 대출 상환액", "만원", 1e-4, 0, 0, None, False),
     ("RevolvingUtilizationOfUnsecuredLines", "신용한도 사용률", "%", 100, 1, 0, None, False),
     ("NumberOfOpenCreditLinesAndLoans", "보유 대출 · 신용 한도", "개", 1, 0, 0, None, False),
     ("NumberRealEstateLoansOrLines", "부동산 담보대출", "개", 1, 0, 0, None, False),
@@ -62,7 +64,6 @@ ALT_FIELDS = [
 ]
 ALL_FIELDS = BASIC_FIELDS + APPLY_FIELDS + CREDIT_FIELDS + ALT_FIELDS
 FIELD_HINTS = {
-    "DebtRatio": "월 대출 상환액 ÷ 월소득",
     "NumberOfTime30-59DaysPastDueNotWorse": "최근 2년",
     "NumberOfTime60-89DaysPastDueNotWorse": "최근 2년",
     CARD_FIELD: "선택",
@@ -71,8 +72,9 @@ FIELD_HINTS = {
 }
 # 결과 화면 요약에서 연체 합계를 낼 때 쓴다
 DELINQUENCY_FIELDS = [(f, label) for f, label, *_ in CREDIT_FIELDS if "DaysPastDue" in f or "DaysLate" in f]
-REQUEST_KEYS = [f for f, *_ in ALL_FIELDS]
-DISPLAY_KEYS = ("gender", "name", "rrn_masked")  # 화면 표시용. 심사 요청에는 넣지 않는다
+FORM_KEYS = [f for f, *_ in ALL_FIELDS]                                     # 2/2 화면 칸
+REQUEST_KEYS = [f for f in FORM_KEYS if f != REPAY_FIELD] + ["DebtRatio"]    # 심사 요청 칸
+DISPLAY_KEYS = ("gender", "name", "rrn_masked", REPAY_FIELD)  # 화면 표시 · 계산용. 심사 요청에는 넣지 않는다
 
 # 정보 출처 → 2/2 화면 머리 배지
 SOURCES = {"bank": "은행 보유 정보", "manual": "직접 입력", "sample": "시연용 샘플", "edit": "다시 심사"}
@@ -109,7 +111,7 @@ def new_id():
 
 def _blank_profile():
     """직접 입력: 필수 칸은 비우고(None), 횟수 · 비율 칸은 0 으로 시작한다."""
-    profile = {"customer_id": new_id(), "gender": None, **{f: None for f in REQUEST_KEYS}}
+    profile = {"customer_id": new_id(), "gender": None, **{f: None for f in FORM_KEYS + ["DebtRatio"]}}
     for field, _, _, _, _, _, _, required in CREDIT_FIELDS:
         if not required and field != CARD_FIELD:
             profile[field] = 0
@@ -207,7 +209,7 @@ def _lookup():
     else:
         profile = {"customer_id": found.get("customer_id") or new_id(),
                    "gender": found.get("gender") or identity.gender(back),
-                   **{k: found.get(k) for k in REQUEST_KEYS}}
+                   **{k: found.get(k) for k in FORM_KEYS}}
         if profile["age"] is None:
             profile["age"] = identity.age(front, back)
         _open_confirm({**profile, "name": found.get("name") or name, "rrn_masked": identity.masked(front, back)}, "bank")
@@ -285,9 +287,22 @@ def _shown(value, scale, decimals):
     return int(shown) if decimals == 0 else shown
 
 
+def _with_repayment(profile):
+    """월 대출 상환액이 없는 고객(시연용 샘플 · 예전 심사)은 부채비율 × 월소득으로 채운다."""
+    if profile.get(REPAY_FIELD) is None and profile.get("DebtRatio") is not None and profile.get("MonthlyIncome"):
+        return {**profile, REPAY_FIELD: profile["DebtRatio"] / 100 * profile["MonthlyIncome"]}
+    return profile
+
+
+def _debt_ratio(repayment, income):
+    """부채비율 % = 월 대출 상환액 ÷ 월소득 × 100. 소득이 0 이면 1만원으로 나눈다 (상환액이 있으면 아주 높게 나온다)."""
+    return round((repayment or 0) / max(income or 0, 10_000) * 100, 4)
+
+
 def _open_confirm(profile, source):
     """2/2 정보 확인으로 넘어간다. 입력 목록을 그 고객 값으로 채운다 (버튼 on_click 에서 불러도 된다)."""
     ss = st.session_state
+    profile = _with_repayment(profile)
     ss.frm_profile, ss.frm_source, ss.frm_missing, ss.frm_error = profile, source, [], None
     ss.frm_shown = {}
     for field, _, _, scale, decimals, *_ in ALL_FIELDS:
@@ -329,6 +344,12 @@ def _form_profile():
         else:
             value = shown / scale
             profile[field] = int(round(value)) if decimals == 0 and scale == 1 else float(value)
+    # 부채비율: 월소득 · 상환액을 그대로 두었으면 원래 값, 바뀌었으면 다시 계산
+    same = all(ss[f"frm_{f}"] is not None and ss[f"frm_{f}"] == ss.frm_shown[f] for f in ("MonthlyIncome", REPAY_FIELD))
+    if same and original.get("DebtRatio") is not None:
+        profile["DebtRatio"] = original["DebtRatio"]
+    else:
+        profile["DebtRatio"] = _debt_ratio(profile[REPAY_FIELD], profile["MonthlyIncome"])
     return profile
 
 
@@ -349,6 +370,10 @@ def _row(field, label, unit, scale, decimals, lo, hi, required):
     """한 줄: 라벨(+ 도움말 · 수정됨) ··· 값 단위. 값은 그 자리에서 바로 고친다."""
     edited = '<i class="frm-edited">수정됨</i>' if _edited(field) else ""
     hint = FIELD_HINTS.get(field)
+    if field == REPAY_FIELD:  # 부채비율 자동 계산 (화면 값은 만원 단위)
+        income, repay = st.session_state.get("frm_MonthlyIncome"), st.session_state.get(f"frm_{REPAY_FIELD}")
+        hint = (f"부채비율 {(repay or 0) / income * 100:.0f}% 자동 계산 (상환액 ÷ 월소득)"
+                if income else "월소득을 입력하면 부채비율을 계산해요")
     with st.container(key=f"frm-row-{field}", horizontal=True, vertical_alignment="center", gap="small"):
         st.html(f'<div class="frm-label"><span>{escape(label)}{edited}</span>'
                 + (f'<small>{escape(hint)}</small>' if hint else "") + "</div>")
