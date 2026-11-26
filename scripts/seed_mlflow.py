@@ -31,6 +31,8 @@ def build_records(meta):
     final_metrics = {k: sel[k] for k in ('val_auc', 'test_auc', 'test_ks')}
     final_metrics['score_psi'] = sel['psi']['score_psi']
     final_metrics['feature_psi_max'] = sel['psi']['feature_psi']['max']
+    if 'feature_csi' in sel['psi']:  # #141 이전 메타데이터에는 없다
+        final_metrics['feature_csi_max'] = sel['psi']['feature_csi']['max']
     records.append(('FINAL ' + sel['selected_model'],
                     {'selected_model': sel['selected_model'], 'selection_metric': sel['selection_metric']},
                     final_metrics))

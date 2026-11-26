@@ -34,6 +34,8 @@ def test_explain_key_patterns():
     assert 'Average of the 5 folds' in notes.explain_key('ks_mean')
     assert 'Small = stable' in notes.explain_key('roc_auc_std')
     assert 'age' in notes.explain_key('psi_age')
+    assert 'csi_grade_age' in notes.explain_key('csi_age')          # #141
+    assert notes.explain_key('feature_csi_max').startswith('The largest CSI')
     assert notes.explain_key('thin_ci_low').startswith('Lower end')
     assert notes.explain_key('something_else') is None
 

@@ -383,7 +383,98 @@
         "max_feature": "telecom_payment_rate",
         "pass": true
       },
-      "pass": true
+      "pass": true,
+      "feature_csi": {
+        "per_feature": {
+          "RevolvingUtilizationOfUnsecuredLines": {
+            "csi": 0.0005869934068748322,
+            "grade": "안정",
+            "binning": "quantile"
+          },
+          "age": {
+            "csi": 0.00045658140990882114,
+            "grade": "안정",
+            "binning": "quantile"
+          },
+          "NumberOfTime30-59DaysPastDueNotWorse": {
+            "csi": 2.870240613172044e-05,
+            "grade": "안정",
+            "binning": "quantile"
+          },
+          "DebtRatio": {
+            "csi": 0.0006159393752719241,
+            "grade": "안정",
+            "binning": "quantile"
+          },
+          "MonthlyIncome": {
+            "csi": 0.00038124910086163345,
+            "grade": "안정",
+            "binning": "quantile"
+          },
+          "NumberOfOpenCreditLinesAndLoans": {
+            "csi": 0.0010069545462095084,
+            "grade": "안정",
+            "binning": "quantile"
+          },
+          "NumberOfTimes90DaysLate": {
+            "csi": 8.980950368852126e-05,
+            "grade": "안정",
+            "binning": "quantile"
+          },
+          "NumberRealEstateLoansOrLines": {
+            "csi": 1.697259959457039e-05,
+            "grade": "안정",
+            "binning": "quantile"
+          },
+          "NumberOfTime60-89DaysPastDueNotWorse": {
+            "csi": 0.00015043005627201847,
+            "grade": "안정",
+            "binning": "quantile"
+          },
+          "NumberOfDependents": {
+            "csi": 0.00016007299911389544,
+            "grade": "안정",
+            "binning": "quantile"
+          },
+          "telecom_payment_rate": {
+            "csi": 0.0009027783556832502,
+            "grade": "안정",
+            "binning": "quantile"
+          },
+          "utility_payment_rate": {
+            "csi": 0.0003166559766925573,
+            "grade": "안정",
+            "binning": "quantile"
+          },
+          "spending_consistency": {
+            "csi": 0.00021056725887022202,
+            "grade": "안정",
+            "binning": "quantile"
+          },
+          "regular_payment_count": {
+            "csi": 0.0003975367912541123,
+            "grade": "안정",
+            "binning": "discrete"
+          },
+          "app_login_frequency": {
+            "csi": 0.00018035780586358858,
+            "grade": "안정",
+            "binning": "discrete"
+          }
+        },
+        "max": 0.0010069545462095084,
+        "max_feature": "NumberOfOpenCreditLinesAndLoans",
+        "grade_counts": {
+          "안정": 15,
+          "주의": 0,
+          "경고": 0
+        },
+        "flagged": [],
+        "thresholds": {
+          "stable": 0.1,
+          "caution": 0.25
+        }
+      }
     },
     "thin_filer_uplift": {
       "n_thin_filer": 625,
