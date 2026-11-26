@@ -502,13 +502,27 @@ def _go(step):
     st.session_state.scr_step = step
 
 
+def _basic_section(profile):
+    ss = st.session_state
+    with st.container(key="frm-sec-basic"):
+        caption = "주민등록번호로 확인한 정보라 고칠 수 없어요" if profile.get("rrn_masked") else "고칠 수 없는 정보예요"
+        st.html(f'<div class="frm-sec-head"><h2>기본 정보</h2><p>{caption}</p></div>')
+        age = _val("age")
+        for label, hint, value, unit in (("나이", "만 나이", "-" if age is None else str(age), "세"),
+                                         ("성별", "공정성 점검용, 점수 미반영", ss.frm_gender or "-", "")):
+            st.html(f'<div class="frm-fixed-row"><div class="frm-label"><span>{label}</span>'
+                    f'<small>{hint}</small></div><b class="frm-fixed">{escape(value)}</b>'
+                    f'<span class="frm-unit">{unit}</span></div>')
+
+
 def render_confirm(disabled=False):
-    """3/3 전체 확인 화면."""
+    """3/3 전체 확인 화면. 한 화면(1440 × 900)에 스크롤 없이 들어오도록 좌우로 나눈다:
+    왼쪽 기본 정보 · 신청 정보 · 대안정보 | 오른쪽 신용정보 · 심사 실행. 좁은 화면에서는 위아래로 쌓인다."""
     ss = st.session_state
     profile, source = ss.frm_profile, ss.frm_source
     name = profile.get("name")
-    title = (f"{escape(name)}님의 정보를<br>모두 불러왔어요" if name and source in ("bank", "sample")
-             else f"{escape(name)}님의 나머지 정보를<br>입력해 주세요" if name and source == "manual"
+    title = (f"{escape(name)}님의 정보를 모두 불러왔어요" if name and source in ("bank", "sample")
+             else f"{escape(name)}님의 나머지 정보를 입력해 주세요" if name and source == "manual"
              else "고객 정보를 확인해 주세요")
     sub = {"bank": "틀린 정보가 있으면 고친 뒤 심사를 실행하세요.",
            "manual": "은행에 기록이 없는 고객이에요. 나이와 성별은 주민등록번호로 채웠어요.",
@@ -517,39 +531,34 @@ def render_confirm(disabled=False):
     edited = sum(_edited(f) for f, *_ in ALL_FIELDS)
 
     with st.container(key="frm-wrap"):
-        st.button("이전", key="frm-back", type="tertiary", on_click=_go,
-                  args=("identify" if source == "edit" else "apply",))
-        st.html(f'<div class="tz-step">3 / 3</div><h1 class="tz-title">{title}</h1><p class="tz-sub">{sub}</p>')
+        with st.container(key="frm-top", horizontal=True, vertical_alignment="bottom"):
+            with st.container(key="frm-top-left"):
+                with st.container(key="frm-top-step", horizontal=True, vertical_alignment="center", gap="small"):
+                    st.button("이전", key="frm-back", type="tertiary", on_click=_go,
+                              args=("identify" if source == "edit" else "apply",))
+                    st.html('<div class="tz-step">3 / 3</div>')
+                st.html(f'<h1 class="tz-title">{title}</h1><p class="tz-sub">{sub}</p>')
+            # 고객 번호는 보여 주지 않는다 (내부 구분용)
+            rows = [("이름", name or "-"), ("주민등록번호", profile.get("rrn_masked") or "-")]
+            cells = "".join(f'<div><span>{label}</span><b>{escape(str(value))}</b></div>' for label, value in rows)
+            st.html(f'<div class="frm-id-card"><div class="frm-id-cells">{cells}</div>'
+                    f'<i class="frm-badge {source}">{SOURCES[source]}</i></div>')
 
-        # 고객 번호는 보여 주지 않는다 (내부 구분용)
-        rows = [("이름", name or "-"), ("주민등록번호", profile.get("rrn_masked") or "-")]
-        cells = "".join(f'<div><span>{label}</span><b>{escape(str(value))}</b></div>' for label, value in rows)
-        badge = f'<i class="frm-badge {source}">{SOURCES[source]}</i>'
-        st.html(f'<div class="frm-id-card"><div class="frm-id-cells">{cells}</div>{badge}</div>')
-
-        with st.container(key="frm-sec-basic"):
-            caption = "주민등록번호로 확인한 정보라 고칠 수 없어요" if profile.get("rrn_masked") else "고칠 수 없는 정보예요"
-            st.html(f'<div class="frm-sec-head"><h2>기본 정보</h2><p>{caption}</p></div>')
-            age = _val("age")
-            for label, hint, value, unit in (("나이", "만 나이", "-" if age is None else str(age), "세"),
-                                             ("성별", "공정성 점검용, 점수 미반영", ss.frm_gender or "-", "")):
-                st.html(f'<div class="frm-fixed-row"><div class="frm-label"><span>{label}</span>'
-                        f'<small>{hint}</small></div><b class="frm-fixed">{escape(value)}</b>'
-                        f'<span class="frm-unit">{unit}</span></div>')
-        _section("apply", "신청 정보", "대출 신청서에 고객님이 직접 적은 정보예요", APPLY_FIELDS)
-        _section("credit", "신용정보", "신용정보원(CB)에 있는 금융 기록이에요", CREDIT_FIELDS)
-        _section("alt", "대안정보", "통신 · 공과금 · 결제 기록에서 모은 정보예요", ALT_FIELDS)
-
-        if ss.frm_missing:
-            st.html(f'<p class="frm-missing">{escape(", ".join(ss.frm_missing))} 칸을 채운 뒤 심사를 실행해 주세요.</p>')
-        if ss.frm_error is not None:
-            st.html(api_error_html("POST /predict", ss.frm_error, "inline"))
-
-        with st.container(key="frm-foot"):
-            if source == "manual":
-                note = "필수 항목을 모두 채워 주세요"
-            else:
-                note = f"{edited}개 항목을 고쳤어요" if edited else "고친 항목이 없어요"
-            st.html(f'<p class="frm-foot-note">{note}</p>')
-            st.button("심사 실행", key="frm-submit", type="primary", on_click=_submit, disabled=disabled,
-                      use_container_width=True)
+        left, right = st.columns(2, gap="medium")
+        with left:
+            _basic_section(profile)
+            _section("apply", "신청 정보", "대출 신청서에 고객님이 직접 적은 정보예요", APPLY_FIELDS)
+            _section("alt", "대안정보", "통신 · 공과금 · 결제 기록에서 모은 정보예요", ALT_FIELDS)
+        with right:
+            _section("credit", "신용정보", "신용정보원(CB)에 있는 금융 기록이에요", CREDIT_FIELDS)
+            with st.container(key="frm-foot"):
+                if ss.frm_missing:
+                    st.html(f'<p class="frm-missing">{escape(", ".join(ss.frm_missing))} 칸을 채운 뒤 '
+                            '심사를 실행해 주세요.</p>')
+                if ss.frm_error is not None:
+                    st.html(api_error_html("POST /predict", ss.frm_error, "inline"))
+                note = ("필수 항목을 모두 채워 주세요" if source == "manual"
+                        else f"{edited}개 항목을 고쳤어요" if edited else "고친 항목이 없어요")
+                st.html(f'<p class="frm-foot-note">{note}</p>')
+                st.button("심사 실행", key="frm-submit", type="primary", on_click=_submit, disabled=disabled,
+                          use_container_width=True)

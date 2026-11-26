@@ -1,7 +1,7 @@
 /* 고객 심사 1/2 본인 확인 · 2/2 정보 확인 (components/customer_form) */
 
 /* ---------- 1/2 본인 확인 ---------- */
-.st-key-idn-card, .st-key-idn-samples, .st-key-frm-wrap, .st-key-apl-card {
+.st-key-idn-card, .st-key-idn-samples, .st-key-apl-card {
   width: 100%; max-width: 600px; margin: 0 auto; box-sizing: border-box;
 }
 .st-key-idn-card {
@@ -183,3 +183,53 @@
 .frm-foot-note { margin: 0; text-align: center; font-size: 13px; color: var(--ink-3); }
 .st-key-frm-submit button { height: 56px; min-height: 56px; }
 .st-key-frm-submit button p { font-size: 17px; }
+
+/* ---------- 화면 높이 채우기 ----------
+   1/3 · 2/3: 카드 폭은 그대로, 세로는 화면 높이까지 늘리고 '다음' 버튼은 카드 바닥에 붙인다.
+   (화면 높이 - 헤더 64 - 위 여백 32 - 아래 여백 · 면책 줄, 1/3 은 시연용 샘플 줄도 뺀다) */
+.st-key-idn-card { min-height: calc(100vh - 220px); }
+.st-key-apl-card { min-height: calc(100vh - 160px); }
+.st-key-idn-card > .stElementContainer:has([data-testid="stForm"]),
+.st-key-idn-card > [data-testid="stLayoutWrapper"]:has([data-testid="stForm"]) { flex: 1 1 auto; display: flex; flex-direction: column; }
+.st-key-idn-card [data-testid="stForm"] { flex: 1 1 auto; display: flex; flex-direction: column; }
+.st-key-idn-card [data-testid="stForm"] > [data-testid="stVerticalBlock"] { flex: 1 1 auto; }
+.st-key-idn-card [data-testid="stForm"] .stElementContainer:has([data-testid="stFormSubmitButton"]) { margin-top: auto; }
+.st-key-apl-card > .st-key-apl-next { margin-top: auto; }
+
+/* ---------- 3/3: 본문 폭 전체, 좌우 두 칸, 한 화면에 들어오게 촘촘히 ---------- */
+.st-key-frm-wrap { width: 100%; max-width: none; gap: 16px !important; padding-bottom: 0; }
+.st-key-frm-top { justify-content: space-between; flex-wrap: wrap; gap: 16px; }
+.st-key-frm-top-left { gap: 0 !important; flex: 1 1 auto; width: auto !important; min-width: 0; }
+[data-testid="stLayoutWrapper"]:has(> .st-key-frm-top-left) { flex: 1 1 auto; min-width: 0; }
+.st-key-frm-top-step { gap: 4px !important; }
+.st-key-frm-top-step .stElementContainer { width: auto !important; }
+.st-key-frm-wrap .st-key-frm-back { margin-left: -12px; }
+.st-key-frm-wrap .tz-title { margin-top: 4px; font-size: 26px; }
+.st-key-frm-wrap .tz-sub { margin-top: 4px; font-size: 15px; }
+.st-key-frm-wrap .frm-id-card { margin-top: 0; padding: 14px 20px; gap: 24px; align-items: center; }
+.st-key-frm-wrap .frm-id-cells { grid-template-columns: repeat(2, auto); gap: 28px; }
+.st-key-frm-wrap [data-testid="stHorizontalBlock"] { gap: 16px; }
+.st-key-frm-wrap [data-testid="stColumn"] > [data-testid="stVerticalBlock"] { gap: 16px; }
+.st-key-frm-wrap [class*="st-key-frm-sec-"] { padding: 16px 22px 4px; }
+.st-key-frm-wrap .frm-sec-head { display: flex; align-items: baseline; gap: 10px; padding-bottom: 6px; }
+.st-key-frm-wrap .frm-sec-head h2 { font-size: 17px; }
+.st-key-frm-wrap .frm-sec-head p { margin: 0; font-size: 12px; }
+.st-key-frm-wrap [class*="st-key-frm-row-"], .st-key-frm-wrap .frm-fixed-row { min-height: 46px; }
+.st-key-frm-wrap [class*="st-key-frm-row-"] [data-testid="stNumberInputContainer"],
+.st-key-frm-wrap [class*="st-key-frm-row-"] [data-baseweb="input"] { height: 38px; }
+.st-key-frm-wrap .frm-label span { font-size: 15px; }
+.st-key-frm-wrap .frm-label small { font-size: 11px; }
+.st-key-frm-wrap input, .st-key-frm-wrap .frm-fixed { font-size: 16px !important; }
+/* 아래 버튼은 오른쪽 칸 맨 아래 (3/3 은 한 화면이라 바닥에 붙일 필요가 없다) */
+.st-key-frm-wrap [data-testid="stLayoutWrapper"]:has(> .st-key-frm-foot), .st-key-frm-wrap .st-key-frm-foot {
+  position: static; background: none; padding: 0;
+}
+.st-key-frm-wrap .st-key-frm-foot { gap: 8px !important; }
+/* 이름 · 주민등록번호 카드는 제목 줄 오른쪽에 (한 줄을 따로 차지하지 않게) */
+.st-key-frm-top { flex-wrap: nowrap; }
+.st-key-frm-top > .stElementContainer:has(.frm-id-card) { flex: 0 0 auto; width: auto !important; }
+.st-key-frm-wrap .frm-id-card { padding: 12px 18px; }
+@media (max-width: 900px) {
+  .st-key-frm-top { flex-wrap: wrap; }
+  .st-key-frm-top > .stElementContainer:has(.frm-id-card) { width: 100% !important; }
+}
