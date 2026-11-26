@@ -103,7 +103,7 @@ def test_new_report_fields():
 
 def test_income_is_won_outside_the_api():
     c = client.get('/customers/C100001').json()
-    assert c['MonthlyIncome'] == 9120 * model.INCOME_KRW_PER_UNIT  # 파일은 모델 단위, 응답은 원
+    assert c['MonthlyIncome'] == round(9120 * model.INCOME_KRW_PER_UNIT)  # 파일은 모델 단위, 응답은 원 (원 단위 반올림)
     if model.ready():
         r = client.post('/explain', json=c).json()
         income = [x for x in r['rejection_reasons'] if x['feature'] == 'MonthlyIncome']

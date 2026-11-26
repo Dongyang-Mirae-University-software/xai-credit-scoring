@@ -26,6 +26,7 @@ from sklearn.pipeline import Pipeline
 from imblearn.over_sampling import SMOTE
 
 from src.explainer import performance as perf
+from src.statistics import drift
 
 logger = logging.getLogger(__name__)
 
@@ -639,6 +640,26 @@ def _thin_filer_uplift_cv(results, candidates, X_dev, y_dev, thin_mask_dev, n_sp
     return uplift
 
 
+def _feature_csi(X_ref, X_cmp):
+    """
+    칸별 CSI와 판정 (보너스 4 연결, #141). 기준 = Train, 비교 = Test.
+    값은 칸별 PSI와 같은 식이지만, 값 종류가 적은 칸은 값마다 구간을 두고 기준 범위 밖 구간을 따로 센다 (src/statistics/drift.py).
+    돌려주는 값: (요약, 구간별 표). 요약은 MLflow 지표와 model_metadata.json에, 구간별 표는 MLflow 아티팩트로 남긴다.
+    """
+    tables = drift.csi(X_ref, X_cmp, list(X_cmp.columns))
+    per_feature = {c: {'csi': float(t['index']), 'grade': t['grade'], 'binning': t['binning']} for c, t in tables.items()}
+    max_feature = max(per_feature, key=lambda c: per_feature[c]['csi'])
+    summary = {
+        'per_feature': per_feature,
+        'max': per_feature[max_feature]['csi'],
+        'max_feature': max_feature,
+        'grade_counts': {g: sum(v['grade'] == g for v in per_feature.values()) for g in ('안정', '주의', '경고')},
+        'flagged': sorted((c for c, v in per_feature.items() if v['csi'] >= drift.STABLE), key=lambda c: -per_feature[c]['csi']),
+        'thresholds': {'stable': drift.STABLE, 'caution': drift.CAUTION},
+    }
+    return summary, tables
+
+
 def select_and_test_once(results, X_val, y_val, X_test, y_test, models_dir='models', version='1.0', data_params=None,
                          X_train=None, thin_mask=None, y_train=None, thin_mask_train=None, thin_mask_val=None):
     """
@@ -648,6 +669,7 @@ def select_and_test_once(results, X_val, y_val, X_test, y_test, models_dir='mode
     2) 9개 후보 중 Val AUC가 가장 높은 모델을 최종 모델로 정한다
     3) 최종 모델만 Test로 평가한다. 이 함수는 파이프라인에서 한 번만 호출한다.
     4) X_train을 주면 PSI(최종 모델 점수 Train vs Test, 특성별 Train vs Test)를 기록한다 (#28)
+       칸별 CSI와 판정(안정/주의/경고)도 같은 자리에 기록한다 (#141)
     5) thin_mask(Test의 is_thin_filer)를 주면 씬파일러 AUC 향상과 신뢰구간을 기록한다 (#27)
     6) y_train, thin_mask_train, thin_mask_val도 주면 Train+Val 교차검증 씬파일러 향상을 함께 기록한다 (#26)
     """
@@ -676,12 +698,14 @@ def select_and_test_once(results, X_val, y_val, X_test, y_test, models_dir='mode
     test_ks = _ks_statistic(y_test, p_test)
 
     psi_info = None
+    csi_tables = None
     if X_train is not None:
         X_tr = get_features_by_type(X_train, final['data_type'])
         p_train = final_model.predict_proba(X_tr)[:, 1]
         psi_info = {'score_psi': perf.psi(p_train, p_test),
                     'feature_psi': perf.feature_psi(X_tr, X_t, list(X_t.columns))}
         psi_info['pass'] = psi_info['score_psi'] < perf.TARGETS['psi']
+        psi_info['feature_csi'], csi_tables = _feature_csi(X_tr, X_t)
     uplift = _thin_filer_uplift(results, candidates, X_test, y_test, thin_mask) if thin_mask is not None else None
     uplift_cv = None
     if X_train is not None and y_train is not None and thin_mask_train is not None and thin_mask_val is not None:
@@ -712,6 +736,13 @@ def select_and_test_once(results, X_val, y_val, X_test, y_test, models_dir='mode
             mlflow.log_metric('feature_psi_max', float(psi_info['feature_psi']['max']))
             for col, value in psi_info['feature_psi']['per_feature'].items():
                 mlflow.log_metric(f'psi_{col}', float(value))
+            fc = psi_info['feature_csi']
+            mlflow.log_metric('feature_csi_max', fc['max'])
+            for col, v in fc['per_feature'].items():
+                mlflow.log_metric(f'csi_{col}', v['csi'])
+                mlflow.set_tag(f'csi_grade_{col}', v['grade'])
+            mlflow.set_tag('csi_grade_counts', ', '.join(f'{g} {n}' for g, n in fc['grade_counts'].items()))
+            mlflow.log_dict(csi_tables, 'drift/feature_csi_tables.json')
         if uplift:
             mlflow.log_param('uplift_model_without_alt', uplift['model_without_alt'])
             mlflow.log_param('uplift_model_with_alt', uplift['model_with_alt'])
@@ -747,6 +778,11 @@ def select_and_test_once(results, X_val, y_val, X_test, y_test, models_dir='mode
     if psi_info:
         fp = psi_info['feature_psi']
         logger.info(f"PSI: 점수 {psi_info['score_psi']:.4f}, 특성 최대 {fp['max']:.4f} ({fp['max_feature']}) (목표 < {perf.TARGETS['psi']})")
+        fc = psi_info['feature_csi']
+        counts = ', '.join(f'{g} {n}개' for g, n in fc['grade_counts'].items())
+        logger.info(f"CSI: 칸별 최대 {fc['max']:.4f} ({fc['max_feature']}), 판정 {counts}")
+        for col in fc['flagged']:
+            logger.warning(f"CSI {col} = {fc['per_feature'][col]['csi']:.4f} ({fc['per_feature'][col]['grade']}): 입력 분포가 바뀌었습니다.")
     if uplift:
         logger.info(f"씬파일러 AUC 향상: {uplift['uplift']:+.4f} "
                     f"[{uplift['ci_level']:.0%} 구간 {uplift['ci_low']:+.4f} ~ {uplift['ci_high']:+.4f}] "
