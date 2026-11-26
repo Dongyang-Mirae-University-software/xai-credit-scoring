@@ -1,7 +1,8 @@
 """고객 심사 흐름 (은행 창구 기준, 한 화면씩 넘긴다). 고객 심사 · XAI 분석 두 화면에서 쓴다.
 
 1/2 본인 확인: 이름 + 주민등록번호 → POST /customers/lookup → 은행이 가진 신용정보 · 대안정보
-2/2 정보 확인: 불러온 값이 채워진 입력 목록. 틀린 정보만 고치고 심사 실행 → POST /predict + /explain → 결과 화면
+2/2 정보 확인: 신청 정보(월소득 · 부양가족 수)는 고객에게 받아 입력하고, 은행 기록(신용정보 · 대안정보)은
+    채워진 값에서 틀린 것만 고친 뒤 심사 실행 → POST /predict + /explain → 결과 화면
     (결과는 POST /screenings 로 서버 이력에 바로 남는다)
 - 조회 결과가 없거나 조회 API 가 아직 없으면 '직접 입력'(빈 목록, 나이 · 성별은 주민등록번호로 채운다) 또는 시연용 샘플
 - 결과 화면 '정보 수정' · XAI '조건 바꿔 재심사' → 그 고객 값이 채워진 2/2 화면
@@ -35,9 +36,14 @@ CARD_FIELD = "credit_card_months"
 BASIC_FIELDS = [
     ("age", "나이", "세", 1, 0, identity.MIN_AGE, 120, True),
 ]
-CREDIT_FIELDS = [
+# 신청 정보: 대출 신청서에 고객이 직접 적는 값. 은행 기록으로 미리 채우지 않는다 (시연용 샘플 · 다시 심사는 채운다)
+APPLY_FIELDS = [
     ("MonthlyIncome", "월소득", "만원", 1e-4, 0, 0, None, True),
-    ("NumberOfDependents", "부양가족", "명", 1, 0, 0, 20, False),
+    ("NumberOfDependents", "부양가족 수", "명", 1, 0, 0, 20, True),
+]
+APPLY_KEYS = {f for f, *_ in APPLY_FIELDS}
+APPLY_SOURCES = {"bank", "manual"}  # 이 출처에서는 신청 정보를 빈칸으로 시작한다
+CREDIT_FIELDS = [
     ("DebtRatio", "부채비율", "%", 1, 1, 0, None, False),
     ("RevolvingUtilizationOfUnsecuredLines", "신용한도 사용률", "%", 100, 1, 0, None, False),
     ("NumberOfOpenCreditLinesAndLoans", "보유 대출 · 신용 한도", "개", 1, 0, 0, None, False),
@@ -54,7 +60,7 @@ ALT_FIELDS = [
     ("regular_payment_count", "정기결제 건수", "건", 1, 0, 0, 20, True),
     ("app_login_frequency", "앱 로그인 빈도", "회", 1, 0, 0, 30, True),
 ]
-ALL_FIELDS = BASIC_FIELDS + CREDIT_FIELDS + ALT_FIELDS
+ALL_FIELDS = BASIC_FIELDS + APPLY_FIELDS + CREDIT_FIELDS + ALT_FIELDS
 FIELD_HINTS = {
     "DebtRatio": "월 대출 상환액 ÷ 월소득",
     "NumberOfTime30-59DaysPastDueNotWorse": "최근 2년",
@@ -285,7 +291,8 @@ def _open_confirm(profile, source):
     ss.frm_profile, ss.frm_source, ss.frm_missing, ss.frm_error = profile, source, [], None
     ss.frm_shown = {}
     for field, _, _, scale, decimals, *_ in ALL_FIELDS:
-        ss[f"frm_{field}"] = ss.frm_shown[field] = _shown(profile.get(field), scale, decimals)
+        value = None if source in APPLY_SOURCES and field in APPLY_KEYS else profile.get(field)
+        ss[f"frm_{field}"] = ss.frm_shown[field] = _shown(value, scale, decimals)
     ss.frm_gender = profile.get("gender")
     ss.scr_step = "confirm"
     ss.pop("idn_notice", None)
@@ -315,7 +322,7 @@ def _form_profile():
     profile["gender"] = ss.frm_gender
     for field, _, _, scale, decimals, *_ in ALL_FIELDS:
         shown = ss[f"frm_{field}"]
-        if shown == ss.frm_shown[field] and original.get(field) is not None:
+        if shown is not None and shown == ss.frm_shown[field] and original.get(field) is not None:
             profile[field] = original[field]
         elif shown is None:
             profile[field] = None
@@ -331,8 +338,11 @@ def _missing_fields():
 
 
 def _edited(field):
+    """불러온 값을 고친 칸인가. 신청 정보는 고객이 적는 칸이라 '수정됨' 으로 세지 않는다."""
     ss = st.session_state
-    return ss.frm_source != "manual" and ss.get(f"frm_{field}") != ss.frm_shown.get(field)
+    if ss.frm_source == "manual" or (ss.frm_source in APPLY_SOURCES and field in APPLY_KEYS):
+        return False
+    return ss.get(f"frm_{field}") != ss.frm_shown.get(field)
 
 
 def _row(field, label, unit, scale, decimals, lo, hi, required):
@@ -383,7 +393,7 @@ def render_confirm(disabled=False):
     title = (f"{escape(name)}님의 정보를 불러왔어요" if name and source == "bank"
              else f"{escape(name)}님의 정보를 입력해 주세요" if name and source == "manual"
              else "고객 정보를 확인해 주세요")
-    sub = {"bank": "은행이 가진 정보예요. 틀린 정보가 있으면 고친 뒤 심사를 실행하세요.",
+    sub = {"bank": "고객님께 월소득과 부양가족 수를 여쭤 입력하고, 은행 기록 중 틀린 정보가 있으면 고쳐 주세요.",
            "manual": "은행에 기록이 없는 고객이에요. 나이와 성별은 주민등록번호로 채웠어요.",
            "sample": "시연용 샘플 고객의 정보예요. 값을 바꿔 가며 심사해 볼 수 있어요.",
            "edit": "지난 심사에 쓴 정보예요. 바꿀 항목만 고친 뒤 다시 심사하세요."}[source]
@@ -408,6 +418,7 @@ def render_confirm(disabled=False):
                 st.html(f'<div class="frm-fixed-row"><div class="frm-label"><span>{label}</span>'
                         f'<small>{hint}</small></div><b class="frm-fixed">{escape(value)}</b>'
                         f'<span class="frm-unit">{unit}</span></div>')
+        _section("apply", "신청 정보", "대출 신청서에 고객님이 직접 적는 정보예요", APPLY_FIELDS)
         _section("credit", "신용정보", "신용정보원(CB)에 있는 금융 기록이에요", CREDIT_FIELDS)
         _section("alt", "대안정보", "통신 · 공과금 · 결제 기록에서 모은 정보예요", ALT_FIELDS)
 
@@ -417,7 +428,13 @@ def render_confirm(disabled=False):
             st.html(api_error_html("POST /predict", ss.frm_error, "inline"))
 
         with st.container(key="frm-foot"):
-            note = f"{edited}개 항목을 고쳤어요" if edited else "고친 항목이 없어요"
-            st.html(f'<p class="frm-foot-note">{note if source != "manual" else "필수 항목을 모두 채워 주세요"}</p>')
+            empty_apply = [label for f, label, *_ in APPLY_FIELDS if ss.get(f"frm_{f}") is None]
+            if source == "manual":
+                note = "필수 항목을 모두 채워 주세요"
+            elif empty_apply:
+                note = f"{' · '.join(empty_apply)}를 입력해 주세요"
+            else:
+                note = f"{edited}개 항목을 고쳤어요" if edited else "고친 항목이 없어요"
+            st.html(f'<p class="frm-foot-note">{note}</p>')
             st.button("심사 실행", key="frm-submit", type="primary", on_click=_submit, disabled=disabled,
                       use_container_width=True)
