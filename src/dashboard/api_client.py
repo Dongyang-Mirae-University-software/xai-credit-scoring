@@ -31,7 +31,17 @@ if config.API_LOG and not _log.handlers:  # Streamlit 이 모듈을 다시 읽�
     _log.propagate = False
 
 
+SECRET_KEYS = {"rrn"}  # 로그에 그대로 남기지 않는 요청 칸 (주민등록번호)
+
+
+def _mask(data):
+    if isinstance(data, dict):
+        return {k: ("******" if k in SECRET_KEYS else _mask(v)) for k, v in data.items()}
+    return data
+
+
 def _short(data):
+    data = _mask(data)
     text = data if isinstance(data, str) else json.dumps(data, ensure_ascii=False)
     limit = config.API_LOG_BODY_MAX
     return text if limit <= 0 or len(text) <= limit else text[:limit] + f"… ({len(text)}자)"
@@ -217,3 +227,25 @@ def ab_test():
     형식: {models: {a, b}, test_auc: {a, b}, policies: {a, threshold_a, policies: {same_threshold, same_approval_rate,
            same_bad_rate}}, ab_single, ab_repeated, required_sample_size}"""
     return _bonus("ab_test", "/ab-test")
+
+
+def lookup_customer(name, rrn):
+    """POST /customers/lookup {name, rrn}: 은행이 가진 그 고객의 신용정보 · 대안정보 (본인 확인 → 정보 조회).
+    형식: {customer_id, name, gender, + POST /predict 입력 15칸} (단위는 /predict 와 같다)
+    본인 정보가 없으면 None, API 가 아직 없으면 NOT_READY.
+    주민등록번호는 URL 이 아니라 본문으로 보낸다 (URL 은 서버 접근 로그에 남는다)."""
+    try:
+        return _post("/customers/lookup", {"name": name, "rrn": rrn})
+    except requests.HTTPError as e:
+        response = e.response
+        if response is None:
+            raise
+        if response.status_code == 405:  # GET /customers/{id} 만 있을 때
+            return NOT_READY
+        if response.status_code == 404:
+            try:
+                route_missing = response.json().get("detail") == "Not Found"  # FastAPI 기본 404 = 경로 없음
+            except ValueError:
+                route_missing = True
+            return NOT_READY if route_missing else None
+        raise
