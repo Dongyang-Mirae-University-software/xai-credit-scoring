@@ -162,6 +162,7 @@ xai-credit-scoring/
 |---|---|---|
 | `API_BASE_URL` | `http://localhost:8000` | 대시보드가 부를 API 주소 (Docker Compose에서는 자동으로 `http://api:8000`) |
 | `API_TIMEOUT` / `HEALTH_TIMEOUT` | 5 / 2 | API 응답 대기 시간(초) |
+| `COUNTERFACTUAL_TIMEOUT` | 15 | `POST /counterfactual` 응답 대기 시간(초). 후보를 여러 번 계산해 다른 API보다 느림 |
 | `API_LOG` | (끔) | 대시보드의 API 호출을 터미널에 기록. `1` 은 `POST /predict 200 (24ms)` 한 줄, `body` 는 요청·응답 JSON 까지 (목록은 한 건씩 한 줄) |
 | `API_LOG_BODY_MAX` | 600 | `API_LOG=body` 에서 한 줄 최대 글자 수. `0` 이면 자르지 않음 |
 | `HEALTH_CACHE_TTL` | 10 | 서버 상태 카드 새로고침 간격(초) |
@@ -181,6 +182,7 @@ xai-credit-scoring/
 | 변수 | 기본값 | 설명 |
 |---|---|---|
 | `APPROVAL_THRESHOLD` | 0.5 | 부도 확률이 이 값 미만이면 승인 |
+| `INCOME_KRW_PER_UNIT` | 816.33 | 월소득(원) ÷ 이 값 = 모델 단위(국제달러). World Bank 한국 GDP PPP 2025 (PA.NUS.PPP). 자세한 내용은 `docs/column_spec.md` §9 |
 | `TARGET_AUC` / `TARGET_KS` / `TARGET_PSI` / `TARGET_THIN_UPLIFT` | 0.78 / 0.28 / 0.1 / 0.03 | 성능 목표 (과제 기준) |
 | `FAIRNESS_DI_MIN` / `FAIRNESS_DI_MAX` / `FAIRNESS_EO_MAX` | 0.8 / 1.25 / 0.10 | 공정성 기준 (DI Ratio 범위, Equalized Odds 차이) |
 | `FAIRNESS_PROTECTED_GENDER` / `FAIRNESS_PROTECTED_AGE` | `female` / `55+` | DI Ratio 계산 시 보호 집단 |

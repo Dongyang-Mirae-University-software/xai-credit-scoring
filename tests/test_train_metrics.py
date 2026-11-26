@@ -67,6 +67,43 @@ def test_select_and_test_once_records_psi_and_uplift(tmp_path, monkeypatch):
     assert u['ci_low'] <= u['uplift'] <= u['ci_high']
     meta = json.loads((tmp_path / 'model_metadata.json').read_text(encoding='utf-8'))
     assert 'psi' in meta['selection'] and 'thin_filer_uplift' in meta['selection']
+    # 칸별 CSI와 판정 (#141): PSI와 같은 칸, 판정은 세 가지 중 하나, 메타데이터에도 남는다
+    fc = out['psi']['feature_csi']
+    assert set(fc['per_feature']) == set(out['psi']['feature_psi']['per_feature'])
+    assert all(v['grade'] in ('안정', '주의', '경고') for v in fc['per_feature'].values())
+    assert fc['max'] == max(v['csi'] for v in fc['per_feature'].values())
+    assert sum(fc['grade_counts'].values()) == len(fc['per_feature'])
+    assert meta['selection']['psi']['feature_csi']['max_feature'] == fc['max_feature']
+
+
+def test_select_and_test_once_logs_csi_to_final_test_run(tmp_path, monkeypatch):
+    # final_test run에 칸별 CSI 지표 · 판정 태그 · 구간별 표가 남는다 (#141)
+    uri = tmp_path.joinpath('mlruns').as_uri()
+    monkeypatch.setenv('MLFLOW_TRACKING_URI', uri)
+    monkeypatch.setenv('UPLIFT_BOOTSTRAP', '100')
+    mlflow.set_tracking_uri(uri)
+    X_tr, y_tr = _data(seed=1)
+    X_v, y_v = _data(seed=2)
+    X_te, y_te = _data(seed=3)
+    X_te['age'] = X_te['age'] + 3                         # 한 칸만 크게 옮겨서 '경고'가 나오게
+    results = {}
+    for data_type in ('financial_only', 'alternative_only', 'integrated'):
+        cols = tr.get_features_by_type(X_tr, data_type).columns
+        model = LogisticRegression(max_iter=500).fit(X_tr[cols], y_tr)
+        results[data_type] = {'LogisticRegression': {'class_weight': model}}
+    out = tr.select_and_test_once(results, X_v, y_v, X_te, y_te, models_dir=str(tmp_path), X_train=X_tr)
+    fc = out['psi']['feature_csi']
+    run = mlflow.search_runs(filter_string="tags.mlflow.runName = 'final_test'", output_format='list')[0]
+    for col, v in fc['per_feature'].items():
+        assert run.data.metrics[f'csi_{col}'] == pytest.approx(v['csi'])
+        assert run.data.tags[f'csi_grade_{col}'] == v['grade']
+    assert run.data.metrics['feature_csi_max'] == pytest.approx(fc['max'])
+    if 'age' in fc['per_feature']:
+        assert fc['per_feature']['age']['grade'] == '경고' and fc['flagged'][0] == 'age'
+    art = mlflow.artifacts.download_artifacts(run_id=run.info.run_id, artifact_path='drift/feature_csi_tables.json',
+                                              dst_path=str(tmp_path / 'dl'))
+    tables = json.loads(open(art, encoding='utf-8').read())
+    assert set(tables) == set(fc['per_feature'])
 
 
 def test_select_and_test_once_records_cv_uplift(tmp_path, monkeypatch):

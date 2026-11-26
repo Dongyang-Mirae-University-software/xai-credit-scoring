@@ -1,0 +1,48 @@
+/* 데이터 드리프트 표 (모델 성능, 보너스 4) */
+.dr-card {
+  background: var(--card); border: 1px solid var(--border); border-radius: 14px; overflow: hidden;
+  display: grid; grid-template-columns: minmax(0, 1fr) 320px;
+}
+.dr-table { min-width: 0; border-right: 1px solid var(--divider); }
+.dr-row {
+  display: grid; grid-template-columns: minmax(150px, 1.4fr) repeat(var(--dr-cols), minmax(0, 1fr));
+  column-gap: 12px; align-items: center; padding: 0 20px; min-height: 38px;
+}
+.dr-row + .dr-row { border-top: 1px solid var(--divider); }
+.dr-headrow { min-height: 44px; background: #F8FAFC; border-bottom: 1px solid var(--border); font-size: 12px; color: var(--ink-3); }
+.dr-headrow + .dr-row { border-top: 0; }
+.dr-row .num { text-align: right; padding-right: 8px; font-size: 13px; color: var(--ink); }
+.dr-headrow .num { font-size: 12px; color: var(--ink-3); }
+.dr-name { display: flex; align-items: center; gap: 6px; min-width: 0; font-size: 13px; color: var(--ink-2); }
+.dr-name i { font-style: normal; font-size: 11px; font-weight: 700; padding: 1px 6px; border-radius: 999px; background: var(--accent-bg); color: var(--accent); }
+.dr-name small { font-size: 11px; color: var(--ink-3); }
+.dr-score { background: #FBFCFE; min-height: 46px; }
+.dr-score .dr-name { font-weight: 700; color: var(--ink); }
+.dr-cell {
+  justify-self: end; display: inline-flex; align-items: center; gap: 6px;
+  padding: 2px 8px; border-radius: 6px; font-size: 13px; color: var(--ink-3); font-variant-numeric: tabular-nums;
+}
+.dr-cell small { font-size: 11px; font-weight: 700; }
+.dr-cell.mid { background: var(--mid-bg); color: var(--mid-text); font-weight: 700; }
+.dr-cell.fail { background: var(--fail-bg); color: var(--fail-text); font-weight: 700; }
+.dr-group { padding: 10px 20px 6px; border-top: 1px solid var(--border); font-size: 12px; font-weight: 700; color: var(--ink-3); background: #F8FAFC; }
+.dr-result { min-height: 36px; }
+.dr-group + .dr-row { border-top: 0; }
+.dr-side { display: flex; flex-direction: column; gap: 12px; padding: 20px 22px; min-width: 0; }
+.dr-side-title { font-size: 13px; font-weight: 700; color: var(--ink-3); }
+.dr-findings { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 12px; }
+.dr-findings li { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; font-size: 14px; color: var(--ink); line-height: 1.5; }
+.dr-findings .dr-where { flex-basis: 100%; font-size: 13px; color: var(--ink-3); }
+.dr-findings .ui-pill { font-size: 12px; }
+.dr-none { margin: 0; font-size: 14px; color: var(--ink-3); }
+.dr-legend { display: flex; gap: 14px; font-size: 12px; color: var(--ink-2); margin-top: auto; }
+.dr-legend span { display: inline-flex; align-items: center; gap: 6px; }
+.dr-legend i { width: 12px; height: 12px; border-radius: 3px; background: #EEF1F5; }
+.dr-legend i.mid { background: var(--mid-bg); border: 1px solid #F3D9A8; }
+.dr-legend i.fail { background: var(--fail-bg); border: 1px solid #F3C4C4; }
+.dr-legend i.ok { background: #FFF; border: 1px solid var(--border); }
+.dr-note { margin: 0; font-size: 12px; line-height: 1.55; color: var(--ink-3); }
+@media (max-width: 1100px) {
+  .dr-card { grid-template-columns: minmax(0, 1fr); }
+  .dr-table { border-right: 0; border-bottom: 1px solid var(--divider); }
+}

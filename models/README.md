@@ -8,7 +8,7 @@
 
 ---
 
-## 현재 파일 (최신 기준: 2026-11-08)
+## 현재 파일 (최신 기준: 2026-11-25)
 
 | 파일 | 역할 |
 |---|---|
@@ -21,6 +21,7 @@
 - Validation AUC **0.8972**, Test AUC **0.8894**, Test KS **0.6129** (Test는 1회만 평가)
 - 씬파일러 AUC 향상: Train+Val 교차검증 **+0.066** (95% 구간 +0.042 ~ +0.089, 목표 +0.03 이상) / Test 1회 +0.001 (씬파일러 부도 42명이라 구간 −0.051 ~ +0.054)
 - PSI **0.0004** (목표 0.1 미만)
+- 칸별 CSI (Train vs Test): 최대 **0.0010** (NumberOfOpenCreditLinesAndLoans), 15칸 모두 **안정** (0.1 미만, 이슈 #141)
 
 ### 생성 조건
 - 데이터 설정: `thin_filer_ratio=None`, `bias_ratio=0`
@@ -37,6 +38,15 @@
 ---
 
 ## 변경 이력 (최신이 위)
+
+### 2026-11-25 — model_metadata.json에 칸별 CSI 판정 추가 (이슈 #141)
+- **무엇이 바뀌었나**
+  - `main_step2.py`가 칸별 PSI와 함께 보너스 4 모듈(`src/statistics/drift.py`)의 칸별 CSI와 판정(안정/주의/경고)을 계산해 기록합니다.
+  - `model_metadata.json`의 `selection.psi.feature_csi`에 칸별 값·판정, 최댓값, 판정 개수가 들어갑니다. 결과: 최대 0.0010, 15칸 모두 안정.
+  - 값은 `outputs/monitoring/drift_report.json`의 기준 시나리오(Train vs Test) CSI와 같습니다.
+- **교체된 파일**: `model_metadata.json`만 (`feature_csi` 항목 추가, 나머지 값은 그대로)
+- **확인한 것**: develop(db54f50) 기준으로 2단계를 로컬 MLflow로 다시 실행했고, 최종 모델·스케일러 등 모든 `.joblib`와 분할 파일이 바이트 단위로 같습니다 (최종 모델 SHA-256 069ea37bbb0b…).
+- **아직 안 한 것**: 팀 MLflow 서버의 `final_test` 기록 갱신 (다음 서버 재실행 때 `csi_*` 지표와 `csi_grade_*` 태그가 함께 올라감)
 
 ### 2026-11-08 — 팀 MLflow 서버 기록 및 Registry 버전 6 등록 (이슈 #81)
 - **무엇이 바뀌었나**
