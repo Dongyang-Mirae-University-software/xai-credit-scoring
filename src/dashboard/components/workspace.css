@@ -38,15 +38,16 @@
 .tz-sub { margin: 8px 0 0; font-size: 16px; line-height: 1.5; color: var(--ink-3); }
 
 /* 버튼: 주 버튼은 파란 바탕 큰 글자, 보조는 흰 바탕(회색 페이지 위) · 카드 안에서는 회색 바탕.
-   :where() 로 우선순위를 0 에 가깝게 둬서 화면마다 준 버튼 스타일(.st-key-...)이 언제나 이긴다 */
-:where([data-testid="stMain"]) :where(button[kind="primary"], button[kind="primaryFormSubmit"]) {
+   :where() 로 바깥 선택자의 우선순위를 빼서 (class 1 + 요소 1) Streamlit 기본 버튼(class 1)보다는 높고,
+   화면마다 준 버튼 스타일(.st-key-... button, 같은 우선순위)은 이 파일보다 뒤에 오므로 그쪽이 이긴다 */
+:where([data-testid="stMain"]) button:is([kind="primary"], [kind="primaryFormSubmit"]) {
   background: var(--accent); border: 0; border-radius: var(--radius-ctl);
 }
-:where([data-testid="stMain"]) :where(button[kind="primary"], button[kind="primaryFormSubmit"]):hover { background: var(--accent-hover); }
-:where([data-testid="stMain"]) :where(button[kind="primary"], button[kind="primaryFormSubmit"]) p { color: #FFF; font-weight: 700; }
-:where([data-testid="stMain"]) :where(button[kind="secondary"]) {
+:where([data-testid="stMain"]) button:is([kind="primary"], [kind="primaryFormSubmit"]):hover { background: var(--accent-hover); }
+:where([data-testid="stMain"]) button:is([kind="primary"], [kind="primaryFormSubmit"]) p { color: #FFF; font-weight: 700; }
+:where([data-testid="stMain"]) button[kind="secondary"] {
   background: var(--card); border: 0; border-radius: var(--radius-ctl);
 }
-:where([data-testid="stMain"]) :where(button[kind="secondary"]):hover { background: var(--fill-hover); }
-:where([data-testid="stMain"]) :where(button[kind="secondary"]) p { color: var(--ink-2); font-weight: 600; }
+:where([data-testid="stMain"]) button[kind="secondary"]:hover { background: var(--fill-hover); }
+:where([data-testid="stMain"]) button[kind="secondary"] p { color: var(--ink-2); font-weight: 600; }
 :where([data-testid="stMain"]) button:disabled { opacity: .45; }
