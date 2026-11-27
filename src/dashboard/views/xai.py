@@ -333,9 +333,9 @@ def _waterfall(explain, entry):
     n_down = sum(1 for v in shap.values() if v < 0)
     return f"""
     <div class="xai-flow">
-      <div><span>평균 고객 부도 확률</span><strong>{_pct(_sigmoid(base))}</strong></div>
+      <div><span>평균 고객</span><strong>{_pct(_sigmoid(base))}</strong></div>
       <span class="xai-arrow">{ui.icon("arrow", "#8B95A1", 22)}</span>
-      <div><span>이 고객 부도 확률</span><strong class="{'' if approved else 'fail'}">{_pct(result["default_probability"])}</strong></div>
+      <div><span>이 고객</span><strong class="{'' if approved else 'fail'}">{_pct(result["default_probability"])}</strong></div>
       <em>위험을 높인 정보 {n_up}개, 낮춘 정보 {n_down}개</em>
     </div>
     <div class="xai-legend"><span><i class="up"></i>위험 증가</span><span><i class="down"></i>위험 감소</span></div>
@@ -374,15 +374,15 @@ def _share_bar(features):
 
 def _how_to_read():
     """그림 읽는 법 (오른쪽 칸)."""
-    items = [("위치", "가운데 선보다 오른쪽이면 부도 위험을 높였고, 왼쪽이면 낮췄어요"),
-             ("퍼진 폭", "옆으로 넓게 퍼질수록 고객마다 영향이 크게 달라요"),
-             ("순서", "위에 있을수록 모델이 판단할 때 많이 보는 정보예요"),
+    items = [("위치", "가운데 선 오른쪽은 위험을 높였고, 왼쪽은 낮췄어요"),
+             ("퍼진 폭", "넓게 퍼질수록 고객마다 영향이 달라요"),
+             ("순서", "위에 있을수록 모델이 많이 봐요"),
              ("파란 이름", "통신비 · 공과금 같은 대안 데이터예요")]
     rows = "".join(f"<li><b>{k}</b><span>{v}</span></li>" for k, v in items)
     return f'<div class="xai-howto"><strong>읽는 법</strong><ul>{rows}</ul></div>'
 
 
-def _beeswarm(summary, reason_features):
+def _beeswarm(summary, reason_features, caption=""):
     features = sorted(summary.get("features", []), key=lambda x: x["mean_abs_shap"], reverse=True)[:SUMMARY_TOP]
     swarm = summary.get("beeswarm") or {}   # {feature: {"shap": [...], "value": [0~1 ...]}}. 예전 서버엔 없다
     if swarm:
@@ -426,7 +426,7 @@ def _beeswarm(summary, reason_features):
         <ol class="bs" role="img" aria-label="SHAP 요약 플롯, 상위 {len(features)}개 변수">{"".join(rows)}</ol>
         <div class="bs-axis"><span></span><span></span><span><em>← 위험 감소</em><em>SHAP 값</em><em>위험 증가 →</em></span><span></span></div>
       </div>
-      <aside>{_share_bar(summary.get("features", []))}{_how_to_read()}{note}{color_legend}</aside>
+      <aside>{caption}{_share_bar(summary.get("features", []))}{_how_to_read()}{note}{color_legend}</aside>
     </div>"""
 
 
@@ -438,8 +438,9 @@ def _waterfall_tab(explain, entry):
             + f'<div class="xai-card xai-wf-card">{_waterfall(explain, entry)}</div>')
 
 
-def _summary_tab(reason_features=frozenset()):
-    """탭: 모델이 중요하게 보는 정보 (SHAP Summary). 이 고객의 사유인 변수는 표시한다."""
+def _summary_tab(reason_features=frozenset(), in_tab=False):
+    """탭: 모델이 중요하게 보는 정보 (SHAP Summary). 이 고객의 사유인 변수는 표시한다.
+    탭 안에서는 설명 한 줄을 그림 위가 아니라 오른쪽 칸에 둬서, 그림 줄 간격을 넓힌다."""
     try:
         summary = api_client.shap_summary()
     except Exception as e:
@@ -448,10 +449,13 @@ def _summary_tab(reason_features=frozenset()):
     if not summary:
         render_no_report("shap_summary")
         return
-    st.html(ui.section_head("모델이 중요하게 보는 정보",
-                            f"SHAP Summary Plot, 상위 {SUMMARY_TOP}개 변수. 어떤 고객이든 모델은 이 기준으로 판단해요. "
-                            "점 하나가 고객 한 명이고, 위에 있을수록 영향이 커요.")
-            + f'<div class="xai-card">{_beeswarm(summary, set(reason_features))}</div>')
+    sub = (f"SHAP Summary Plot, 상위 {SUMMARY_TOP}개 변수. 어떤 고객이든 모델은 이 기준으로 판단해요. "
+           "점 하나가 고객 한 명이고, 위에 있을수록 영향이 커요.")
+    if in_tab:
+        st.html(f'<div class="xai-card">{_beeswarm(summary, set(reason_features), f"<p class=xai-sum-cap>{sub}</p>")}</div>')
+    else:
+        st.html(ui.section_head("모델이 중요하게 보는 정보", sub)
+                + f'<div class="xai-card">{_beeswarm(summary, set(reason_features))}</div>')
 
 
 # ---------------------------------------------------------------------------
@@ -490,4 +494,4 @@ else:
         with tabs["부도 확률이 정해진 과정"]:
             _waterfall_tab(explain, entry)
         with tabs["모델이 중요하게 보는 정보"]:
-            _summary_tab({r["feature"] for r in explain.get("rejection_reasons") or []})
+            _summary_tab({r["feature"] for r in explain.get("rejection_reasons") or []}, in_tab=True)
