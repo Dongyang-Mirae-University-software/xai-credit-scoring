@@ -117,3 +117,26 @@ def josa(word, with_batchim, without):
     if last.isdigit():
         return with_batchim if last in "013678" else without
     return with_batchim if last.upper() in "LMN" else without  # 엘·엠·엔
+
+
+# ---------------------------------------------------------------------------
+# 대안정보 원천 기록 표시 (#178): 모델 입력값은 그대로 두고, 화면에서만 '받아 온 기록' 모양으로 환산해 보여 준다.
+# 납부율 % → 최근 24개월 중 납부한 달, 앱 로그인 → 최근 30일 중 로그인한 날. (라벨, 숫자, 단위)
+# 고객 심사 3/3 과 XAI 분석이 같은 함수를 써야 화면마다 값이 다르게 보이지 않는다.
+# ---------------------------------------------------------------------------
+RECORD_MONTHS, RECORD_DAYS = 24, 30
+_RECORDS = {
+    "telecom_payment_rate": ("통신요금", lambda v: round(v / 100 * RECORD_MONTHS), f"/ {RECORD_MONTHS}개월"),
+    "utility_payment_rate": ("건강보험", lambda v: round(v / 100 * RECORD_MONTHS), f"/ {RECORD_MONTHS}개월"),
+    "spending_consistency": ("소비 일관성", lambda v: round(v), "점"),
+    "regular_payment_count": ("정기결제", lambda v: round(v), "건"),
+    "app_login_frequency": ("앱 로그인", lambda v: round(v), f"/ {RECORD_DAYS}일"),
+}
+
+
+def source_record(feature, value):
+    """대안 변수 값(납부율은 %, 0~100) → (라벨, 숫자 글자, 단위). 대안 변수가 아니면 None."""
+    if feature not in _RECORDS:
+        return None
+    name, convert, unit = _RECORDS[feature]
+    return name, "-" if value is None else f"{convert(float(value)):,}", unit

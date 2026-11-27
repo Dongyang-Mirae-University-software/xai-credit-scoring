@@ -24,6 +24,7 @@ import streamlit as st
 
 import api_client
 import config
+import features as F
 from components import identity, ui
 from components.api_error import api_error_html
 
@@ -65,18 +66,6 @@ ALT_FIELDS = [
     ("app_login_frequency", "앱 로그인 빈도", "회", 1, 0, 0, 30, True),
 ]
 ALL_FIELDS = BASIC_FIELDS + APPLY_FIELDS + CREDIT_FIELDS + ALT_FIELDS
-FIELD_HINTS = {
-    "MonthlyIncome": "원천징수영수증으로 확인한 월소득",
-    "NumberOfDependents": "가족관계증명서로 확인한 부양가족 수",
-    "NumberOfTime30-59DaysPastDueNotWorse": "최근 2년",
-    "NumberOfTime60-89DaysPastDueNotWorse": "최근 2년",
-    "NumberOfTimes90DaysLate": "최근 2년",
-    "telecom_payment_rate": "통신요금을 제때 낸 비율",
-    "utility_payment_rate": "공과금을 제때 낸 비율",
-    "spending_consistency": "소비 패턴의 일정함을 나타내는 점수",
-    "app_login_frequency": "한 달 기준",
-    "regular_payment_count": "한 달 기준",
-}
 # 결과 화면 요약에서 연체 합계를 낼 때 쓴다
 DELINQUENCY_FIELDS = [(f, label) for f, label, *_ in CREDIT_FIELDS if "DaysPastDue" in f or "DaysLate" in f]
 FORM_KEYS = [f for f, *_ in ALL_FIELDS]                                     # 2/3 · 3/3 화면 칸
@@ -393,6 +382,7 @@ def _open_flow(profile, source):
         _clear_consult()
     profile = _with_repayment(profile)
     ss.frm_profile, ss.frm_source, ss.frm_missing, ss.frm_error = profile, source, [], None
+    ss.pop("frm_snap", None)
     ss.frm_shown, ss.frm_values = {}, {}
     for field, _, _, scale, decimals, *_ in ALL_FIELDS:
         value = None if source in APPLY_SOURCES and field in APPLY_KEYS else profile.get(field)
@@ -651,42 +641,6 @@ def _missing_fields():
     return [label for field, label, *_, required in ALL_FIELDS if required and _val(field) is None]
 
 
-def _edited(field):
-    """불러온 값을 고친 칸인가. 신청 정보는 고객이 적는 칸이라 '수정됨' 으로 세지 않는다."""
-    ss = st.session_state
-    if ss.frm_source == "manual" or (ss.frm_source in APPLY_SOURCES and field in APPLY_KEYS):
-        return False
-    return _val(field) != ss.frm_shown.get(field)
-
-
-def _row_label(field, label, hint, edited=""):
-    help_html = (f'<span class="frm-help" tabindex="0" aria-label="{escape(label)} 도움말" '
-                 f'aria-describedby="frm-help-{field}">?'
-                 f'<span class="frm-tooltip" role="tooltip" id="frm-help-{field}">{escape(hint)}</span></span>'
-                 if hint else "")
-    return f'<div class="frm-label">{escape(label)}{help_html}{edited}</div>'
-
-
-def _row(field, label, unit, scale, decimals, lo, hi, required):
-    """한 줄: 라벨(+ 도움말 · 수정됨) ··· 값 단위. 값은 그 자리에서 바로 고친다."""
-    edited = '<i class="frm-edited">수정됨</i>' if _edited(field) else ""
-    hint = FIELD_HINTS.get(field)
-    if field == REPAY_FIELD:
-        hint = (f'부채비율 {_form_profile()["DebtRatio"]:.0f}% 자동 계산 (상환액 ÷ 월소득)'
-                if _val("MonthlyIncome") else "부채비율 자동 계산 (상환액 ÷ 월소득)")
-    with st.container(key=f"frm-row-{field}", horizontal=True, vertical_alignment="center", gap="small"):
-        st.html(_row_label(field, label, hint, edited))
-        _number(field, label, scale, decimals, lo, hi, required, label_visibility="collapsed")
-        st.html(f'<span class="frm-unit">{escape(unit)}</span>')
-
-
-def _section(key, title, caption, fields):
-    with st.container(key=f"frm-sec-{key}"):
-        st.html(f'<div class="frm-sec-head"><h2>{escape(title)}</h2><p>{escape(caption)}</p></div>')
-        for spec in fields:
-            _row(*spec)
-
-
 def _submit():
     """심사 실행: 빈 칸이 없으면 심사 진행 연출 화면으로 (실제 심사는 그 화면에서 부른다)."""
     ss = st.session_state
@@ -721,56 +675,103 @@ def render_judging():
 
 def _go(step):
     st.session_state.scr_step = step
+    st.session_state.pop("frm_snap", None)
 
 
-def _fixed_row(field, label, value, unit):
-    """고칠 수 없는 값 한 줄: 입력 상자 없이 글자만 (고칠 수 있는 칸은 회색 상자라 구분된다)."""
-    hint = "만 나이" if field == "age" else FIELD_HINTS.get(field)
-    st.html(f'<div class="frm-fixed-row">{_row_label(field, label, hint)}'
-            f'<b class="frm-fixed">{escape(value)}</b><span class="frm-unit">{escape(unit)}</span></div>')
+# ---------------------------------------------------------------------------
+# 3/3 출처별 타일 카드 (#178 선택안): 서류 · 신용정보 · 대안정보 카드 3장, 값은 같은 크기 타일.
+# 고칠 수 있는 값(서류의 월소득 · 부양가족, 직접 입력 고객은 전부)만 파란 테두리 입력칸이다.
+# ---------------------------------------------------------------------------
+def _tile_html(label, value, unit):
+    unit_html = f"<em>{escape(unit)}</em>" if unit else ""
+    return f'<div class="frm-tile"><span>{escape(label)}</span><div><b>{escape(value)}</b>{unit_html}</div></div>'
 
 
-def _basic_section(profile):
-    """기본 정보: 주민등록번호로 정해진 값이라 고칠 수 없다 ('변경 불가' 표시)."""
+def _edit_tile(field, label, unit, scale, decimals, lo, hi, required):
+    """고칠 수 있는 타일: 라벨 + 숫자 입력칸(파란 테두리) + 단위."""
+    with st.container(key=f"frm-tile-{field}"):
+        st.html(f'<span class="frm-tile-label">{escape(label)}</span>')
+        with st.container(key=f"frm-tile-in-{field}", horizontal=True, vertical_alignment="center", gap=None):
+            _number(field, label, scale, decimals, lo, hi, required, label_visibility="collapsed")
+            st.html(f'<em class="frm-tile-unit">{escape(unit)}</em>')
+
+
+def _tiles(items):
+    """타일을 두 칸씩 그린다. items: ("html", 글) 또는 ("edit", 칸 정의)."""
+    for i in range(0, len(items), 2):
+        cols = st.columns(2, gap="small")
+        for col, (kind, item) in zip(cols, items[i:i + 2]):
+            with col:
+                if kind == "edit":
+                    _edit_tile(*item)
+                else:
+                    st.html(item)
+
+
+def _fmt(value, decimals=0):
+    if value is None:
+        return "-"
+    return f"{value:,.{decimals}f}" if decimals else f"{round(value):,}"
+
+
+def _card(key, no, title, chip, caption, items, note=""):
+    with st.container(key=f"frm-card-{key}"):
+        st.html(f'<div class="frm-card-head"><i>{no}</i><b>{escape(title)}</b><span class="frm-chip">{escape(chip)}</span></div>'
+                f'<p class="frm-card-sub">{escape(caption)}</p>')
+        _tiles(items)
+        if note:
+            st.html(f'<p class="frm-card-note">{escape(note)}</p>')
+
+
+def _confirm_cards(source):
+    """서류 · 신용정보 · 대안정보 타일 목록."""
     ss = st.session_state
-    with st.container(key="frm-sec-basic"):
-        caption = "신분증으로 확인한 정보예요" if profile.get("rrn_masked") else "고객 기본 정보예요"
-        st.html(f'<div class="frm-sec-head"><h2>기본 정보<i class="frm-lock">변경 불가</i></h2><p>{caption}</p></div>')
-        age = _val("age")
-        _fixed_row("age", "나이", "-" if age is None else str(age), "세")
-        _fixed_row("gender", "성별", ss.frm_gender or "-", "")
+    manual = source == "manual"   # 은행 기록이 없는 고객은 신용 · 대안정보도 직접 입력
+    spec = {f: (f, label, unit, scale, decimals, lo, hi, required)
+            for f, label, unit, scale, decimals, lo, hi, required in ALL_FIELDS}
+    age = _val("age")
+    docs = [("html", _tile_html("나이", _fmt(age), "세")), ("html", _tile_html("성별", ss.frm_gender or "-", "")),
+            ("edit", spec["MonthlyIncome"][:1] + ("월소득",) + spec["MonthlyIncome"][2:]),
+            ("edit", spec["NumberOfDependents"][:1] + ("부양가족",) + spec["NumberOfDependents"][2:])]
+    income, repay = _val("MonthlyIncome"), _val(REPAY_FIELD)
+    ratio = "-" if not income or repay is None else _fmt(repay / income * 100)
+    credit = []
+    for f, label, unit, scale, decimals, *_ in CREDIT_FIELDS:
+        credit.append(("edit", spec[f]) if manual else ("html", _tile_html(label, _fmt(_val(f), decimals), unit)))
+        if f == REPAY_FIELD:   # 월 대출 상환액 바로 옆에 자동 계산한 부채비율
+            credit.append(("html", _tile_html("부채비율 (자동 계산)", ratio, "%")))
+    alt = []
+    for f, label, unit, *_ in ALT_FIELDS:
+        if manual:
+            alt.append(("edit", spec[f]))
+        else:
+            name, number, record_unit = F.source_record(f, _val(f))
+            alt.append(("html", _tile_html(name, number, record_unit)))
+    return docs, credit, alt
 
 
-def _apply_section():
-    """신청 정보: 2/3 에서 받은 값. 여기서는 글자로만 보여 준다 (바꾸려면 '이전' 으로 2/3)."""
-    with st.container(key="frm-sec-apply"):
-        st.html('<div class="frm-sec-head"><h2>신청 정보</h2>'
-                '<p>고객님이 낸 서류로 대출 심사 담당자가 입력했어요</p></div>')
-        for field, label, unit, *_ in APPLY_FIELDS:
-            value = _val(field)
-            _fixed_row(field, label, "-" if value is None else f"{value:,}", unit)
+def _snapshot():
+    """3/3 에 들어온 순간의 값 (여기서 고친 항목 수를 세는 기준). 3/3 을 떠나면 지운다."""
+    ss = st.session_state
+    if "frm_snap" not in ss:
+        ss.frm_snap = {f: _val(f) for f, *_ in ALL_FIELDS}
+    return ss.frm_snap
 
 
 def render_confirm(disabled=False):
-    """3/3 전체 확인 화면. 한 화면(1440 × 900)에 스크롤 없이 들어오도록 좌우로 나눈다:
-    왼쪽 기본 정보 · 신청 정보 · 대안정보 | 오른쪽 신용정보 · 심사 실행. 좁은 화면에서는 위아래로 쌓인다."""
+    """3/3 전체 확인 (#178 선택안: 출처별 타일 카드). 서류 / 신용정보 / 대안정보 카드 3장과 아래 줄(확인 표시 · 심사 실행).
+    1440 × 900 한 화면에 들어오게 맞췄다. 대안정보는 화면에서만 원천 기록 모양으로 보여 준다 (features.source_record)."""
     ss = st.session_state
     profile, source = ss.frm_profile, ss.frm_source
     name = profile.get("name")
     title = (f"{escape(name)}님의 정보를 모두 불러왔어요" if name and source in ("bank", "sample")
              else f"{escape(name)}님의 나머지 정보를 입력해 주세요" if name and source == "manual"
              else "고객 정보를 확인해 주세요")
-    sub = {"bank": "틀린 정보가 있으면 고친 뒤 심사를 실행하세요.",
-           "manual": "은행에 기록이 없는 고객이에요. 나이와 성별은 주민등록번호로 채웠어요.",
-           "sample": "시연용 샘플 고객의 정보예요. 값을 바꿔 가며 심사해 볼 수 있어요.",
-           "edit": "지난 심사에 쓴 정보예요. 바꿀 항목만 고친 뒤 다시 심사하세요."}[source]
-    edited = sum(_edited(f) for f, *_ in ALL_FIELDS)
-    credit_caption = "고객 동의로 신용정보원 · CB사(KCB · NICE)에서 조회했어요"
-    alt_caption = "고객 동의로 마이데이터 · 남궁 은행 기록에서 받아 왔어요"
-    if source == "manual":
-        credit_caption = alt_caption = "고객 정보를 직접 입력해 주세요"
-    elif source == "edit":
-        credit_caption = alt_caption = "지난 심사에 사용한 정보예요"
+    sub = ("은행에 기록이 없는 고객이에요. 파란 테두리 칸을 모두 채워 주세요." if source == "manual"
+           else "파란 테두리 값은 서류로 받은 값이라 눌러서 고칠 수 있어요.")
+    snap = _snapshot()
+    edited = sum(_val(f) != snap.get(f) for f, *_ in ALL_FIELDS)
+    docs, credit, alt = _confirm_cards(source)
 
     with st.container(key="frm-wrap"):
         with st.container(key="frm-top", horizontal=True, vertical_alignment="bottom"):
@@ -786,21 +787,28 @@ def render_confirm(disabled=False):
             st.html(f'<div class="frm-id-card"><div class="frm-id-cells">{cells}</div>'
                     f'<i class="frm-badge {source}">{SOURCES[source]}</i></div>')
 
-        left, right = st.columns(2, gap="medium")
-        with left:
-            _basic_section(profile)
-            _apply_section()
-            _section("alt", "대안정보", alt_caption, ALT_FIELDS)
-        with right:
-            _section("credit", "신용정보", credit_caption, CREDIT_FIELDS)
-            with st.container(key="frm-foot"):
-                if ss.frm_missing:
-                    st.html(f'<p class="frm-missing">{escape(", ".join(ss.frm_missing))} 칸을 채운 뒤 '
-                            '심사를 실행해 주세요.</p>')
-                if ss.frm_error is not None:
-                    st.html(api_error_html("POST /predict", ss.frm_error, "inline"))
-                note = ("필수 항목을 모두 채워 주세요" if source == "manual"
-                        else f"{edited}개 항목을 고쳤어요" if edited else "고친 항목이 없어요")
-                st.html(f'<p class="frm-foot-note">{note}</p>')
-                st.button("심사 실행", key="frm-submit", type="primary", on_click=_submit, disabled=disabled,
-                          use_container_width=True)
+        c1, c2, c3 = st.columns([1, 1.25, 1], gap="medium")
+        with c1:
+            _card("docs", 1, "서류", "담당자 입력", "신분증 · 원천징수영수증 · 가족관계증명서", docs)
+        with c2:
+            _card("credit", 2, "신용정보", "직접 입력" if source == "manual" else "KCB · NICE 조회",
+                  "대출 · 카드 · 연체 기록 (연체는 최근 2년)", credit)
+        with c3:
+            _card("alt", 3, "대안정보", "직접 입력" if source == "manual" else "마이데이터",
+                  "통신사 · 공공기관 · 카드사 · 남궁 은행", alt,
+                  "" if source == "manual" else "대안정보는 원천 기록 형태로 환산해 보여 줘요")
+
+        f1, f2 = st.columns([2.25, 1], gap="medium")
+        with f1, st.container(key="frm-foot-row", horizontal=True, vertical_alignment="center"):
+            checks = "".join(f'<span><i>✓</i>{label} {n}</span>' for label, n in
+                             (("서류", len(docs)), ("신용정보", len(credit)), ("대안정보", len(alt))))
+            if ss.frm_missing:
+                note = f'<span class="frm-foot-miss">{escape(", ".join(ss.frm_missing))} 칸을 채워 주세요</span>'
+            else:
+                note = f'<span class="frm-foot-note">{f"{edited}개 항목을 고쳤어요" if edited else "고친 항목이 없어요"}</span>'
+            st.html(f'<div class="frm-checks">{checks}</div>{note}')
+        with f2:
+            st.button("심사 실행", key="frm-submit", type="primary", on_click=_submit, disabled=disabled,
+                      use_container_width=True)
+        if ss.frm_error is not None:
+            st.html(api_error_html("POST /predict", ss.frm_error, "inline"))

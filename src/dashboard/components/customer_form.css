@@ -370,3 +370,89 @@
 .st-key-agr-go button p, .st-key-agr-go button:hover p { color: #FFF !important; }
 .st-key-agr-go button:disabled, .st-key-agr-go button:disabled:hover { background: var(--input) !important; }
 .agr-error { margin: 14px 0 0; }
+
+/* ========== 3/3 출처별 타일 카드 (#178 선택안, mock/a3.html) ========== */
+[class*="st-key-frm-card-"] { flex: 1 1 auto; padding: 20px; border-radius: 20px; background: var(--card); gap: 10px !important; }
+.st-key-frm-wrap [data-testid="stColumn"] > [data-testid="stVerticalBlock"] > :has(> [class*="st-key-frm-card-"]) { flex: 1 1 auto; display: flex; }
+.frm-card-head { display: flex; align-items: center; gap: 10px; height: 36px; }
+.frm-card-head i {
+  width: 36px; height: 36px; flex: none; border-radius: 50%; background: var(--accent-bg); color: var(--accent);
+  font-style: normal; font-size: 16px; font-weight: 700; display: flex; align-items: center; justify-content: center;
+}
+.frm-card-head b { font-size: 17px; font-weight: 700; color: var(--ink); }
+.frm-chip {
+  margin-left: auto; height: 26px; display: inline-flex; align-items: center; padding: 0 10px; border-radius: 999px;
+  font-size: 12px; font-weight: 700; background: var(--fill); color: var(--ink-2); white-space: nowrap;
+}
+.frm-card-sub { margin: 0 0 6px 46px; font-size: 13px; line-height: 18px; color: var(--ink-3); white-space: nowrap; overflow: hidden; }
+.frm-card-note { margin: 2px 0 0; font-size: 11px; line-height: 14px; color: var(--ink-3); }
+[class*="st-key-frm-card-"] [data-testid="stHorizontalBlock"] { gap: 10px; }
+/* 타일 80px: 라벨 13px / 값 24px + 단위 14px */
+.frm-tile, [class*="st-key-frm-tile-"]:not([class*="st-key-frm-tile-in-"]) {
+  box-sizing: border-box; height: 80px; padding: 0 16px; border-radius: 14px; background: #F9FAFB;
+  border: 1.5px solid transparent; display: flex; flex-direction: column; justify-content: center; gap: 4px;
+}
+.frm-tile > span, .frm-tile-label { display: block; font-size: 13px; line-height: 18px; color: var(--ink-3); white-space: nowrap; }
+.frm-tile > div { height: 30px; line-height: 30px; white-space: nowrap; }
+.frm-tile b { font-size: 24px; font-weight: 700; color: var(--ink); }
+.frm-tile em, .frm-tile-unit { font-style: normal; font-size: 14px; color: var(--ink-3); margin-left: 3px; white-space: nowrap; }
+/* 고칠 수 있는 타일: 흰 바탕 + 파란 테두리, 숫자 입력칸은 글자처럼 */
+[class*="st-key-frm-tile-"]:not([class*="st-key-frm-tile-in-"]) { background: #FFF; border-color: var(--accent); gap: 2px !important; }
+[class*="st-key-frm-tile-in-"] { height: 30px; flex-wrap: nowrap; align-items: center; }
+[class*="st-key-frm-tile-in-"] > .stElementContainer:has(.stNumberInput) { flex: 0 1 auto; width: auto !important; min-width: 0; max-width: 140px; }
+[class*="st-key-frm-tile-in-"] > .stElementContainer:has(.frm-tile-unit) { flex: none; width: auto !important; }
+[class*="st-key-frm-tile-in-"] [data-testid="stNumberInputContainer"],
+[class*="st-key-frm-tile-in-"] [data-baseweb="input"],
+[class*="st-key-frm-tile-in-"] [data-baseweb="base-input"] {
+  height: 30px; min-height: 30px; border: 0 !important; background: transparent !important; box-shadow: none !important; padding: 0;
+}
+[class*="st-key-frm-tile-in-"] input {
+  height: 30px; padding: 0; text-align: left; font-size: 24px; font-weight: 700; color: var(--ink); background: transparent;
+}
+[class*="st-key-frm-tile-in-"] input::placeholder { font-size: 18px; color: var(--accent); font-weight: 600; }
+[class*="st-key-frm-tile-in-"] [data-testid="stNumberInputStepDown"],
+[class*="st-key-frm-tile-in-"] [data-testid="stNumberInputStepUp"],
+[class*="st-key-frm-tile-in-"] [data-testid="InputInstructions"] { display: none; }
+[class*="st-key-frm-tile-"]:not([class*="st-key-frm-tile-in-"]):focus-within { box-shadow: 0 0 0 3px var(--accent-bg); }
+/* 아래 줄: 확인 표시 · 고친 항목 | 심사 실행 (높이 64px, 버튼 너비 = 3번 카드) */
+.st-key-frm-foot-row { height: 64px; padding: 0 20px; border-radius: 20px; background: var(--card); gap: 20px !important; }
+.st-key-frm-foot-row > .stElementContainer { width: 100% !important; }
+.st-key-frm-foot-row .stHtml, .st-key-frm-foot-row .stHtml > div { width: 100%; }
+.st-key-frm-foot-row .stElementContainer > div { display: flex; align-items: center; gap: 20px; }
+.frm-checks { display: flex; gap: 20px; font-size: 14px; color: var(--ink-2); }
+.frm-checks span { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
+.frm-checks i {
+  display: inline-flex; width: 18px; height: 18px; border-radius: 50%; background: var(--ok); color: #FFF;
+  font-size: 11px; font-style: normal; align-items: center; justify-content: center;
+}
+.st-key-frm-foot-row .frm-foot-note, .frm-foot-miss { margin-left: auto; font-size: 13px; color: var(--ink-3); white-space: nowrap; }
+.frm-foot-miss { color: var(--fail-text); font-weight: 600; }
+.st-key-frm-wrap .st-key-frm-submit button { height: 64px; min-height: 64px; border-radius: 20px; }
+.st-key-frm-wrap .st-key-frm-submit button p { font-size: 17px; }
+/* Streamlit 기본 입력칸 · 가로 묶음 스타일에 지지 않게 */
+.st-key-frm-wrap [class*="st-key-frm-tile-"]:not([class*="st-key-frm-tile-in-"]) {
+  height: 80px !important; min-height: 80px; padding: 0 16px !important; justify-content: center;
+}
+.st-key-frm-wrap [class*="st-key-frm-tile-in-"] { height: 30px !important; gap: 0 !important; justify-content: flex-start; }
+.st-key-frm-wrap [class*="st-key-frm-tile-in-"] > .stElementContainer:has(.stNumberInput) { flex: 0 0 auto; width: 92px !important; }
+.st-key-frm-wrap [class*="st-key-frm-tile-in-"] .stNumberInput { width: 92px !important; }
+.st-key-frm-wrap [class*="st-key-frm-tile-in-"] input { font-size: 24px !important; font-weight: 700 !important; line-height: 30px !important; padding: 0 !important; }
+.st-key-frm-wrap [class*="st-key-frm-tile-in-"] .frm-tile-unit { margin-left: 3px; }
+.st-key-frm-wrap .st-key-frm-foot-row {
+  height: 64px !important; min-height: 64px; padding: 0 20px !important; align-items: center !important; box-sizing: border-box;
+}
+/* 단위를 숫자 바로 옆에: 입력칸 폭을 자릿수에 맞춘다 (월소득 다섯 자리 · 부양가족 두 자리까지) */
+.st-key-frm-wrap [class*="st-key-frm-tile-in-"] > * { flex: 0 0 auto !important; width: auto !important; }
+.st-key-frm-wrap .st-key-frm-tile-in-MonthlyIncome > .stElementContainer:has(.stNumberInput),
+.st-key-frm-wrap .st-key-frm-tile-in-MonthlyIncome .stNumberInput { width: 76px !important; }
+.st-key-frm-wrap .st-key-frm-tile-in-NumberOfDependents > .stElementContainer:has(.stNumberInput),
+.st-key-frm-wrap .st-key-frm-tile-in-NumberOfDependents .stNumberInput { width: 34px !important; }
+/* 입력칸이 글자 수만큼만 넓어지게 (단위가 늘 숫자 바로 옆). 지원 안 하는 브라우저는 위의 고정 폭을 쓴다 */
+@supports (field-sizing: content) {
+  .st-key-frm-wrap [class*="st-key-frm-tile-in-"] input { field-sizing: content; min-width: 1ch; width: auto; }
+  .st-key-frm-wrap [class*="st-key-frm-tile-in-"] > .stElementContainer:has(.stNumberInput),
+  .st-key-frm-wrap [class*="st-key-frm-tile-in-"] .stNumberInput,
+  .st-key-frm-wrap [class*="st-key-frm-tile-in-"] [data-testid="stNumberInputContainer"],
+  .st-key-frm-wrap [class*="st-key-frm-tile-in-"] [data-baseweb="input"],
+  .st-key-frm-wrap [class*="st-key-frm-tile-in-"] [data-baseweb="base-input"] { width: auto !important; min-width: 0; flex: 0 0 auto; }
+}
