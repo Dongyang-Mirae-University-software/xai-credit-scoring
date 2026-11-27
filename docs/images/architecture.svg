@@ -28,13 +28,25 @@
   <text class="t" x="100" y="140">대출 심사 담당자</text>
   <text class="s" x="100" y="165">PC 웹 · 대시보드</text>
 
-  <rect class="card" x="38" y="245" width="214" height="110" rx="10"/>
-  <path d="M58 280 l-8 10 l8 10 M80 280 l8 10 l-8 10 M74 276 l-10 28" stroke="#111A17" stroke-width="2.5" fill="none"/>
-  <text class="t" x="100" y="290">개발자 · 평가자</text>
-  <text class="s" x="100" y="315">Swagger UI (/docs)</text>
+  <!-- 고객: 시스템을 직접 쓰지 않고 심사를 받는 사람 -->
+  <rect x="38" y="250" width="214" height="110" rx="10" fill="#FFF7F5" stroke="#F2CACA" stroke-dasharray="4 3"/>
+  <circle cx="71" cy="289" r="8" fill="none" stroke="#C0392B" stroke-width="2.5"/>
+  <path d="M57 316 a14 13 0 0 1 28 0" fill="none" stroke="#C0392B" stroke-width="2.5"/>
+  <text class="t" x="100" y="295">고객 (심사 대상)</text>
+  <text class="s" x="100" y="320" fill="#C0392B">씬파일러 포함</text>
+  <line class="ln" x1="145" y1="250" x2="145" y2="209" marker-end="url(#ar)"/>
+  <text class="lab" x="153" y="234">서류 · 정보</text>
+
+  <rect class="card" x="38" y="440" width="214" height="110" rx="10"/>
+  <path d="M58 480 l-8 10 l8 10 M80 480 l8 10 l-8 10 M74 476 l-10 28" stroke="#111A17" stroke-width="2.5" fill="none"/>
+  <text class="t" x="100" y="490">개발자</text>
+  <text class="s" x="100" y="515">Swagger UI (/docs)</text>
 
   <rect class="card" x="38" y="625" width="214" height="110" rx="10"/>
-  <path d="M54 690 l10 -14 l10 8 l12 -18" stroke="#111A17" stroke-width="2.5" fill="none"/>
+  <circle cx="64" cy="668" r="6.5" fill="none" stroke="#111A17" stroke-width="2.3"/>
+  <path d="M52 692 a12 11 0 0 1 24 0" fill="none" stroke="#111A17" stroke-width="2.3"/>
+  <circle cx="80" cy="672" r="5.5" fill="none" stroke="#111A17" stroke-width="2.3"/>
+  <path d="M77 682 a10 9 0 0 1 14 10" fill="none" stroke="#111A17" stroke-width="2.3"/>
   <text class="t" x="100" y="670">팀원</text>
   <text class="s" x="100" y="695">실험 기록 비교</text>
 
@@ -111,7 +123,7 @@
 
   <!-- 사용자 연결 -->
   <line class="ln" x1="252" y1="150" x2="326" y2="150" marker-end="url(#ar)"/>
-  <line class="ln" x1="252" y1="300" x2="326" y2="300" marker-end="url(#ar)"/>
+  <line class="ln" x1="252" y1="495" x2="326" y2="495" marker-end="url(#ar)"/>
   <line class="ln" x1="252" y1="680" x2="326" y2="680" marker-end="url(#ar)"/>
 
   <!-- ===== 학습 파이프라인 ===== -->
