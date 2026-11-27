@@ -1,5 +1,5 @@
 /* XAI 분석. 섹션 간격 36px, 색 · 글자 토큰은 components/workspace.css */
-[data-testid="stMainBlockContainer"] > [data-testid="stVerticalBlock"]:has(.st-key-xai-head) { gap: 36px; }
+[data-testid="stMainBlockContainer"] > [data-testid="stVerticalBlock"]:has(.st-key-xai-head) { gap: 14px; }
 
 /* 머리: 제목 + 분석 대상 */
 .st-key-xai-head { justify-content: space-between; flex-wrap: nowrap; }
@@ -229,3 +229,93 @@ strong.wf-label { color: var(--ink); font-weight: 700; }
 }
 .st-key-xai-end button p { font-size: 14px; font-weight: 700; color: #FFF; white-space: nowrap; }
 .st-key-xai-find-foot > * { flex: 0 0 auto !important; width: auto !important; }
+
+/* ========== 한 화면 배치: 고객 정보 + 한 줄 요약 한 카드, 아래는 탭 ========== */
+.st-key-xai-crumb { margin-bottom: -10px; }
+.st-key-xai-head .ui-page-head h1 { font-size: 26px; }
+.xai-overview { background: var(--card); border-radius: var(--radius-card); overflow: hidden; }
+.xai-overview .xai-strip { margin: 0; border-radius: 0; padding: 14px 24px; border-bottom: 1px solid var(--divider); }
+.xai-overview .xai-summary { border-radius: 0; padding: 16px 24px; }
+.xai-overview .xai-summary-main p { font-size: 18px; }
+.xai-overview .xai-metric strong { font-size: 26px; }
+
+/* 탭: 회색 트랙 + 흰 선택 칸 */
+[data-testid="stMain"] [data-testid="stTabs"] [role="tablist"] {
+  gap: 2px; padding: 4px; border-radius: 14px; background: var(--fill-hover); width: fit-content; max-width: 100%;
+}
+[data-testid="stMain"] [data-testid="stTabs"] [role="tab"] {
+  height: 38px; padding: 0 18px; margin: 0; border-radius: 10px; background: transparent;
+}
+[data-testid="stMain"] [data-testid="stTabs"] [role="tab"] p { font-size: 15px; font-weight: 600; color: var(--ink-3); }
+[data-testid="stMain"] [data-testid="stTabs"] [role="tab"][aria-selected="true"] { background: #FFF; box-shadow: 0 1px 3px rgba(0, 0, 0, .08); }
+[data-testid="stMain"] [data-testid="stTabs"] [role="tab"][aria-selected="true"] p { color: var(--ink); font-weight: 700; }
+[data-testid="stMain"] [data-testid="stTabs"] [data-baseweb="tab-highlight"],
+[data-testid="stMain"] [data-testid="stTabs"] [data-baseweb="tab-border"] { display: none; }
+[data-testid="stMain"] [data-testid="stTabs"] [data-baseweb="tab-panel"] { padding-top: 14px; }
+[data-testid="stMain"] [data-testid="stTabs"] [data-baseweb="tab-panel"] > [data-testid="stVerticalBlock"] { gap: 10px; }
+
+/* 탭 안: 섹션 제목 · 표 · 그림을 촘촘히 */
+[data-testid="stTabs"] .ui-sec-head h2 { font-size: 17px; }
+[data-testid="stTabs"] .ui-sec-head p { font-size: 13px; }
+.st-key-xai-reasons-head { margin-bottom: -6px; }
+[data-testid="stTabs"] .xai-rr-row { min-height: 58px; }
+[data-testid="stTabs"] .xai-rr-headrow { min-height: 38px; height: 38px; }
+[data-testid="stTabs"] .xai-rr-text { padding: 8px 0; }
+[data-testid="stTabs"] .xai-note { margin-top: 8px; }
+.xai-wf-card { padding: 16px 24px; gap: 10px; }
+.xai-wf-card .xai-flow { padding: 10px 16px; }
+.xai-wf-card .wf-track { height: 30px; }
+.xai-wf-card .wf-track .bar { top: 6px; height: 18px; }
+.xai-wf-card .wf-track .link { top: 24px; height: 12px; }
+.xai-wf-card .wf-track .mark { top: 4px; height: 22px; }
+.xai-wf-card .wf-track .mark-label { top: 7px; }
+.xai-sum-grid { display: grid; grid-template-columns: minmax(0, 1fr) 280px; gap: 24px; align-items: start; }
+.xai-sum-grid aside { display: flex; flex-direction: column; gap: 12px; }
+.xai-sum-grid .bs li { height: 24px; }
+.xai-sum-grid .bs-track { height: 20px; }
+@media (max-width: 1100px) { .xai-sum-grid { grid-template-columns: 1fr; } }
+
+/* ---- 한 화면에 맞추기 (1440 × 900) ---- */
+/* 탭 이름이 곧 제목이라, 탭 안 섹션 제목은 숨기고 설명 한 줄만 남긴다 */
+[data-testid="stTabs"] .ui-sec-head h2 { display: none; }
+[data-testid="stTabs"] .ui-sec-head p { margin: 0; }
+/* 한 줄 요약: 한 줄로, 숫자는 조금 작게 */
+.xai-overview .xai-summary { padding: 12px 24px; gap: 20px; }
+.xai-overview .xai-summary-main p { font-size: 16px; line-height: 1.4; }
+.xai-overview .xai-metric { gap: 2px; }
+.xai-overview .xai-metric strong { font-size: 22px; line-height: 1.25; }
+/* 거절 사유 표 */
+[data-testid="stTabs"] .xai-rr-row { min-height: 54px; }
+[data-testid="stTabs"] .xai-rr-text { padding: 6px 0; }
+/* Waterfall: 왼쪽 그래프 | 오른쪽 '평균 → 이 고객' · 범례 · 설명 */
+.xai-wf-card {
+  display: grid; grid-template-columns: minmax(0, 1fr) 230px; column-gap: 24px; row-gap: 10px; align-content: start;
+  grid-template-areas: "wf flow" "wf legend" "wf note" "wf .";
+}
+.xai-wf-card .wf { grid-area: wf; }
+.xai-wf-card .xai-flow { grid-area: flow; flex-direction: column; align-items: flex-start; gap: 8px; }
+.xai-wf-card .xai-flow > div, .xai-wf-card .xai-flow > div + .xai-arrow + div { padding: 0; }
+.xai-wf-card .xai-flow .xai-arrow { transform: rotate(90deg); }
+.xai-wf-card .xai-flow em { margin: 0; }
+.xai-wf-card .xai-legend { grid-area: legend; }
+.xai-wf-card > .xai-note { grid-area: note; }
+.xai-wf-card .wf-track { height: 27px; }
+.xai-wf-card .wf-track .bar { top: 5px; height: 17px; }
+.xai-wf-card .wf-track .link { top: 22px; height: 10px; }
+.xai-wf-card .wf-track .mark { top: 3px; height: 21px; }
+.xai-wf-card .wf-track .mark-label { top: 5px; }
+/* Summary 점 그림 */
+.xai-sum-grid .bs li { height: 22px; }
+.xai-sum-grid .bs-track { height: 18px; }
+@media (max-width: 1100px) {
+  .xai-wf-card { grid-template-columns: 1fr; grid-template-areas: "flow" "legend" "wf" "note"; }
+}
+.xai-overview .xai-summary { grid-template-columns: minmax(0, 1.2fr) repeat(3, minmax(0, 1fr)); }
+.xai-overview .xai-metric small { white-space: nowrap; }
+[data-testid="stTabs"] .xai-rr-row { grid-template-columns: 44px 220px minmax(0, 1fr) 80px 80px 170px; column-gap: 20px; }
+.xai-sum-grid .bs li { height: 20px; }
+.xai-sum-grid .bs-track { height: 16px; }
+.xai-sum-grid ~ * { margin: 0; }
+[data-testid="stTabs"] .xai-card { padding: 14px 22px; }
+.bs-color { flex-wrap: wrap; }
+.st-key-xai-find { padding: 20px 28px; gap: 12px !important; }

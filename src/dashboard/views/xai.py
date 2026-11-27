@@ -157,18 +157,7 @@ def _find_card():
 
 def _model_overview():
     """상담 중인 고객이 없을 때: 모든 고객에게 같은 모델 전체 설명 (SHAP Summary Plot)."""
-    try:
-        summary = api_client.shap_summary()
-    except Exception as e:
-        render_api_error("GET /explain/summary", e)
-        return
-    if not summary:
-        render_no_report("shap_summary")
-        return
-    st.html(ui.section_head("모델이 중요하게 보는 정보",
-                            f"SHAP Summary Plot, 상위 {SUMMARY_TOP}개 변수. 어떤 고객이든 모델은 이 기준으로 판단해요. "
-                            "점 하나가 고객 한 명이고, 위에 있을수록 영향이 커요.")
-            + f'<div class="xai-card">{_beeswarm(summary, set())}</div>')
+    _summary_tab()
 
 
 def _customer_strip(entry):
@@ -363,7 +352,7 @@ def _dot_color(t):
 
 def _jitter(feature, i):
     h = hashlib.md5(f"{feature}:{i}".encode()).digest()
-    return 4 + h[0] / 255 * 16  # 26px 줄 안에서 4~20px
+    return 2 + h[0] / 255 * 10  # 16px 줄 안에서 2~12px (xai.css .xai-sum-grid .bs-track)
 
 
 def _share_bar(features):
@@ -419,31 +408,37 @@ def _beeswarm(summary, reason_features):
             "지금은 변수별 평균 영향 크기(|SHAP| 평균)를 띠로 보여줘요.</p>")
     color_legend = ('<div class="bs-color">점 색은 그 고객의 변수 값이에요. 낮음<i></i>높음</div>' if swarm else "")
     return f"""
-    {_share_bar(summary.get("features", []))}
-    <ol class="bs" role="img" aria-label="SHAP 요약 플롯, 상위 {len(features)}개 변수">{"".join(rows)}</ol>
-    <div class="bs-axis"><span></span><span></span><span><em>← 위험 감소</em><em>SHAP 값</em><em>위험 증가 →</em></span><span></span></div>
-    {color_legend}{note}"""
+    <div class="xai-sum-grid">
+      <div>
+        <ol class="bs" role="img" aria-label="SHAP 요약 플롯, 상위 {len(features)}개 변수">{"".join(rows)}</ol>
+        <div class="bs-axis"><span></span><span></span><span><em>← 위험 감소</em><em>SHAP 값</em><em>위험 증가 →</em></span><span></span></div>
+      </div>
+      <aside>{_share_bar(summary.get("features", []))}{color_legend}{note}</aside>
+    </div>"""
 
 
-def _detail(explain, entry):
-    reason_features = {r["feature"] for r in explain.get("rejection_reasons") or []}
+def _waterfall_tab(explain, entry):
+    """탭: 부도 확률이 정해진 과정 (SHAP Waterfall)."""
+    rejected = entry["result"]["approval_status"] != "APPROVED"
+    st.html(ui.section_head("부도 확률이 올라간 과정" if rejected else "부도 확률이 정해진 과정",
+                            "SHAP Waterfall Plot. 평균 고객에서 출발해 정보 하나씩 위험을 더하고 뺀 결과예요.")
+            + f'<div class="xai-card xai-wf-card">{_waterfall(explain, entry)}</div>')
+
+
+def _summary_tab(reason_features=frozenset()):
+    """탭: 모델이 중요하게 보는 정보 (SHAP Summary). 이 고객의 사유인 변수는 표시한다."""
     try:
         summary = api_client.shap_summary()
-        summary_html = _beeswarm(summary, reason_features) if summary else None
     except Exception as e:
-        summary_html = api_error_html("GET /explain/summary", e, "inline")
-    left = f"""
-    <section>
-      {ui.section_head("부도 확률이 올라간 과정" if entry["result"]["approval_status"] != "APPROVED" else "부도 확률이 정해진 과정",
-                       "SHAP Waterfall Plot. 평균 고객에서 출발해 정보 하나씩 위험을 더하고 뺀 결과예요.")}
-      <div class="xai-card">{_waterfall(explain, entry)}</div>
-    </section>"""
-    st.html(f'<div class="xai-detail">{left}<section>'
-            + ui.section_head("모델이 중요하게 보는 정보",
-                              f"SHAP Summary Plot, 상위 {SUMMARY_TOP}개 변수. 점 하나가 고객 한 명이고, 위에 있을수록 영향이 커요.")
-            + f'<div class="xai-card">{summary_html or ""}</div></section></div>')
-    if summary_html is None:
+        render_api_error("GET /explain/summary", e)
+        return
+    if not summary:
         render_no_report("shap_summary")
+        return
+    st.html(ui.section_head("모델이 중요하게 보는 정보",
+                            f"SHAP Summary Plot, 상위 {SUMMARY_TOP}개 변수. 어떤 고객이든 모델은 이 기준으로 판단해요. "
+                            "점 하나가 고객 한 명이고, 위에 있을수록 영향이 커요.")
+            + f'<div class="xai-card">{_beeswarm(summary, set(reason_features))}</div>')
 
 
 # ---------------------------------------------------------------------------
@@ -459,14 +454,28 @@ if customer_id is None:
     _model_overview()
 else:
     entry = st.session_state.customers[customer_id]
-    st.html(_customer_strip(entry))
+    explain_error = None
     try:
         explain = _get_explain(customer_id)
     except Exception as e:
-        explain = None
-        render_api_error("POST /explain", e)
-    if explain:
-        st.html(_summary_html(explain, entry["result"]))
-        _reasons(explain, entry["result"], entry["profile"].get("name"))
-        counterfactual.render(customer_id, entry["payload"], entry["result"])
-        _detail(explain, entry)
+        explain, explain_error = None, e
+    # 고객 정보 + 한 줄 요약을 한 카드로 (한 화면에 들어오게)
+    st.html(f'<section class="xai-overview">{_customer_strip(entry)}'
+            f'{_summary_html(explain, entry["result"]).replace("<br>", " ") if explain else ""}</section>')
+    if explain is None:
+        render_api_error("POST /explain", explain_error)
+    else:
+        rejected = entry["result"]["approval_status"] != "APPROVED"
+        names = ["거절 사유 Top 5" if rejected else "위험을 높인 정보 Top 5"]
+        names += ["승인되려면"] if rejected else []
+        names += ["부도 확률이 정해진 과정", "모델이 중요하게 보는 정보"]
+        tabs = dict(zip(names, st.tabs(names)))
+        with tabs[names[0]]:
+            _reasons(explain, entry["result"], entry["profile"].get("name"))
+        if rejected:
+            with tabs["승인되려면"]:
+                counterfactual.render(customer_id, entry["payload"], entry["result"])
+        with tabs["부도 확률이 정해진 과정"]:
+            _waterfall_tab(explain, entry)
+        with tabs["모델이 중요하게 보는 정보"]:
+            _summary_tab({r["feature"] for r in explain.get("rejection_reasons") or []})
