@@ -390,7 +390,7 @@ def _open_flow(profile, source):
     ss.frm_gender = profile.get("gender")
     ss.frm_agree = {k: source == "edit" for k, *_ in AGREEMENTS}   # 다시 심사는 지난 심사 때 이미 동의했다
     ss.scr_step = "confirm" if source == "edit" else "apply"
-    for key in ("idn_notice", "idn_errors", "apl_missing"):
+    for key in ("idn_notice", "idn_errors", "apl_missing", "agr_missing"):
         ss.pop(key, None)
 
 
@@ -472,8 +472,11 @@ def render_apply(disabled=False):
 # 동의 (2/3 → 불러오기 연출 사이): 정보를 불러오기 전에 받는 필수 동의
 # ---------------------------------------------------------------------------
 def _agree_go():
-    if all(_agreed(k) for k, *_ in AGREEMENTS):
-        st.session_state.scr_step = _after_apply()
+    """동의하고 정보 불러오기: 모두 동의했으면 다음 단계, 아니면 안내만 (버튼은 늘 켜 둔다)."""
+    ss = st.session_state
+    ss.agr_missing = not all(_agreed(k) for k, *_ in AGREEMENTS)
+    if not ss.agr_missing:
+        ss.scr_step = _after_apply()
 
 
 def render_agree(disabled=False):
@@ -494,8 +497,10 @@ def render_agree(disabled=False):
                 with st.container(key=f"apl-agree-{key}"):
                     st.checkbox(f"(필수) {label}", key=f"agr_{key}", on_change=_agree_one, args=(key,))
                     st.html(f'<p class="apl-agree-detail">{escape(detail)}</p>')
+        if ss.get("agr_missing") and not ss.agr_all:
+            st.html('<p class="idn-error agr-error">필수 항목에 모두 동의해 주세요</p>')
         st.button("동의하고 정보 불러오기", key="agr-go", type="primary", on_click=_agree_go, use_container_width=True,
-                  disabled=disabled or not ss.agr_all)
+                  disabled=disabled)
 
 
 # ---------------------------------------------------------------------------

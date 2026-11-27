@@ -288,3 +288,11 @@
 .st-key-agr-go button:hover { background: var(--accent-hover); }
 .st-key-agr-go button p { font-size: 17px; font-weight: 700; color: #FFF; }
 .st-key-agr-go button:disabled { background: var(--input); opacity: 1; }
+/* 동의하고 정보 불러오기: 늘 파란 버튼. Streamlit 기본 hover(투명 바탕)에 지지 않게 !important */
+.st-key-agr-go button, .st-key-agr-go button:focus, .st-key-agr-go button:active {
+  background: var(--accent) !important; border: 0 !important; color: #FFF !important;
+}
+.st-key-agr-go button:hover { background: var(--accent-hover) !important; }
+.st-key-agr-go button p, .st-key-agr-go button:hover p { color: #FFF !important; }
+.st-key-agr-go button:disabled, .st-key-agr-go button:disabled:hover { background: var(--input) !important; }
+.agr-error { margin: 14px 0 0; }
