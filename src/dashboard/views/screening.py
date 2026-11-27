@@ -8,6 +8,7 @@
 고객 번호(customer_id)는 화면에 보이지 않는다. 고객 구분 · 서버 이력 · XAI 목록 같은 내부 구분에만 쓴다.
 - 로고 · 사이드바 '고객 심사' → 언제나 1/3
 """
+import math
 import re
 from datetime import datetime
 from html import escape
@@ -224,12 +225,32 @@ def _factors_section(result, profile, approved):
     _factor_table("주요 거절 사유", explain, reasons)
 
 
-def _action_card(key, title, caption):
-    """카드 전체가 눌리는 버튼 (보이는 내용은 HTML, 위에 투명 버튼을 덮는다)."""
-    with st.container(key=f"scr-act-{key}"):
-        st.html(f'<div class="scr-act"><div><b>{escape(title)}</b><span>{escape(caption)}</span></div>'
-                f'{ui.icon("chevron", "#8B95A1", 20)}</div>')
-        return st.button(title, key=f"scr-act-btn-{key}")
+def _xai_preview(result):
+    """판단 근거 미리 보기: 평균 고객 → 이 고객 부도 확률, 위험을 높인 · 낮춘 정보 수, XAI 화면에 있는 것.
+    카드 전체가 눌리는 버튼 (보이는 내용은 HTML, 위에 투명 버튼을 덮는다). 누르면 이 고객의 XAI 분석."""
+    approved = result["approval_status"] == "APPROVED"
+    try:
+        explain = CF.get_explain(result["customer_id"])
+    except Exception:
+        explain = {}
+    shap = explain.get("shap_values") or {}
+    base = explain.get("base_value")
+    flow = ""
+    if base is not None:
+        avg = 1 / (1 + math.exp(-base))
+        flow = (f'<div class="scr-xp-flow"><span>평균 고객<b>{avg * 100:.0f}%</b></span>'
+                f'{ui.icon("arrow", "#8B95A1", 18)}'
+                f'<span>이 고객<b class="{"" if approved else "fail"}">{result["default_probability"] * 100:.0f}%</b></span>'
+                f'<em>위험을 높인 정보 {sum(v > 0 for v in shap.values())}개 · '
+                f'낮춘 정보 {sum(v < 0 for v in shap.values())}개</em></div>')
+    chips = "".join(f"<i>{c}</i>" for c in ("SHAP Waterfall", "사유 Top 5 전체", "승인되려면", "모델 전체 중요도"))
+    with st.container(key="scr-act-xai"):
+        st.html(f'<div class="scr-act scr-xp"><div class="scr-xp-main">'
+                f'<b>판단 근거 <small>XAI 분석</small></b>'
+                f'<span>부도 확률이 어떻게 {"정해졌는지" if approved else "올라갔는지"} 정보 하나하나의 영향으로 보여 줘요.</span>'
+                f'{flow}<div class="scr-xp-chips">{chips}</div></div>'
+                f'<span class="scr-xp-go">자세히 보기{ui.icon("chevron", "#3182F6", 18)}</span></div>')
+        return st.button("판단 근거 자세히 보기", key="scr-act-btn-xai")
 
 
 def _result_view():
@@ -251,9 +272,7 @@ def _result_view():
 
     _factors_section(result, profile, approved)
 
-    title, caption = (("전체 판단 근거 보기", "어떤 정보가 점수에 영향을 줬는지 XAI 분석에서 확인") if approved
-                      else ("사유 5개 전체와 근거 보기", "XAI 분석에서 SHAP 기여도와 원본 플롯 확인"))
-    if _action_card("xai", title, caption):
+    if _xai_preview(result):
         st.session_state.xai_customer = result["customer_id"]
         st.switch_page("views/xai.py")
 
