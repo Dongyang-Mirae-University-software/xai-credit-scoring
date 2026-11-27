@@ -148,7 +148,9 @@ def _decision_html(result):
 
 
 def _reason_text(reason):
-    return CONTRIBUTION_SUFFIX.sub("", reason.get("explanation") or "")
+    """거절 사유 문장 (대안정보는 XAI 분석 · 3/3 과 같은 원천 기록 모양으로)."""
+    return F.reason_sentence(reason["feature"], reason.get("current_value"), reason.get("reference_value"),
+                             CONTRIBUTION_SUFFIX.sub("", reason.get("explanation") or ""))
 
 
 # /predict 요청은 % 로 보내고 /explain 의 current_value 는 0~1 로 오는 칸
@@ -178,7 +180,7 @@ def _approval_factors(explain, profile):
         if current is not None and feature in PERCENT_FIELDS:
             current = current / 100
         rows.append({"feature": feature, "current_value": current, "reference_value": None,
-                     "explanation": f"{F.label(feature)} 값이 부도 위험을 낮췄어요."})
+                     "explanation": f"{F.name(feature)} 값이 부도 위험을 낮췄어요."})
     return rows
 
 
@@ -191,7 +193,7 @@ def _shap_cell(value):
 def _factor_table(label, explain, rows):
     body = "".join(
         f'<div class="scr-rr-row"><span class="scr-rr-rank">{r.get("rank", i)}</span>'
-        f'<strong>{escape(F.label(r["feature"]))}</strong>'
+        f'<strong>{escape(F.name(r["feature"]))}</strong>'
         f'<span class="scr-rr-text">{escape(_reason_text(r))}</span>'
         f'<b class="num">{F.fmt_value(r["feature"], r.get("current_value"))}</b>'
         f'<span class="num scr-rr-ref">{F.fmt_value(r["feature"], r.get("reference_value"))}</span>'
@@ -226,7 +228,7 @@ def _factors_section(result, profile, approved):
         notice = "\n".join(
             [f"[대출 심사 결과 안내] {profile['name'] + ' ' if profile.get('name') else ''}고객님",
              "고객님의 대출 신청은 아래 사유로 승인되지 않았습니다.", ""]
-            + [f"{i}. {F.label(r['feature'])}: {_reason_text(r)}" for i, r in enumerate(reasons, 1)]
+            + [f"{i}. {F.name(r['feature'])}: {_reason_text(r)}" for i, r in enumerate(reasons, 1)]
             + ["", config.DISCLAIMER])
         with st.container(key="scr-copy"):
             ui.copy_button("안내문 복사", notice)
