@@ -1484,3 +1484,30 @@ div[role="dialog"]:has(.xai-find-sub) [data-testid="stFormSubmitButton"] button 
 .bs-axis > span.bs-axis-track { position: relative; display: block; height: 22px; }
 .bs-axis-track em { position: absolute; top: 0; white-space: nowrap; font-style: normal; }
 .bs-axis-track em.zero { transform: translateX(-50%); font-weight: 600; color: var(--ink-2); }
+
+/* ========== '요약' 을 탭으로 뺀 뒤: 탭 안 정보를 다시 크게 (탭 칸 높이가 약 170px 늘었다) ========== */
+[data-testid="stTabs"] .xai-card { padding: 20px 28px; }
+[data-testid="stTabs"] .xai-card:has(.xai-sum-grid) { padding-top: 20px; padding-bottom: 20px; }
+[data-testid="stTabs"] .ui-sec-head p { font-size: 14px; }
+/* 거절 사유 Top 5 */
+[data-testid="stTabs"] .xai-rr-row { min-height: 66px; }
+[data-testid="stTabs"] .xai-rr-headrow { min-height: 42px; height: 42px; font-size: 13px; }
+[data-testid="stTabs"] .xai-rr-name strong { font-size: 17px; }
+[data-testid="stTabs"] .xai-rr-name code { font-size: 12px; }
+[data-testid="stTabs"] .xai-rr-text { font-size: 15px; padding: 10px 0; }
+[data-testid="stTabs"] .xai-rr-row b.num, [data-testid="stTabs"] .xai-rr-ref { font-size: 17px; }
+[data-testid="stTabs"] .xai-rr-bar strong { font-size: 16px; }
+[data-testid="stTabs"] .xai-rank { width: 32px; height: 32px; font-size: 15px; }
+/* 부도 확률이 정해진 과정 (Waterfall) */
+.xai-wf-card .wf-track { height: 34px; }
+.xai-wf-card .wf-track .bar { top: 6px; height: 22px; }
+.xai-wf-card .wf-track .link { top: 28px; height: 12px; }
+.xai-wf-card .wf-track .mark { top: 4px; height: 26px; }
+.xai-wf-card .wf-track .mark-label { top: 8px; }
+/* 모델이 중요하게 보는 정보 */
+[data-testid="stTabs"] .xai-sum-grid .bs li { height: 30px; }
+[data-testid="stTabs"] .xai-sum-grid .bs-track { height: 24px; }
+[data-testid="stTabs"] .bs-axis { margin-top: 12px; }
+[data-testid="stTabs"] .xai-howto { display: block; padding: 18px 20px; }
+[data-testid="stTabs"] .xai-howto ul { gap: 10px; }
+[data-testid="stTabs"] .xai-card .xai-howto li { font-size: 16px; }

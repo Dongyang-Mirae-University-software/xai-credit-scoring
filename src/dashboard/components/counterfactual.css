@@ -37,3 +37,5 @@
   .cf-grid { grid-template-columns: minmax(0, 1fr); }
   .cf-col + .cf-col { border-left: 0; border-top: 1px solid var(--divider); }
 }
+/* XAI 분석 탭 안: 줄과 글씨를 크게 */
+[data-testid="stTabs"] .cf-row { min-height: 54px; font-size: 16px; }
