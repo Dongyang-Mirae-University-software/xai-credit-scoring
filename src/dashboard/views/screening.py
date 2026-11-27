@@ -2,7 +2,7 @@
 
 흐름 (components/customer_form)
 - 1/3 본인 확인: 이름 + 주민등록번호 → 정보 조회
-- 2/3 신청 정보: 월소득 · 부양가족 수 → 불러오기 연출
+- 2/3 신청 정보: 월소득 · 부양가족 수 → 동의(개인 · 신용 · 대안정보) → 불러오기 연출
 - 3/3 전체 확인: 모든 정보 → 틀린 항목만 고치고 심사 실행 (결과는 서버 이력에 바로 남는다)
 - 결과 화면: 정보 수정 → 3/3, 이전 → 1/3
 고객 번호(customer_id)는 화면에 보이지 않는다. 고객 구분 · 서버 이력 · XAI 목록 같은 내부 구분에만 쓴다.
@@ -284,6 +284,7 @@ def _result_view():
 st.html(f"<style>{CF.WORKSPACE_CSS}{CSS_PATH.read_text(encoding='utf-8')}{CF.CSS}"
         + ui.mask_css(".st-key-frm-back button::before", "chevron", 16)
         + ui.mask_css(".st-key-apl-back button::before", "chevron", 16)
+        + ui.mask_css(".st-key-agr-back button::before", "chevron", 16)
         + ui.mask_css(".st-key-scr-back button::before", "chevron", 16)
         + ui.mask_css(".st-key-scr-edit button::before", "pencil", 14)
         + "</style>")
@@ -298,6 +299,8 @@ if st.session_state.scr_current is not None:
     _result_view()
 elif st.session_state.scr_step == "apply":
     CF.render_apply(disabled=connection.is_down())
+elif st.session_state.scr_step == "agree":
+    CF.render_agree(disabled=connection.is_down())
 elif st.session_state.scr_step == "loading":
     CF.render_loading()
 elif st.session_state.scr_step == "judging":

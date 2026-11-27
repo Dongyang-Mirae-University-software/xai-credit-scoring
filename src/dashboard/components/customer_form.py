@@ -89,7 +89,7 @@ SAMPLE_CHIPS = [(cid, c["sample_label"]) for cid, c in CUSTOMERS.items() if c.ge
 def init_state():
     ss = st.session_state
     ss.setdefault("scr_current", None)   # 지금 보고 있는 심사 결과 {profile, result}. 있으면 고객 심사 = 결과 화면
-    ss.setdefault("scr_step", "identify")  # 결과가 없을 때: identify 1/3 · apply 2/3 · loading 연출 · confirm 3/3 · judging 심사 연출
+    ss.setdefault("scr_step", "identify")  # 결과가 없을 때: identify 1/3 · apply 2/3 · agree 동의 · loading 연출 · confirm 3/3 · judging 심사 연출
     ss.setdefault("customers", {})       # 지금 상담 중인 고객 {id: {payload, result, profile}} (한 명)
     ss.setdefault("xai_explain", {})     # /explain 응답 캐시
 
@@ -139,7 +139,7 @@ def clear_result():
 # 상담 단위: 창구는 한 번에 한 고객. 새 고객을 시작하거나 '상담 마치기' 를 누르면 앞 고객 정보를 세션에서 지운다
 # ---------------------------------------------------------------------------
 _FORM_KEYS = ("frm_profile", "frm_values", "frm_shown", "frm_source", "frm_gender", "frm_missing", "frm_error",
-              "apl_missing", "idn_notice", "idn_errors")
+              "frm_agree", "apl_missing", "idn_notice", "idn_errors")
 
 
 def _clear_consult():
@@ -388,6 +388,7 @@ def _open_flow(profile, source):
         value = None if source in APPLY_SOURCES and field in APPLY_KEYS else profile.get(field)
         ss.frm_values[field] = ss.frm_shown[field] = _shown(value, scale, decimals)
     ss.frm_gender = profile.get("gender")
+    ss.frm_agree = {k: source == "edit" for k, *_ in AGREEMENTS}   # 다시 심사는 지난 심사 때 이미 동의했다
     ss.scr_step = "confirm" if source == "edit" else "apply"
     for key in ("idn_notice", "idn_errors", "apl_missing"):
         ss.pop(key, None)
@@ -415,12 +416,39 @@ def _name_of():
 # ---------------------------------------------------------------------------
 # 2/3 신청 정보 (월소득 · 부양가족 수)
 # ---------------------------------------------------------------------------
+# 2/3 동의 항목: (키, 글, 자세히). 모두 필수 (대안정보도 모델 입력이라 빠지면 심사할 수 없다)
+AGREEMENTS = [
+    ("collect", "개인(신용)정보 수집 · 이용 동의", "대출 심사를 위해 이름 · 주민등록번호 · 소득 정보를 수집해요"),
+    ("cb", "개인(신용)정보 조회 동의", "신용정보원(CB)에서 대출 · 연체 · 카드 기록을 조회해요"),
+    ("alt", "대안정보 제공 동의", "통신비 · 공과금 · 결제 기록을 심사에 써요"),
+]
+
+
+def _agreed(key):
+    return st.session_state.get("frm_agree", {}).get(key, False)
+
+
+def _agree_one(key):
+    st.session_state.frm_agree[key] = st.session_state[f"agr_{key}"]
+
+
+def _agree_all():
+    ss = st.session_state
+    for key, *_ in AGREEMENTS:
+        ss.frm_agree[key] = ss.agr_all
+
+
+def _after_apply():
+    """2/3 다음 단계: 은행 기록이 있는 고객은 불러오기 연출, 직접 입력 고객은 바로 3/3."""
+    return "loading" if st.session_state.frm_source in ("bank", "sample") else "confirm"
+
+
 def _apply_next():
-    """다음: 두 칸을 다 채웠으면 은행 기록이 있는 고객은 불러오기 연출, 직접 입력 고객은 3/3 으로."""
+    """2/3 다음: 두 칸을 다 채웠으면 동의 화면으로 (이미 모두 동의했으면 — 다시 심사 등 — 바로 다음 단계)."""
     ss = st.session_state
     ss.apl_missing = [label for f, label, *_ in APPLY_FIELDS if _val(f) is None]
     if not ss.apl_missing:
-        ss.scr_step = "loading" if ss.frm_source in ("bank", "sample") else "confirm"
+        ss.scr_step = _after_apply() if all(_agreed(k) for k, *_ in AGREEMENTS) else "agree"
 
 
 def render_apply(disabled=False):
@@ -438,6 +466,36 @@ def render_apply(disabled=False):
             st.html(f'<p class="idn-error">{escape(", ".join(ss.apl_missing))} 칸을 채워 주세요</p>')
         st.button("다음", key="apl-next", type="primary", on_click=_apply_next, disabled=disabled,
                   use_container_width=True)
+
+
+# ---------------------------------------------------------------------------
+# 동의 (2/3 → 불러오기 연출 사이): 정보를 불러오기 전에 받는 필수 동의
+# ---------------------------------------------------------------------------
+def _agree_go():
+    if all(_agreed(k) for k, *_ in AGREEMENTS):
+        st.session_state.scr_step = _after_apply()
+
+
+def render_agree(disabled=False):
+    """동의 화면: '전체 동의' + 필수 항목. 모두 동의해야 [동의하고 정보 불러오기] 가 켜진다.
+    값은 frm_agree 에 두고 체크칸은 그릴 때 채운다 (단계를 오가도 남게)."""
+    ss = st.session_state
+    ss.setdefault("frm_agree", {})
+    ss.agr_all = all(_agreed(k) for k, *_ in AGREEMENTS)
+    name = _name_of()
+    with st.container(key="agr-card"):
+        st.button("이전", key="agr-back", type="tertiary", on_click=_go, args=("apply",))
+        st.html(f'<div class="tz-step">동의</div><h1 class="tz-title">{escape(name) + "님의 " if name else ""}정보를 불러오려면<br>'
+                '동의가 필요해요</h1><p class="tz-sub">신용정보원(CB)의 금융 기록과 대안정보를 심사에 써요.</p>')
+        with st.container(key="apl-agree"):
+            st.checkbox("필수 항목에 모두 동의해요", key="agr_all", on_change=_agree_all)
+            for key, label, detail in AGREEMENTS:
+                ss[f"agr_{key}"] = _agreed(key)
+                with st.container(key=f"apl-agree-{key}"):
+                    st.checkbox(f"(필수) {label}", key=f"agr_{key}", on_change=_agree_one, args=(key,))
+                    st.html(f'<p class="apl-agree-detail">{escape(detail)}</p>')
+        st.button("동의하고 정보 불러오기", key="agr-go", type="primary", on_click=_agree_go, use_container_width=True,
+                  disabled=disabled or not ss.agr_all)
 
 
 # ---------------------------------------------------------------------------
@@ -461,15 +519,18 @@ JUDGING_STEPS = [
 ]
 
 
-def _loading_html(done, name, steps=LOADING_STEPS, action="정보를<br>가져오고 있어요"):
+def _loading_html(done, name, steps=LOADING_STEPS, action="정보를<br>가져오고 있어요", finished="정보를<br>모두 가져왔어요"):
     rows = []
     for i, (doing, finished) in enumerate(steps):
         state = "done" if i < done else "doing" if i == done else "todo"
         mark = ui.icon("check", "#FFFFFF", 14) if state == "done" else ""
         rows.append(f'<li class="{state}"><i>{mark}</i><span>{escape(finished if state == "done" else doing)}</span></li>')
     who = f"{escape(name)}님의" if name else "고객님의"
-    return (f'<div class="ld-card"><div class="ld-spin{" ok" if done >= len(steps) else ""}"></div>'
-            f'<h1 class="tz-title">{who} {action}</h1>'
+    all_done = done >= len(steps)
+    mark = (f'<div class="ld-done">{ui.icon("check", "#FFFFFF", 28)}</div>' if all_done   # 끝나면 체크가 든 파란 원
+            else '<div class="ld-spin"></div>')
+    return (f'<div class="ld-card">{mark}'
+            f'<h1 class="tz-title">{who} {finished if all_done else action}</h1>'
             f'<ul class="ld-steps">{"".join(rows)}</ul></div>')
 
 
@@ -562,7 +623,8 @@ def render_judging():
     ss = st.session_state
     slot = st.empty()
     name = _name_of()
-    show = lambda done: slot.html(_loading_html(done, name, JUDGING_STEPS, "심사를<br>진행하고 있어요"))  # noqa: E731
+    show = lambda done: slot.html(_loading_html(done, name, JUDGING_STEPS, "심사를<br>진행하고 있어요",  # noqa: E731
+                                                 "심사가<br>끝났어요"))
     show(0)
     started = time.monotonic()
     try:

@@ -246,3 +246,45 @@
   font-style: normal; font-size: 11px; font-weight: 700; background: var(--fill); color: var(--ink-3);
 }
 .st-key-frm-sec-apply { padding: 16px 22px 4px; border-radius: var(--radius-card); background: var(--card); gap: 0 !important; }
+
+/* 불러오기 · 심사 연출이 끝났을 때: 빈 원 대신 체크가 든 파란 원 */
+.ld-done {
+  width: 56px; height: 56px; margin: 0 auto; border-radius: 50%; background: var(--accent);
+  display: flex; align-items: center; justify-content: center; animation: ld-pop .25s ease-out;
+}
+.ld-done img { display: block; }
+@keyframes ld-pop { from { transform: scale(.6); opacity: .4; } to { transform: scale(1); opacity: 1; } }
+
+/* 동의 화면: 회색 상자 안에 '전체 동의' + 필수 항목 (토스식 둥근 체크) */
+.st-key-apl-agree {
+  margin: 8px 0 4px; padding: 16px 18px; border-radius: var(--radius-ctl); background: var(--fill); gap: 10px !important;
+}
+.st-key-apl-agree [data-baseweb="checkbox"] { align-items: center; gap: 10px; }
+.st-key-apl-agree [data-baseweb="checkbox"] > span:first-of-type {
+  width: 22px; height: 22px; border-radius: 50%; border: 2px solid var(--input) !important; background-color: #FFF !important;
+}
+.st-key-apl-agree [data-baseweb="checkbox"]:has(input:checked) > span:first-of-type {
+  border-color: var(--accent) !important; background-color: var(--accent) !important;
+}
+.st-key-apl-agree [data-baseweb="checkbox"] p { font-size: 15px; color: var(--ink-2); }
+.st-key-apl-agree > .stElementContainer:first-child { padding-bottom: 10px; border-bottom: 1px solid var(--border); }
+.st-key-apl-agree > .stElementContainer:first-child [data-baseweb="checkbox"] p { font-size: 16px; font-weight: 700; color: var(--ink); }
+[class*="st-key-apl-agree-"] { gap: 0 !important; }
+.apl-agree-detail { margin: 0 0 0 32px; font-size: 12px; color: var(--ink-3); line-height: 1.5; }
+
+/* 동의 화면 카드: 2/3 카드와 같은 모양 */
+.st-key-agr-card {
+  width: 100%; max-width: 600px; margin: 0 auto; box-sizing: border-box;
+  padding: 28px 40px 32px; border-radius: var(--radius-card); background: var(--card); gap: 0 !important;
+}
+.st-key-agr-back { margin: 0 0 12px -12px; }
+.st-key-agr-back button { height: 36px; min-height: 36px; padding: 0 12px; gap: 2px; border-radius: 10px; }
+.st-key-agr-back button::before { transform: rotate(180deg); }
+.st-key-agr-back button p { font-size: 15px; color: var(--ink-2); font-weight: 600; }
+.st-key-agr-back button:hover { background: var(--fill); }
+.st-key-agr-card .st-key-apl-agree { margin: 32px 0 0; }
+.st-key-agr-go { margin-top: 28px; }
+.st-key-agr-go button { height: 56px; min-height: 56px; border: 0; border-radius: var(--radius-ctl); background: var(--accent); }
+.st-key-agr-go button:hover { background: var(--accent-hover); }
+.st-key-agr-go button p { font-size: 17px; font-weight: 700; color: #FFF; }
+.st-key-agr-go button:disabled { background: var(--input); opacity: 1; }
