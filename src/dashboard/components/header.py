@@ -36,10 +36,6 @@ def render_header(current_page):
             {ui.logo()}
             <div><b>대안신용평가 심사 시스템</b><span>XAI 기반 씬파일러 대출 심사</span></div>
           </div>
-          <div class="hdr-right">
-            <span class="hdr-badge">교육용</span>
-            <span class="hdr-account" aria-hidden="true">{ui.icon("account", "#8B95A1", 20)}</span>
-          </div>
         </header>
         """)
         st.button("처음 화면으로", key="hdr-home", on_click=go_start)
