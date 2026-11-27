@@ -245,10 +245,12 @@
   margin-left: 8px; padding: 2px 8px; border-radius: 999px; vertical-align: 2px;
   font-style: normal; font-size: 11px; font-weight: 700; background: var(--fill); color: var(--ink-3);
 }
-.st-key-frm-apply-head { justify-content: space-between; flex-wrap: nowrap; }
-.st-key-frm-apply-head > .stElementContainer:first-child { flex: 1 1 auto; width: auto !important; }
-.st-key-frm-apply-head > .stElementContainer:has(.stButton) { flex: none; width: auto !important; }
-.st-key-frm-apply-edit button { height: 30px; min-height: 30px; padding: 0 10px; border-radius: 8px; }
-.st-key-frm-apply-edit button p { font-size: 14px; font-weight: 700; color: var(--accent); }
-.st-key-frm-apply-edit button:hover { background: var(--accent-bg); }
+/* 신청 정보: 줄 전체가 버튼 (오른쪽 › , 누르면 2/3). 보이는 줄(HTML) 위에 투명 버튼을 덮는다 */
+.st-key-frm-apply-rows { position: relative; gap: 0 !important; margin: 0 -10px; }
+.frm-link-row { grid-template-columns: minmax(0, 1fr) auto 40px 18px; padding: 0 10px; border-radius: 12px; transition: background .15s; }
+.frm-link-row img { display: block; }
+.st-key-frm-apply-rows:hover .frm-link-row { background: var(--fill); }
+.st-key-frm-apply-rows:hover .frm-link-row + .frm-link-row { border-top-color: transparent; }
+.st-key-frm-apply-edit { position: absolute; inset: 0; width: 100% !important; height: 100%; margin: 0 !important; z-index: 1; }
+.st-key-frm-apply-edit .stButton, .st-key-frm-apply-edit button { width: 100%; height: 100%; opacity: 0; cursor: pointer; }
 .st-key-frm-sec-apply { padding: 16px 22px 4px; border-radius: var(--radius-card); background: var(--card); gap: 0 !important; }
