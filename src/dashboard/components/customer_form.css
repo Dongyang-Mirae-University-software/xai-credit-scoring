@@ -234,3 +234,21 @@
 @media (max-width: 640px) {
   .st-key-frm-wrap .st-key-frm-sec-credit > :has([class*="st-key-frm-row-"]) { flex: none; }
 }
+
+/* ---------- 3/3: 고칠 수 있는 칸 vs 고칠 수 없는 값 ----------
+   고칠 수 있는 칸은 늘 회색 상자(누르면 흰 바탕 + 파란 테두리), 고칠 수 없는 값은 상자 없이 글자만 */
+.st-key-frm-wrap [class*="st-key-frm-row-"] [data-baseweb="input"] { background: var(--fill); }
+.st-key-frm-wrap [class*="st-key-frm-row-"] [data-baseweb="input"]:hover { background: var(--fill-hover); }
+.st-key-frm-wrap [class*="st-key-frm-row-"] [data-baseweb="input"]:focus-within { background: #FFF; }
+.st-key-frm-wrap [class*="st-key-frm-row-"] { gap: 8px; }
+.frm-lock {
+  margin-left: 8px; padding: 2px 8px; border-radius: 999px; vertical-align: 2px;
+  font-style: normal; font-size: 11px; font-weight: 700; background: var(--fill); color: var(--ink-3);
+}
+.st-key-frm-apply-head { justify-content: space-between; flex-wrap: nowrap; }
+.st-key-frm-apply-head > .stElementContainer:first-child { flex: 1 1 auto; width: auto !important; }
+.st-key-frm-apply-head > .stElementContainer:has(.stButton) { flex: none; width: auto !important; }
+.st-key-frm-apply-edit button { height: 30px; min-height: 30px; padding: 0 10px; border-radius: 8px; }
+.st-key-frm-apply-edit button p { font-size: 14px; font-weight: 700; color: var(--accent); }
+.st-key-frm-apply-edit button:hover { background: var(--accent-bg); }
+.st-key-frm-sec-apply { padding: 16px 22px 4px; border-radius: var(--radius-card); background: var(--card); gap: 0 !important; }

@@ -556,17 +556,33 @@ def _go(step):
     st.session_state.scr_step = step
 
 
+def _fixed_row(label, hint, value, unit):
+    """고칠 수 없는 값 한 줄: 입력 상자 없이 글자만 (고칠 수 있는 칸은 회색 상자라 구분된다)."""
+    small = f"<small>{escape(hint)}</small>" if hint else ""
+    st.html(f'<div class="frm-fixed-row"><div class="frm-label"><span>{escape(label)}</span>{small}</div>'
+            f'<b class="frm-fixed">{escape(value)}</b><span class="frm-unit">{escape(unit)}</span></div>')
+
+
 def _basic_section(profile):
+    """기본 정보: 주민등록번호로 정해진 값이라 고칠 수 없다 ('변경 불가' 표시)."""
     ss = st.session_state
     with st.container(key="frm-sec-basic"):
-        caption = "주민등록번호로 확인한 정보라 고칠 수 없어요" if profile.get("rrn_masked") else "고칠 수 없는 정보예요"
-        st.html(f'<div class="frm-sec-head"><h2>기본 정보</h2><p>{caption}</p></div>')
+        caption = "주민등록번호로 확인한 정보예요" if profile.get("rrn_masked") else "고객 기본 정보예요"
+        st.html(f'<div class="frm-sec-head"><h2>기본 정보<i class="frm-lock">변경 불가</i></h2><p>{caption}</p></div>')
         age = _val("age")
-        for label, hint, value, unit in (("나이", "만 나이", "-" if age is None else str(age), "세"),
-                                         ("성별", "공정성 점검용, 점수 미반영", ss.frm_gender or "-", "")):
-            st.html(f'<div class="frm-fixed-row"><div class="frm-label"><span>{label}</span>'
-                    f'<small>{hint}</small></div><b class="frm-fixed">{escape(value)}</b>'
-                    f'<span class="frm-unit">{unit}</span></div>')
+        _fixed_row("나이", "만 나이", "-" if age is None else str(age), "세")
+        _fixed_row("성별", "공정성 점검용, 점수 미반영", ss.frm_gender or "-", "")
+
+
+def _apply_section():
+    """신청 정보: 2/3 에서 받은 값. 여기서는 글자로만 보여 주고, 바꾸려면 [수정] → 2/3."""
+    with st.container(key="frm-sec-apply"):
+        with st.container(key="frm-apply-head", horizontal=True, vertical_alignment="center"):
+            st.html('<div class="frm-sec-head"><h2>신청 정보</h2><p>2단계에서 고객님께 받은 정보예요</p></div>')
+            st.button("수정", key="frm-apply-edit", type="tertiary", on_click=_go, args=("apply",))
+        for field, label, unit, scale, decimals, *_ in APPLY_FIELDS:
+            value = _val(field)
+            _fixed_row(label, "", "-" if value is None else f"{value:,}", unit)
 
 
 def render_confirm(disabled=False):
@@ -601,7 +617,7 @@ def render_confirm(disabled=False):
         left, right = st.columns(2, gap="medium")
         with left:
             _basic_section(profile)
-            _section("apply", "신청 정보", "대출 신청서에 고객님이 직접 적은 정보예요", APPLY_FIELDS)
+            _apply_section()
             _section("alt", "대안정보", "통신 · 공과금 · 결제 기록에서 모은 정보예요", ALT_FIELDS)
         with right:
             _section("credit", "신용정보", "신용정보원(CB)에 있는 금융 기록이에요", CREDIT_FIELDS)
