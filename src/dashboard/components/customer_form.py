@@ -816,11 +816,11 @@ def render_confirm(disabled=False):
                       ("대안정보", len(alt), ALT_FIELDS))
             checks = ""
             for label, n, fields in groups:
-                fixed = sum(_val(f) != snap.get(f) for f, *_ in fields)
+                fixed = any(_val(f) != snap.get(f) for f, *_ in fields)
                 if any(f[1] in ss.frm_missing for f in fields):
                     checks += f'<span class="miss"><i>!</i>{label} {n}</span>'
                 elif fixed:
-                    checks += f'<span class="edit"><i>✎</i>{label} {n} · {fixed}개 고침</span>'
+                    checks += f'<span class="edit"><i>✎</i>{label} {n}</span>'
                 else:
                     checks += f'<span><i>✓</i>{label} {n}</span>'
             if ss.frm_missing:

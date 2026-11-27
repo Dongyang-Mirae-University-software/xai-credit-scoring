@@ -425,9 +425,7 @@
   display: inline-flex; width: 18px; height: 18px; border-radius: 50%; background: var(--ok); color: #FFF;
   font-size: 11px; font-style: normal; align-items: center; justify-content: center;
 }
-.frm-checks span.edit { color: var(--accent); font-weight: 600; }
 .frm-checks span.edit i { background: var(--accent); }
-.frm-checks span.miss { color: var(--fail-text); font-weight: 600; }
 .frm-checks span.miss i { background: var(--fail-text); font-weight: 700; }
 .st-key-frm-foot-row .frm-foot-note, .frm-foot-miss { margin-left: auto; font-size: 13px; color: var(--ink-3); white-space: nowrap; }
 .frm-foot-miss { color: var(--fail-text); font-weight: 600; }
