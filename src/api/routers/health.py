@@ -21,7 +21,8 @@ def health():
     return HealthResponse(
         status='healthy' if ready else 'degraded', model_ready=ready,
         model_version=model.MODEL_VERSION, model_stage=model.MODEL_STAGE, test_auc=test_auc,
-        approval_threshold=model.APPROVAL_THRESHOLD,
+        approval_threshold=model.APPROVAL_THRESHOLD, approval_score=model.approval_score(),
+        score_method=model.SCORE_METHOD, score_range=[model.SCORE_MIN, model.SCORE_MAX], grade_scale=model.GRADE_SCALE,
         reports={name: reports.source(name) for name in reports.PATHS},
         timestamp=datetime.now(timezone.utc).isoformat(), disclaimer=DISCLAIMER,
     )

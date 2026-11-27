@@ -47,9 +47,9 @@
 
 대출 심사 담당자가 고객 정보를 넣으면 **승인 · 거절과 신용 점수**, **왜 그런 결과가 나왔는지(거절 사유 5가지)**, **무엇을 바꾸면 승인되는지**를 한 화면에서 봅니다.
 
-| ✅ 일반 고객 - 승인 (A등급 · 845점) | ❌ 씬파일러 - 거절 (E등급 · 37점) |
+| ✅ 일반 고객 - 승인 (A등급 · 536점) | ❌ 씬파일러 - 거절 (E등급 · 393점) |
 | --- | --- |
-| ![승인된 일반 고객의 심사 결과: A등급, 845점, 부도 확률 15.5%, 승인 요인 표](docs/images/screening_approved.png) | ![거절된 씬파일러의 심사 결과: E등급, 37점, 부도 확률 96.3%, 거절 사유 표](docs/images/screening_rejected.png) |
+| ![승인된 일반 고객의 심사 결과: A등급, 536점, 부도 확률 15.5%, 승인 요인 표](docs/images/screening_approved.png) | ![거절된 씬파일러의 심사 결과: E등급, 393점, 부도 확률 96.3%, 거절 사유 표](docs/images/screening_rejected.png) |
 
 | 🧠 왜 거절됐나 - 거절 사유 Top 5 (SHAP) | 🔁 무엇을 바꾸면 승인되나 - 승인 조건 |
 | --- | --- |
@@ -63,12 +63,12 @@
 
 > **금융 기록이 없으면, 성실하게 살아도 대출을 받을 수 없을까요?**
 
-| 수치 · 사실 | 내용 |
+| 수⁠치&nbsp;·&nbsp;사⁠실 | 내용 |
 | :---: | --- |
-| 👥 **약 1,107만 명** | 국내 금융이력부족자(씬파일러) - 주부 · 사회초년생 · 프리랜서 등 |
-| 📄 **금융 기록만 본다** | 기존 신용평가(CB)는 대출 · 카드 기록으로 점수를 매겨, 기록이 얇으면 판단할 근거가 없어 거절되기 쉽다 |
-| ⚖️ **이유를 설명해야 한다** | AI로 심사받은 고객은 결과의 이유를 요구할 수 있다 (신용정보법 제36조의2) |
-| 🚫 **차별하면 안 된다** | 성별 · 나이 등으로 대출 조건을 차별할 수 없다 (금융소비자보호법 제15조, 금융분야 AI 가이드라인) |
+| 👥&nbsp;**약&nbsp;1,107⁠만&nbsp;명** | 국내 금융이력부족자(씬파일러) - 주부 · 사회초년생 · 프리랜서 등 |
+| 📄&nbsp;**금⁠융&nbsp;기⁠록⁠만&nbsp;본⁠다** | 기존 신용평가(CB)는 대출 · 카드 기록으로 점수를 매겨, 기록이 얇으면 판단할 근거가 없어 거절되기 쉽다 |
+| ⚖️&nbsp;**이⁠유⁠를&nbsp;설⁠명⁠해⁠야&nbsp;한⁠다** | AI로 심사받은 고객은 결과의 이유를 요구할 수 있다 (신용정보법 제36조의2) |
+| 🚫&nbsp;**차⁠별⁠하⁠면&nbsp;안&nbsp;된⁠다** | 성별 · 나이 등으로 대출 조건을 차별할 수 없다 (금융소비자보호법 제15조, 금융분야 AI 가이드라인) |
 
 <sub>출처: 금융위원회 보도자료 「데이터 경제 활성화를 위한 신용정보산업 선진화 방안」(2018.11.21) · 신용정보법 · 금융소비자보호법 · 금융위원회 「금융분야 인공지능(AI) 가이드라인」(2021.7.8)</sub>
 
@@ -80,14 +80,14 @@
 
 금융 정보 10개에 **대안 데이터 5개**(통신비 정상납부율 · 공과금 납부율 · 소비 일관성 · 정기결제 건수 · 앱 로그인 빈도)를 더해 부도 확률을 예측하고, 결과마다 **SHAP 설명**과 **공정성 점검**을 함께 보여 줍니다.
 
-| 영역 | 기능 | 하는 일 |
+| 영⁠역 | 기능 | 하는 일 |
 | :---: | --- | --- |
-| 🧾 **심사** | 고객 심사 | 고객 ID로 불러오거나 새로 입력 → 승인 · 거절, 신용 점수, A\~E 등급, 부도 확률. 심사 이력 저장 |
-| 🧠 **설명** | 거절 사유 Top 5 | SHAP으로 결과에 가장 크게 영향을 준 정보 5개를 고르고, 동일 연령대 평균과 비교한 안내 문장 생성 |
-| | 승인 조건 | 바꿀 수 있는 정보만 한 칸씩 움직여 승인 기준을 넘는 변화를 찾아 제안 (Counterfactual) |
-| ⚖️ **공정성** | 성별 · 나이 점검 | 집단별 승인율 비율(DI Ratio)과 Equalized Odds 계산, 기준을 넘으면 집단별 승인 기준선 조정 |
-| ✅ **검증** | 모델 성능 · 통계 검증 | Test AUC · KS · PSI · 씬파일러 AUC 향상, 성능 차이가 우연이 아닌지 ANOVA와 Tukey HSD |
-| 📡 **모니터링** | 데이터 변화 탐지 | 점수 분포(PSI)와 입력 칸별 분포(CSI)로 데이터가 바뀌었는지 경고 |
+| 🧾&nbsp;**심⁠사** | 고객&nbsp;심사 | 고객 ID로 불러오거나 새로 입력 → 승인 · 거절, 신용 점수, A\~E 등급, 부도 확률. 심사 이력 저장 |
+| 🧠&nbsp;**설⁠명** | 거절&nbsp;사유&nbsp;Top&nbsp;5 | SHAP으로 결과에 가장 크게 영향을 준 정보 5개를 고르고, 동일 연령대 평균과 비교한 안내 문장 생성 |
+| | 승인&nbsp;조건 | 바꿀 수 있는 정보만 한 칸씩 움직여 승인 기준을 넘는 변화를 찾아 제안 (Counterfactual) |
+| ⚖️&nbsp;**공⁠정⁠성** | 성별&nbsp;·&nbsp;나이&nbsp;점검 | 집단별 승인율 비율(DI Ratio)과 Equalized Odds 계산, 기준을 넘으면 집단별 승인 기준선 조정 |
+| ✅&nbsp;**검⁠증** | 모⁠델&nbsp;성⁠능&nbsp;·&nbsp;통⁠계&nbsp;검⁠증 | Test AUC · KS · PSI · 씬파일러 AUC 향상, 성능 차이가 우연이 아닌지 ANOVA와 Tukey HSD |
+| 📡&nbsp;**모⁠니⁠터⁠링** | 데이터&nbsp;변화&nbsp;탐지 | 점수 분포(PSI)와 입력 칸별 분포(CSI)로 데이터가 바뀌었는지 경고 |
 
 > 아래 화면도 모두 실제 대시보드에서 캡처했습니다. 제목을 누르면 펼쳐집니다.
 
@@ -139,25 +139,13 @@
 
 학습 파이프라인이 만든 모델과 검증 결과를 API가 제공하고, 대시보드는 **모델 파일을 직접 읽지 않고 API로만** 결과를 받습니다 (MSA 구조).
 
-```mermaid
-flowchart LR
-    subgraph P["학습 파이프라인 (main_step1~6, main_bonus_*)"]
-        D["GMSC 15만 명<br/>+ 대안 데이터 시뮬레이터"] --> T["전처리 · 분할<br/>Train / Validation / Test"]
-        T --> M["모델 18개 학습<br/>5-Fold CV"]
-        M --> V["검증<br/>성능 · SHAP · 공정성 · ANOVA"]
-    end
-    M -- "최종 모델 (models/)" --> A
-    V -- "검증 결과 JSON (outputs/)" --> A
-    M -. "실험 기록" .-> F[("MLflow<br/>:5000")]
-    A["FastAPI<br/>:8000"] <-- "HTTP" --> S["Streamlit 대시보드<br/>:8501"]
-    U(["대출 심사 담당자"]) --> S
-```
+![시스템 구성: 대출 심사 담당자는 Streamlit 대시보드(8501)를 쓰고, 대시보드는 HTTP로만 FastAPI(8000)에 묻는다. API는 models/ · outputs/ · data/를 읽고, 오프라인 학습 파이프라인이 모델과 검증 결과를 만들어 두며 실험은 MLflow(5000)에 기록된다](docs/images/architecture.svg)
 
-| 서비스 | 주소 | 역할 |
+| 서⁠비⁠스 | 주소 | 역할 |
 | --- | --- | --- |
-| 🔌 API (FastAPI) | `localhost:8000/docs` | `/predict` · `/explain` · `/counterfactual` · `/fairness` · `/metrics` · `/anova` · `/drift` · `/screenings` 등, 모든 응답에 Pydantic 스키마 |
-| 🖥️ 대시보드 (Streamlit) | `localhost:8501` | 고객 심사 · XAI 분석 · 공정성 · 모델 성능 · 통계 검증 5개 페이지 |
-| 🧪 MLflow | `localhost:5000` | 후보 모델 18개와 최종 모델 기록 |
+| 🔌&nbsp;API&nbsp;(FastAPI) | `localhost:8000/docs` | `/predict` · `/explain` · `/counterfactual` · `/fairness` · `/metrics` · `/anova` · `/drift` · `/screenings` 등, 모든 응답에 Pydantic 스키마 |
+| 🖥️&nbsp;대⁠시⁠보⁠드&nbsp;(Streamlit) | `localhost:8501` | 고객 심사 · XAI 분석 · 공정성 · 모델 성능 · 통계 검증 5개 페이지 |
+| 🧪&nbsp;MLflow | `localhost:5000` | 후보 모델 18개와 최종 모델 기록 |
 
 ---
 
@@ -205,26 +193,26 @@ flowchart LR
 
 ### 과제 성공 기준
 
-| 항목 | 목표 | 결과 | 판정 |
+| 항⁠목 | 목표 | 결과 | 판정 |
 | --- | :---: | :---: | :---: |
-| 🎯 Test AUC-ROC | 0.78 이상 | **0.889** | 통과 |
-| 📏 Test KS | 0.28 이상 | **0.613** | 통과 |
-| 🧊 PSI (Train vs Test) | 0.1 미만 | **0.0004** | 통과 |
-| 🌱 씬파일러 AUC 향상 | +0.03 이상 | **+0.066** | 통과 |
-| ⚖️ 공정성 (DI Ratio · Equalized Odds) | 0.8\~1.25 · 0.10 이하 | **0.988 · 0.04 / 0.06** (보정 후) | 통과 |
-| 📊 ANOVA | 1개 이상 p < 0.05 | **두 검증 모두 p < 0.001** | 통과 |
-| ⏱️ `/predict` 응답 시간 | 2초 이내 | **첫 호출 0.92초, 이후 0.1초 이하** | 통과 |
-| 🧪 pytest | 10개 이상 · 80% 통과 | **179개 모두 통과** | 통과 |
+| 🎯&nbsp;Test&nbsp;AUC-ROC | 0.78 이상 | **0.889** | 통과 |
+| 📏&nbsp;Test&nbsp;KS | 0.28 이상 | **0.613** | 통과 |
+| 🧊&nbsp;PSI&nbsp;(Train&nbsp;vs&nbsp;Test) | 0.1 미만 | **0.0004** | 통과 |
+| 🌱&nbsp;씬⁠파⁠일⁠러&nbsp;AUC&nbsp;향⁠상 | +0.03 이상 | **+0.066** | 통과 |
+| ⚖️&nbsp;공⁠정⁠성&nbsp;(DI&nbsp;Ratio&nbsp;·&nbsp;Equalized&nbsp;Odds) | 0.8\~1.25 · 0.10 이하 | **0.988 · 0.04 / 0.06** (보정 후) | 통과 |
+| 📊&nbsp;ANOVA | 1개 이상 p < 0.05 | **두 검증 모두 p < 0.001** | 통과 |
+| ⏱️&nbsp;`/predict`&nbsp;응⁠답&nbsp;시⁠간 | 2초 이내 | **첫 호출 0.92초, 이후 0.1초 이하** | 통과 |
+| 🧪&nbsp;pytest | 10개 이상 · 80% 통과 | **179개 모두 통과** | 통과 |
 
 ### 추가 과제 5개
 
-| 과제 | 결과 |
+| 과⁠제 | 결과 |
 | --- | --- |
-| 🔍 LIME과 SHAP 비교 | 고객 200명의 상위 5개 변수 평균 일치율 **0.405** (거절 고객 0.472). 두 기법이 보는 관점이 다름을 확인 |
-| 🔁 승인 조건 제안 (Counterfactual) | 바꿀 수 없는 정보(나이 · 과거 연체 등)는 고정하고, 승인 기준을 넘는 변화를 단계적으로 찾아 제안 - `POST /counterfactual` |
-| 📊 이원 분산분석 | 대안 데이터 효과가 씬파일러(**+0.070**)에서 일반 고객(+0.027)보다 큼 - 교호작용 F = 15.58, p < 0.001 |
-| 📡 PSI · CSI 데이터 변화 탐지 | 시나리오 4개로 점수 PSI와 칸별 CSI 비교 (위 ⑤) - `GET /drift` |
-| 🏦 기존 신용평가 모델과의 비교 실험 모의 시행 | 같은 승인율(76.8%)에서 부도율 **2.07% → 1.72% (-16.5%)**, 부도 357명 → 298명 |
+| 🔍&nbsp;LIME과&nbsp;SHAP&nbsp;비⁠교 | 고객 200명의 상위 5개 변수 평균 일치율 **0.405** (거절 고객 0.472). 두 기법이 보는 관점이 다름을 확인 |
+| 🔁&nbsp;승⁠인&nbsp;조⁠건&nbsp;제⁠안&nbsp;(Counterfactual) | 바꿀 수 없는 정보(나이 · 과거 연체 등)는 고정하고, 승인 기준을 넘는 변화를 단계적으로 찾아 제안 - `POST /counterfactual` |
+| 📊&nbsp;이⁠원&nbsp;분⁠산⁠분⁠석 | 대안 데이터 효과가 씬파일러(**+0.070**)에서 일반 고객(+0.027)보다 큼 - 교호작용 F = 15.58, p < 0.001 |
+| 📡&nbsp;PSI&nbsp;·&nbsp;CSI&nbsp;데⁠이⁠터&nbsp;변⁠화&nbsp;탐⁠지 | 시나리오 4개로 점수 PSI와 칸별 CSI 비교 (위 ⑤) - `GET /drift` |
+| 🏦&nbsp;기⁠존&nbsp;신⁠용⁠평⁠가&nbsp;모⁠델⁠과⁠의&nbsp;비⁠교&nbsp;실⁠험&nbsp;모⁠의&nbsp;시⁠행 | 같은 승인율(76.8%)에서 부도율 **2.07% → 1.72% (-16.5%)**, 부도 357명 → 298명 |
 
 <details>
 <summary>📈 모델 18개 비교 · ANOVA 그림 보기</summary>
@@ -301,25 +289,25 @@ flowchart LR
 
 ### 기술 스택
 
-| 분류 | 기술 |
+| 분⁠류 | 기술 |
 | --- | --- |
-| 🧮 **데이터 · 모델** | ![Python](https://img.shields.io/badge/Python_3.12-3776AB?logo=python&logoColor=white) ![pandas](https://img.shields.io/badge/pandas-150458?logo=pandas&logoColor=white) ![scikit-learn](https://img.shields.io/badge/scikit--learn-F7931E?logo=scikitlearn&logoColor=white) ![XGBoost](https://img.shields.io/badge/XGBoost-337AB7) ![LightGBM](https://img.shields.io/badge/LightGBM-9ACD32) ![imbalanced-learn](https://img.shields.io/badge/imbalanced--learn_(SMOTE)-555555) |
-| 🧠 **설명 (XAI)** | ![SHAP](https://img.shields.io/badge/SHAP-FF4B4B) ![LIME](https://img.shields.io/badge/LIME-6A1B9A) |
-| ⚖️ **공정성 · 통계** | ![Fairlearn](https://img.shields.io/badge/Fairlearn-4B8BBE) ![SciPy](https://img.shields.io/badge/SciPy_(ANOVA,_Tukey_HSD)-8CAAE6?logo=scipy&logoColor=white) |
-| 🔌 **API · 화면** | ![FastAPI](https://img.shields.io/badge/FastAPI-009688?logo=fastapi&logoColor=white) ![Pydantic](https://img.shields.io/badge/Pydantic-E92063?logo=pydantic&logoColor=white) ![Streamlit](https://img.shields.io/badge/Streamlit-FF4B4B?logo=streamlit&logoColor=white) ![Plotly](https://img.shields.io/badge/Plotly-3F4F75?logo=plotly&logoColor=white) |
-| 🐳 **실험 · 배포** | ![MLflow](https://img.shields.io/badge/MLflow-0194E2?logo=mlflow&logoColor=white) ![Docker](https://img.shields.io/badge/Docker_Compose-2496ED?logo=docker&logoColor=white) ![pytest](https://img.shields.io/badge/pytest-0A9EDC?logo=pytest&logoColor=white) ![GitHub Actions](https://img.shields.io/badge/GitHub_Actions-2088FF?logo=githubactions&logoColor=white) |
+| 🧮&nbsp;**데⁠이⁠터&nbsp;·&nbsp;모⁠델** | ![Python](https://img.shields.io/badge/Python_3.12-3776AB?logo=python&logoColor=white) ![pandas](https://img.shields.io/badge/pandas-150458?logo=pandas&logoColor=white) ![scikit-learn](https://img.shields.io/badge/scikit--learn-F7931E?logo=scikitlearn&logoColor=white) ![XGBoost](https://img.shields.io/badge/XGBoost-337AB7) ![LightGBM](https://img.shields.io/badge/LightGBM-9ACD32) ![imbalanced-learn](https://img.shields.io/badge/imbalanced--learn_(SMOTE)-555555) |
+| 🧠&nbsp;**설⁠명&nbsp;(XAI)** | ![SHAP](https://img.shields.io/badge/SHAP-FF4B4B) ![LIME](https://img.shields.io/badge/LIME-6A1B9A) |
+| ⚖️&nbsp;**공⁠정⁠성&nbsp;·&nbsp;통⁠계** | ![Fairlearn](https://img.shields.io/badge/Fairlearn-4B8BBE) ![SciPy](https://img.shields.io/badge/SciPy_(ANOVA,_Tukey_HSD)-8CAAE6?logo=scipy&logoColor=white) |
+| 🔌&nbsp;**API&nbsp;·&nbsp;화⁠면** | ![FastAPI](https://img.shields.io/badge/FastAPI-009688?logo=fastapi&logoColor=white) ![Pydantic](https://img.shields.io/badge/Pydantic-E92063?logo=pydantic&logoColor=white) ![Streamlit](https://img.shields.io/badge/Streamlit-FF4B4B?logo=streamlit&logoColor=white) ![Plotly](https://img.shields.io/badge/Plotly-3F4F75?logo=plotly&logoColor=white) |
+| 🐳&nbsp;**실⁠험&nbsp;·&nbsp;배⁠포** | ![MLflow](https://img.shields.io/badge/MLflow-0194E2?logo=mlflow&logoColor=white) ![Docker](https://img.shields.io/badge/Docker_Compose-2496ED?logo=docker&logoColor=white) ![pytest](https://img.shields.io/badge/pytest-0A9EDC?logo=pytest&logoColor=white) |
 
 정확한 버전은 [`requirements.txt`](requirements.txt)에 있습니다.
 
 ### 문서
 
-| 문서 | 내용 |
+| 문⁠서 | 내용 |
 | --- | --- |
-| 📝 [실험 리포트](docs/report_draft.md) | 문제 정의 · EDA · 시뮬레이터 · 모델 비교 · XAI · 공정성 · ANOVA · 결론 |
-| 📐 [칸 이름 · 단위](docs/column_spec.md) | 입력 15개 칸의 이름 · 단위 · 월소득 환산(PPP) |
-| 🧪 [대안 데이터 시뮬레이션](docs/alt_data_simulation.md) | 시뮬레이터 설계와 보정 실험 |
-| 📦 [모델 기록](models/README.md) | 최종 모델 · 스케일러 변경 이력 |
-| 🌿 [Git 규칙](docs/git_conventions.md) | 브랜치 · 커밋 · PR 규칙 |
+| 📝&nbsp;[실⁠험&nbsp;리⁠포⁠트](docs/report_draft.md) | 문제 정의 · EDA · 시뮬레이터 · 모델 비교 · XAI · 공정성 · ANOVA · 결론 |
+| 📐&nbsp;[칸&nbsp;이⁠름&nbsp;·&nbsp;단⁠위](docs/column_spec.md) | 입력 15개 칸의 이름 · 단위 · 월소득 환산(PPP) |
+| 🧪&nbsp;[대⁠안&nbsp;데⁠이⁠터&nbsp;시⁠뮬⁠레⁠이⁠션](docs/alt_data_simulation.md) | 시뮬레이터 설계와 보정 실험 |
+| 📦&nbsp;[모⁠델&nbsp;기⁠록](models/README.md) | 최종 모델 · 스케일러 변경 이력 |
+| 🌿&nbsp;[Git&nbsp;규⁠칙](docs/git_conventions.md) | 브랜치 · 커밋 · PR 규칙 |
 
 ---
 
@@ -333,11 +321,11 @@ cd xai-credit-scoring
 docker compose up --build     # 처음 한 번은 이미지 빌드에 몇 분 걸림
 ```
 
-| 열기 | 주소 |
+| 열⁠기 | 주소 |
 | --- | --- |
-| 🖥️ 대시보드 | http://localhost:8501 - 고객 심사 화면 오른쪽 "일반 고객" · "씬파일러" 예시부터 눌러 보세요 |
-| 🔌 API 문서 (Swagger) | http://localhost:8000/docs |
-| 🧪 MLflow | http://localhost:5000 |
+| 🖥️&nbsp;대⁠시⁠보⁠드 | http://localhost:8501 - 고객 심사 화면 오른쪽 "일반 고객" · "씬파일러" 예시부터 눌러 보세요 |
+| 🔌&nbsp;API&nbsp;문⁠서&nbsp;(Swagger) | http://localhost:8000/docs |
+| 🧪&nbsp;MLflow | http://localhost:5000 |
 
 로컬 실행, 파이프라인 재실행, 테스트는 [상세 실행 방법](#-부록-상세-실행-방법)에 있습니다.
 
@@ -346,31 +334,43 @@ docker compose up --build     # 처음 한 번은 이미지 빌드에 몇 분 �
 ## 📎 부록: 데이터 · 점수 기준
 
 ### 데이터
-| 항목 | 값 |
+| 항⁠목 | 값 |
 |---|---|
-| 원본 | GMSC `data/raw/cs-training.csv` 150,000명 |
-| 부도율 (2년 내 90일 이상 연체) | 6.68% (Positive:Negative ≈ 1:14) |
-| 대안 변수 5개 | 통신비 정상납부율, 공과금 납부율, 소비 일관성, 정기결제 건수, 앱 로그인 빈도 (`src/data/simulator.py`) |
-| 씬파일러 | 4,110명 (2.74%) |
-| 분할 | Train / Validation / Test = 70 : 15 : 15 (stratify, 시드 42) |
+| 원⁠본 | GMSC `data/raw/cs-training.csv` 150,000명 |
+| 부⁠도⁠율&nbsp;(2⁠년&nbsp;내&nbsp;90⁠일&nbsp;이⁠상&nbsp;연⁠체⁠) | 6.68% (Positive:Negative ≈ 1:14) |
+| 대⁠안&nbsp;변⁠수&nbsp;5⁠개 | 통신비 정상납부율, 공과금 납부율, 소비 일관성, 정기결제 건수, 앱 로그인 빈도 (`src/data/simulator.py`) |
+| 씬⁠파⁠일⁠러 | 4,110명 (2.74%) |
+| 분⁠할 | Train / Validation / Test = 70 : 15 : 15 (stratify, 시드 42) |
 
 **씬파일러 판정 기준** (`label_thin_filer`): 과제 기준인 "연체 컬럼 2개 이상 결측"은 GMSC에 해당자가 없어서, 아래 기준을 함께 씁니다 (기준 1 OR 기준 2).
 - 기준 1: 연체 컬럼 2개 이상 결측
 - 기준 2: 보유 대출·신용 한도 1개 이하 **이고** 부동산 담보대출 0개 **이고** 연체 기록 0회
 
 ### 점수와 등급 기준
-신용 점수는 `credit_score = round((1 - default_probability) * 1000)` 입니다 (0~1000).
+신용 점수는 PDO 스코어카드 방식입니다 (이슈 #157, `src/api/model.py` `credit_score`).
 
-| 등급 | 점수 | 위험도 | 심사 결과 |
-|---|---|---|---|
-| A | 800 이상 | 저위험 | 승인 |
-| B | 650 ~ 799 | 저위험 | 승인 |
-| C | 500 ~ 649 | 중위험 | 승인 |
-| D | 300 ~ 499 | 고위험 | 거절 |
-| E | 300 미만 | 고위험 | 거절 |
+`Score = Offset + Factor × ln(odds)`, odds = (1 - 부도 확률) ÷ 부도 확률, `Factor = PDO ÷ ln2`, `Offset = 기준점수 - Factor × ln(기준 odds)`
 
-부도 확률이 `APPROVAL_THRESHOLD`(기본 0.5) 미만이면 승인, 즉 500점 이상(A~C)이 승인입니다. 등급 구간은 `src/api/model.py` `GRADE_SCALE`, 승인은 `approval_status()` 가 정합니다.
-대시보드 결과 화면의 등급 막대는 칸 폭이 점수 구간 길이 그대로(E:D:C:B:A = 30:20:15:15:20, `src/dashboard/config.py` `GRADE_SCALE`, API 와 같은 구간)이고, 점선은 `/predict` 응답의 `approval_threshold` 를 점수로 바꾼 위치입니다 (기본 500점). 승인 기준을 바꾸면 API 의 `APPROVAL_THRESHOLD` 만 바꾸면 점선이 따라갑니다. 혼동행렬·승인율·공정성 결과도 같은 기준(0.5)으로 계산되어 있습니다.
+| 설정 | 값 | 뜻 |
+|---|---|---|
+| 기준점수&nbsp;@&nbsp;기준&nbsp;odds | 600점 @ 50:1 | 모델 확률(보정 전) 기준 부도 확률 약 2% 이면 600점 |
+| PDO | 20 | 20점 오를 때마다 odds 2배 (부도 위험 절반) |
+| 범위 | 300 ~ 850 | 바깥은 잘라냄 |
+
+600점 @ 50:1, PDO 20 은 스코어카드 교과서에서 흔히 쓰는 관례 값입니다 (기관마다 다름). 응답의 `score_method`(`pdo-600-50-20`)로 어떤 식인지 알 수 있습니다.
+
+| 등급 | 점수 | 위험도 | 심사 결과 | 부도 확률 |
+|---|---|---|---|---|
+| A | 527 이상 | 저위험 | 승인 | 0.2 미만 |
+| B | 505 ~ 526 | 저위험 | 승인 | 0.2 ~ 0.35 |
+| C | 487 ~ 504 | 중위험 | 승인 | 0.35 ~ 0.5 |
+| D | 463 ~ 486 | 고위험 | 거절 | 0.5 ~ 0.7 |
+| E | 463 미만 | 고위험 | 거절 | 0.7 이상 |
+
+등급 경계 463 · 487 · 505 · 527점은 이전 부도 확률 경계(0.7 · 0.5 · 0.35 · 0.2)를 새 점수식에 넣은 값입니다. 그래서 승인 여부와 등급의 뜻은 이전과 같고, Test 데이터로 기준을 정하지 않았습니다. 50:1은 보정 전 모델 확률 기준이라 실제 부도율의 odds와 다릅니다 (590\~610점 고객의 실제 부도율은 Test 0.07%, Validation 0.34%). 지금 모델(LightGBM is_unbalance)은 부도 확률이 실제보다 높게 나와서(test 평균 0.28, 실제 부도율 6.7%) 점수가 400~650점대에 몰리고 C·D 구간이 좁습니다. 확률을 보정하면 구간을 다시 정합니다.
+
+승인은 점수가 아니라 부도 확률로 정합니다: `APPROVAL_THRESHOLD`(기본 0.5) 미만이면 승인이고, 이에 해당하는 점수가 487점입니다 (`approval_score`). 등급 구간·점수 범위·승인 기준 점수는 `src/api/model.py` 한 곳에서 정하고, 대시보드는 `/health` 의 `grade_scale`·`score_range`·`approval_score` 로 받아 등급 막대(다섯 칸 같은 폭, 칸 안에서 점수 비율)와 점선을 그립니다.
+저장된 예전 심사 점수는 `python scripts/rescore_screenings.py`(기본은 출력만, `--apply` 면 백업 후 반영)로 다시 계산합니다.
 
 ### 모델과 검증
 - 모델: Logistic Regression · XGBoost · LightGBM × 불균형 처리(class_weight / SMOTE) × 데이터(전통 / 대안 / 통합), 5-Fold Stratified CV
@@ -387,11 +387,11 @@ cd xai-credit-scoring
 docker compose up --build     # .env 없이도 뜬다. 처음 한 번은 이미지 빌드에 몇 분 걸림
 ```
 
-| 서비스 | 주소 | 설명 |
+| 서⁠비⁠스 | 주소 | 설명 |
 |---|---|---|
 | API | http://localhost:8000/docs | Swagger UI. 화면별 태그로 엔드포인트 확인 |
-| 대시보드 | http://localhost:8501 | 고객 심사 / XAI 분석 / 공정성 / 모델 성능 / 통계 검증 |
-| MLflow UI | http://localhost:5000 | 실험 `credit-scoring-metadata`에 모델 18개(5-Fold 평균 AUC·KS 등)와 최종 모델(`integrated/LightGBM/is_unbalance`의 Test AUC·KS·PSI) 기록 (아래 참고) |
+| 대⁠시⁠보⁠드 | http://localhost:8501 | 고객 심사 / XAI 분석 / 공정성 / 모델 성능 / 통계 검증 |
+| MLflow&nbsp;UI | http://localhost:5000 | 실험 `credit-scoring-metadata`에 모델 18개(5-Fold 평균 AUC·KS 등)와 최종 모델(`integrated/LightGBM/is_unbalance`의 Test AUC·KS·PSI) 기록 (아래 참고) |
 
 - 최종 모델·스케일러는 `models/`에 들어 있어서 clone 직후 바로 `/predict`·`/explain`이 동작합니다.
 - `/metrics`·`/fairness`·`/anova`·`/explain/summary`는 `outputs/`의 검증 결과 JSON을 돌려줍니다. 최종 모델로 만든 결과 JSON 6개가 저장소에 들어 있어서 clone 직후에도 실제 숫자가 나옵니다. 파일이 없으면 내장 예시(`src/api/examples/`)를 돌려주며, `GET /health`의 `reports`에서 어느 쪽인지 확인할 수 있습니다.
@@ -471,7 +471,7 @@ xai-credit-scoring/
 `.env.example`을 `.env`로 복사해서 씁니다. **`.env`는 git에 올리지 않고, 비밀번호는 `.env`에만 적습니다.** 모든 값에 기본값이 있어 `.env` 없이도 실행됩니다.
 
 ### `.env.example`에 있는 값
-| 변수 | 기본값 | 설명 |
+| 변⁠수 | 기본값 | 설명 |
 |---|---|---|
 | `API_PORT` | 8000 | Docker Compose에서 API를 열 PC 포트 |
 | `DASHBOARD_PORT` | 8501 | Docker Compose에서 대시보드를 열 PC 포트 |
@@ -483,8 +483,11 @@ xai-credit-scoring/
 
 시뮬레이터 설정(씬파일러 비율·편향·시드)은 환경 변수가 아니라 `main_step1.py`에 고정되어 있습니다: `thin_filer_ratio=None`, `bias_ratio=0`, `random_seed=42`.
 
-### 대시보드 (`src/dashboard/config.py`)
-| 변수 | 기본값 | 설명 |
+<details>
+<summary><b>코드 안 기본값</b> - 대시보드 · API · 공통 기준값 · 검증 스크립트 (모두 환경 변수로 바꿀 수 있음)</summary>
+
+**대시보드 (`src/dashboard/config.py`)**
+| 변⁠수 | 기본값 | 설명 |
 |---|---|---|
 | `API_BASE_URL` | `http://localhost:8000` | 대시보드가 부를 API 주소 (Docker Compose에서는 자동으로 `http://api:8000`) |
 | `API_TIMEOUT` / `HEALTH_TIMEOUT` | 5 / 2 | API 응답 대기 시간(초) |
@@ -498,16 +501,16 @@ xai-credit-scoring/
 | `WATERFALL_MAX_DISPLAY` | 8 | Waterfall에 따로 보여 줄 변수 수 |
 | `ADDITIVITY_TOLERANCE` | 0.005 | SHAP 가법성 검증 허용 오차 |
 
-### API (`src/api/`)
-| 변수 | 기본값 | 설명 |
+**API (`src/api/`)**
+| 변⁠수 | 기본값 | 설명 |
 |---|---|---|
 | `MODEL_PATH` | `models/lightgbm_is_unbalance_integrated_v1.0.joblib` | 최종 모델 파일 |
 | `SCALER_PATH` | `models/preprocess_scaler_v1.0.joblib` | 전처리 스케일러 파일 |
 | `MODEL_STAGE` | `Staging` | `/health`에 표시할 모델 단계 |
 | `OUTPUTS_DIR` | `outputs` | 검증 결과 JSON을 읽을 폴더 |
 
-### 공통 기준값 (API·대시보드·검증)
-| 변수 | 기본값 | 설명 |
+**공통 기준값 (API·대시보드·검증)**
+| 변⁠수 | 기본값 | 설명 |
 |---|---|---|
 | `APPROVAL_THRESHOLD` | 0.5 | 부도 확률이 이 값 미만이면 승인 |
 | `INCOME_KRW_PER_UNIT` | 816.33 | 월소득(원) ÷ 이 값 = 모델 단위(국제달러). World Bank 한국 GDP PPP 2025 (PA.NUS.PPP). 자세한 내용은 `docs/column_spec.md` §9 |
@@ -516,8 +519,8 @@ xai-credit-scoring/
 | `FAIRNESS_PROTECTED_GENDER` / `FAIRNESS_PROTECTED_AGE` | `female` / `55+` | DI Ratio 계산 시 보호 집단 |
 | `ANOVA_ALPHA` / `ANOVA_N_FOLDS` | 0.05 / 5 | ANOVA 유의수준, 폴드 수 |
 
-### 검증 스크립트 (`main_step3~6`, `src/explainer`)
-| 변수 | 기본값 | 설명 |
+**검증 스크립트 (`main_step3~6`, `src/explainer`)**
+| 변⁠수 | 기본값 | 설명 |
 |---|---|---|
 | `SPLITS_DIR` | `data/splits` | 분할 CSV 폴더 |
 | `RAW_DATA` | `data/intermediate/02_simulated.csv` | 거절 사유 문장에 쓸 원래 값 |
@@ -528,3 +531,5 @@ xai-credit-scoring/
 | `ANOVA_TEST2_DATA_TYPE` | `integrated` | ANOVA 검증 2(알고리즘별)에 쓸 데이터 |
 | `EVAL_OUTPUT_DIR` / `FAIRNESS_OUTPUT_DIR` / `ANOVA_OUTPUT_DIR` / `MLFLOW_SUMMARY_DIR` | `outputs/…` | 결과 저장 폴더 |
 | `PLOT_FONT` | (자동 탐색) | 그림의 한글 글꼴 경로 |
+
+</details>

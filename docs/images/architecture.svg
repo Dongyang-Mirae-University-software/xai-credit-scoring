@@ -1,0 +1,169 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 800" width="1600" height="800" font-family="'Pretendard','Noto Sans KR','Apple SD Gothic Neo','Malgun Gothic',sans-serif">
+  <defs>
+    <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#5E6E68"/>
+    </marker>
+    <style>
+      .grp{fill:none;stroke-dasharray:6 5;stroke-width:1.5}
+      .glab{font-size:17px;fill:#5E6E68}
+      .card{fill:#fff;stroke:#DCE4E1;stroke-width:1.2}
+      .t{font-size:19px;fill:#111A17;font-weight:600}
+      .s{font-size:14px;fill:#6B7B75}
+      .m{font-size:13px;fill:#1B6A55;font-family:Consolas,'SF Mono',Menlo,monospace}
+      .chip{fill:#fff;stroke:#BFDCD2}
+      .lab{font-size:13px;fill:#5E6E68}
+      .ln{stroke:#5E6E68;stroke-width:1.6;fill:none}
+      .badge{font-size:12px;font-weight:700;fill:#fff}
+    </style>
+  </defs>
+  <rect width="1600" height="800" rx="16" fill="#FFFFFF"/>
+
+  <!-- ===== 사용자 ===== -->
+  <rect class="grp" x="20" y="40" width="250" height="720" rx="10" stroke="#9DC0B4"/>
+  <text class="glab" x="38" y="70">사용자</text>
+
+  <rect class="card" x="38" y="95" width="214" height="110" rx="10"/>
+  <rect x="56" y="128" width="30" height="22" rx="3" fill="none" stroke="#111A17" stroke-width="2.5"/>
+  <path d="M64 156 h14" stroke="#111A17" stroke-width="2.5"/>
+  <text class="t" x="100" y="140">대출 심사 담당자</text>
+  <text class="s" x="100" y="165">PC 웹 · 대시보드</text>
+
+  <!-- 고객: 시스템을 직접 쓰지 않고 심사를 받는 사람 -->
+  <rect x="38" y="250" width="214" height="110" rx="10" fill="#FFF7F5" stroke="#F2CACA" stroke-dasharray="4 3"/>
+  <circle cx="71" cy="289" r="8" fill="none" stroke="#C0392B" stroke-width="2.5"/>
+  <path d="M57 316 a14 13 0 0 1 28 0" fill="none" stroke="#C0392B" stroke-width="2.5"/>
+  <text class="t" x="100" y="295">고객 (심사 대상)</text>
+  <text class="s" x="100" y="320" fill="#C0392B">씬파일러 포함</text>
+  <line class="ln" x1="145" y1="250" x2="145" y2="209" marker-end="url(#ar)"/>
+  <text class="lab" x="153" y="234">서류 · 정보</text>
+
+  <rect class="card" x="38" y="440" width="214" height="110" rx="10"/>
+  <path d="M58 480 l-8 10 l8 10 M80 480 l8 10 l-8 10 M74 476 l-10 28" stroke="#111A17" stroke-width="2.5" fill="none"/>
+  <text class="t" x="100" y="490">개발자</text>
+  <text class="s" x="100" y="515">Swagger UI (/docs)</text>
+
+  <rect class="card" x="38" y="625" width="214" height="110" rx="10"/>
+  <circle cx="64" cy="668" r="6.5" fill="none" stroke="#111A17" stroke-width="2.3"/>
+  <path d="M52 692 a12 11 0 0 1 24 0" fill="none" stroke="#111A17" stroke-width="2.3"/>
+  <circle cx="80" cy="672" r="5.5" fill="none" stroke="#111A17" stroke-width="2.3"/>
+  <path d="M77 682 a10 9 0 0 1 14 10" fill="none" stroke="#111A17" stroke-width="2.3"/>
+  <text class="t" x="100" y="670">팀원</text>
+  <text class="s" x="100" y="695">실험 기록 비교</text>
+
+  <!-- ===== docker compose ===== -->
+  <rect class="grp" x="300" y="40" width="850" height="720" rx="10" stroke="#1B6A55"/>
+  <rect x="318" y="54" width="22" height="22" rx="5" fill="#2496ED"/>
+  <text class="badge" x="322" y="70" font-size="11">DC</text>
+  <text class="glab" x="350" y="71" fill="#1B6A55">docker-compose up · 서비스 3개</text>
+  <text class="s" x="1132" y="71" text-anchor="end">Python 3.12 · vkcs-linux 배포</text>
+
+  <!-- 대시보드 -->
+  <rect x="330" y="95" width="530" height="125" rx="10" fill="#FFF3F2" stroke="#F2CACA"/>
+  <rect x="350" y="112" width="30" height="30" rx="7" fill="#FF4B4B"/>
+  <text class="badge" x="356" y="132">St</text>
+  <text class="t" x="392" y="134">대시보드 (Streamlit)</text>
+  <text class="m" x="842" y="134" text-anchor="end" fill="#C0392B">:8501</text>
+  <text class="s" x="350" y="168">고객 심사 · XAI 분석 · 공정성 · 모델 성능 · 통계 검증</text>
+  <text class="s" x="350" y="196" fill="#C0392B">모델 파일을 직접 읽지 않고, API에 묻기만 한다 (MSA 구조)</text>
+
+  <!-- 대시보드 → API -->
+  <line class="ln" x1="595" y1="220" x2="595" y2="276" marker-end="url(#ar)"/>
+  <text class="lab" x="607" y="254">HTTP · JSON</text>
+
+  <!-- API -->
+  <rect x="330" y="280" width="530" height="320" rx="10" fill="#EEF7F4" stroke="#BFDCD2"/>
+  <rect x="350" y="297" width="30" height="30" rx="7" fill="#009688"/>
+  <path d="M368 301 l-9 13 h7 l-3 10 l10 -14 h-7 z" fill="#fff"/>
+  <text class="t" x="392" y="319">심사 API (FastAPI)</text>
+  <text class="m" x="842" y="319" text-anchor="end">:8000</text>
+
+  <g>
+    <text class="lab" x="350" y="372">심사</text>
+    <rect class="chip" x="430" y="354" width="137" height="28" rx="6"/><text class="m" x="440" y="373">/customers/{id}</text>
+    <rect class="chip" x="575" y="354" width="82" height="28" rx="6"/><text class="m" x="585" y="373">/predict</text>
+    <rect class="chip" x="665" y="354" width="106" height="28" rx="6"/><text class="m" x="675" y="373">/screenings</text>
+
+    <text class="lab" x="350" y="422">설명</text>
+    <rect class="chip" x="430" y="404" width="82" height="28" rx="6"/><text class="m" x="440" y="423">/explain</text>
+    <rect class="chip" x="520" y="404" width="145" height="28" rx="6"/><text class="m" x="530" y="423">/explain/summary</text>
+    <rect class="chip" x="673" y="404" width="137" height="28" rx="6"/><text class="m" x="683" y="423">/counterfactual</text>
+
+    <text class="lab" x="350" y="472">공정성</text>
+    <rect class="chip" x="430" y="454" width="90" height="28" rx="6"/><text class="m" x="440" y="473">/fairness</text>
+    <rect class="chip" x="528" y="454" width="176" height="28" rx="6"/><text class="m" x="538" y="473">/fairness/mitigation</text>
+
+    <text class="lab" x="350" y="522">성능 · 통계</text>
+    <rect class="chip" x="430" y="504" width="82" height="28" rx="6"/><text class="m" x="440" y="523">/metrics</text>
+    <rect class="chip" x="520" y="504" width="168" height="28" rx="6"/><text class="m" x="530" y="523">/metrics/comparison</text>
+    <rect class="chip" x="696" y="504" width="66" height="28" rx="6"/><text class="m" x="706" y="523">/anova</text>
+    <rect class="chip" x="770" y="504" width="66" height="28" rx="6"/><text class="m" x="780" y="523">/drift</text>
+  </g>
+  <text class="s" x="350" y="578">모든 응답에 Pydantic 스키마 · /health</text>
+
+  <!-- 저장소 -->
+  <rect x="885" y="280" width="255" height="320" rx="10" fill="#F4F6F5" stroke="#DCE4E1"/>
+  <text class="t" x="905" y="319">파일 · DB</text>
+  <text class="m" x="905" y="360" font-weight="700">models/</text>
+  <text class="s" x="905" y="382">최종 LightGBM · scaler</text>
+  <text class="m" x="905" y="425" font-weight="700">outputs/</text>
+  <text class="s" x="905" y="447">검증 결과 JSON</text>
+  <text class="s" x="905" y="467">성능 · 공정성 · ANOVA · 드리프트</text>
+  <text class="m" x="905" y="510" font-weight="700">data/</text>
+  <text class="s" x="905" y="532">customers.json (고객 1,000명)</text>
+  <text class="s" x="905" y="552">screenings.db (심사 이력)</text>
+  <line class="ln" x1="885" y1="440" x2="864" y2="440" marker-end="url(#ar)"/>
+
+  <!-- MLflow -->
+  <rect x="330" y="625" width="810" height="110" rx="10" fill="#EEF4FC" stroke="#C9D8F0"/>
+  <rect x="350" y="642" width="30" height="30" rx="7" fill="#0194E2"/>
+  <text class="badge" x="355" y="662">ml</text>
+  <text class="t" x="392" y="664">MLflow</text>
+  <text class="m" x="1122" y="664" text-anchor="end" fill="#0B6BB0">:5000</text>
+  <text class="s" x="350" y="702">후보 모델 18개와 최종 모델 기록 · 시작할 때 mlflow-seed가 저장된 기록을 채움</text>
+
+  <!-- 사용자 연결 -->
+  <line class="ln" x1="252" y1="150" x2="326" y2="150" marker-end="url(#ar)"/>
+  <line class="ln" x1="252" y1="495" x2="326" y2="495" marker-end="url(#ar)"/>
+  <line class="ln" x1="252" y1="680" x2="326" y2="680" marker-end="url(#ar)"/>
+
+  <!-- ===== 학습 파이프라인 ===== -->
+  <rect class="grp" x="1210" y="40" width="370" height="720" rx="10" stroke="#9DC0B4"/>
+  <text class="glab" x="1228" y="70">학습 파이프라인 (오프라인)</text>
+
+  <g transform="translate(16,0)">
+    <rect class="card" x="1208" y="95" width="338" height="95" rx="10"/>
+    <circle cx="1236" cy="128" r="14" fill="#083E30"/><text class="badge" x="1231" y="133">1</text>
+    <text class="t" x="1262" y="135">데이터</text>
+    <text class="s" x="1262" y="164">GMSC 15만 명 + 대안 데이터 시뮬레이터</text>
+
+    <line class="ln" x1="1377" y1="190" x2="1377" y2="211" marker-end="url(#ar)"/>
+    <rect class="card" x="1208" y="215" width="338" height="95" rx="10"/>
+    <circle cx="1236" cy="248" r="14" fill="#083E30"/><text class="badge" x="1231" y="253">2</text>
+    <text class="t" x="1262" y="255">전처리 · 분할</text>
+    <text class="s" x="1262" y="284">Train / Validation / Test</text>
+
+    <line class="ln" x1="1377" y1="310" x2="1377" y2="331" marker-end="url(#ar)"/>
+    <rect class="card" x="1208" y="335" width="338" height="95" rx="10"/>
+    <circle cx="1236" cy="368" r="14" fill="#083E30"/><text class="badge" x="1231" y="373">3</text>
+    <text class="t" x="1262" y="375">모델 18개 학습</text>
+    <text class="s" x="1262" y="404">LR · XGBoost · LightGBM, 5-Fold CV</text>
+
+    <line class="ln" x1="1377" y1="430" x2="1377" y2="451" marker-end="url(#ar)"/>
+    <rect class="card" x="1208" y="455" width="338" height="95" rx="10"/>
+    <circle cx="1236" cy="488" r="14" fill="#083E30"/><text class="badge" x="1231" y="493">4</text>
+    <text class="t" x="1262" y="495">검증</text>
+    <text class="s" x="1262" y="524">성능 · SHAP · 공정성 · ANOVA · 드리프트</text>
+
+    <rect x="1208" y="625" width="338" height="110" rx="10" fill="#F1F5F3" stroke="#DCE4E1"/>
+    <text class="m" x="1228" y="664" font-weight="700">main_step1~6 · main_bonus_*</text>
+    <text class="s" x="1228" y="694">학습할 때마다 MLflow에 기록</text>
+  </g>
+
+  <!-- 파이프라인 → 서버 -->
+  <line class="ln" x1="1224" y1="383" x2="1144" y2="383" marker-end="url(#ar)"/>
+  <text class="lab" x="1180" y="374" text-anchor="middle">모델</text>
+  <line class="ln" x1="1224" y1="503" x2="1144" y2="503" marker-end="url(#ar)"/>
+  <text class="lab" x="1180" y="494" text-anchor="middle">결과</text>
+  <line class="ln" x1="1224" y1="680" x2="1144" y2="680" stroke-dasharray="5 4" marker-end="url(#ar)"/>
+  <text class="lab" x="1180" y="671" text-anchor="middle">기록</text>
+</svg>
