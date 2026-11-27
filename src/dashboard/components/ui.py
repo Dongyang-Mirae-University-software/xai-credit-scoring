@@ -14,6 +14,7 @@ ICONS = {
     "xai": ('<path d="M4 6h10M4 12h16M4 18h7"/>', 1.8),
     "fairness": ('<path d="M12 4v16M7 20h10M5 7h14M5 7l-3 6c0 1.7 1.3 3 3 3s3-1.3 3-3L5 7zM19 7l-3 6c0 1.7 1.3 3 3 3s3-1.3 3-3l-3-6z"/>', 1.6),
     "performance": ('<path d="M4 4v16h16"/><path d="M7 15c3-1 5-4 7-7 1.5-2 3-3 5-3"/>', 1.8),
+    "trends": ('<path d="M3 19h18M6 19V4m-3 3 3-3 3 3m3 12v-8m-3 3 3-3 3 3m3 5V7m-3 3 3-3 3 3"/>', 2),
     "stats": ('<rect x="4" y="4" width="16" height="16" rx="2"/><path d="M4 10h16M10 10v10"/>', 1.8),
     "doc": ('<rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 8h6M9 12h6M9 16h3"/>', 1.8),
     "plus": ('<path d="M12 5v14M5 12h14"/>', 2.2),

@@ -16,8 +16,8 @@ API_LOG = "" if API_LOG in ("", "0", "false", "off") else ("body" if API_LOG == 
 API_LOG_BODY_MAX = int(os.getenv("API_LOG_BODY_MAX", "600"))
 
 # ---- 고객 심사 화면 표시용 값 ----
-# 2/3 → 3/3 사이 '신용정보원(CB) · 대안정보를 가져오는' 연출 시간(초). 실제 조회는 1/3 에서 끝난다. 0 이면 연출 없이 넘어간다
-CB_LOADING_SECONDS = float(os.getenv("CB_LOADING_SECONDS", "4"))
+# 2/3 → 3/3 사이 '신용정보 · 대안정보를 가져오는' 연출 시간(초). 실제 조회는 1/3 에서 끝난다. 0 이면 연출 없이 넘어간다
+CB_LOADING_SECONDS = float(os.getenv("CB_LOADING_SECONDS", "7.2"))
 # 3/3 심사 실행 → 결과 사이 '심사를 진행하고 있어요' 연출의 최소 시간(초). 실제 심사(/predict + /explain)가 더 걸리면 그만큼 길어진다
 SCREENING_LOADING_SECONDS = float(os.getenv("SCREENING_LOADING_SECONDS", "3"))
 # 점수·등급 기준 (README '점수와 등급 기준'): PDO 스코어카드 300~850점. 등급 구간·점수 범위·승인 기준 점수는

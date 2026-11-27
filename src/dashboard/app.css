@@ -41,6 +41,7 @@ html, body { overflow-x: hidden; }
 [data-testid="stApp"] :where(p, span, div, label, input, textarea, button, table, h1, h2, h3, h4, small, b, a) {
   font-family: var(--font);
 }
+[data-testid="stApp"] [data-testid="stIconMaterial"] { font-family: "Material Symbols Rounded"; }
 [data-testid="stMain"] :where(h1, h2, h3, h4, h5, h6, p, li, label, td, th, [data-testid="stMarkdownContainer"]) {
   color: var(--ink);
 }
