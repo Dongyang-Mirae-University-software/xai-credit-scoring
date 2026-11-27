@@ -252,7 +252,7 @@ div[role="dialog"]:has(.xai-find-sub) > div:first-child p { font-size: 20px; fon
 /* 탭 안: 섹션 제목 · 표 · 그림을 촘촘히 */
 [data-testid="stTabs"] .ui-sec-head h2 { font-size: 17px; }
 [data-testid="stTabs"] .ui-sec-head p { font-size: 13px; }
-.st-key-xai-reasons-head { margin-bottom: -6px; }
+.st-key-xai-reasons-head { margin-bottom: 2px; }
 [data-testid="stTabs"] .xai-rr-row { min-height: 58px; }
 [data-testid="stTabs"] .xai-rr-headrow { min-height: 38px; height: 38px; }
 [data-testid="stTabs"] .xai-rr-text { padding: 8px 0; }
@@ -351,3 +351,5 @@ div[role="dialog"]:has(.xai-find-sub) [data-testid="stFormSubmitButton"] button 
 /* 모달을 화면 세로 가운데에 (Streamlit 기본은 위쪽 정렬) */
 [data-testid="stDialog"] > div:has(> div[role="dialog"] .xai-find-sub) { align-items: center; }
 [data-testid="stDialog"] div[role="dialog"]:has(.xai-find-sub) { margin-top: 0; margin-bottom: 0; }
+.st-key-bonus-cf { gap: 12px !important; }
+[data-testid="stMain"] [data-testid="stTabs"] [data-baseweb="tab-panel"] { padding-top: 8px; }

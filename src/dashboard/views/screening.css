@@ -96,7 +96,7 @@
 .scr-prob p { margin: 0; font-size: 13px; color: var(--ink-3); }
 
 /* 04 주요 거절 사유 */
-.st-key-scr-reasons-head { justify-content: space-between; flex-wrap: nowrap; margin-bottom: -8px; }
+.st-key-scr-reasons-head { justify-content: space-between; flex-wrap: nowrap; margin-bottom: -12px; }
 .st-key-scr-reasons-head > .stElementContainer:first-child { flex: 1 1 auto; width: auto !important; min-width: 0; }
 .st-key-scr-reasons-head > [data-testid="stLayoutWrapper"] { flex: 0 0 100px; width: 100px !important; }
 .st-key-scr-copy { gap: 0; }

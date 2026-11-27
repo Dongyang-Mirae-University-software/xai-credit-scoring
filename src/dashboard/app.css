@@ -96,6 +96,8 @@ html, body { overflow-x: hidden; }
 .ui-sec-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; }
 .ui-sec-head h2 { margin: 0; padding: 0; font-size: 18px; font-weight: 700; line-height: 1.4; color: var(--ink); }
 .ui-sec-head p { margin: 2px 0 0; font-size: 13px; color: var(--ink-3); line-height: 1.5; }
+/* 섹션 제목과 바로 아래 상자 사이 (같은 st.html 안에 이어 그릴 때) */
+.ui-sec-head + * { margin-top: 12px; }
 
 /* ---- 상태 알약 ---- */
 .ui-pill {
