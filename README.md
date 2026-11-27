@@ -63,7 +63,7 @@
 
 > **금융 기록이 없으면, 성실하게 살아도 대출을 받을 수 없을까요?**
 
-| 수치 · 사실 | 내용 |
+| 수⁠치&nbsp;·&nbsp;사⁠실 | 내용 |
 | :---: | --- |
 | 👥&nbsp;**약&nbsp;1,107⁠만&nbsp;명** | 국내 금융이력부족자(씬파일러) - 주부 · 사회초년생 · 프리랜서 등 |
 | 📄&nbsp;**금⁠융&nbsp;기⁠록⁠만&nbsp;본⁠다** | 기존 신용평가(CB)는 대출 · 카드 기록으로 점수를 매겨, 기록이 얇으면 판단할 근거가 없어 거절되기 쉽다 |
@@ -80,13 +80,13 @@
 
 금융 정보 10개에 **대안 데이터 5개**(통신비 정상납부율 · 공과금 납부율 · 소비 일관성 · 정기결제 건수 · 앱 로그인 빈도)를 더해 부도 확률을 예측하고, 결과마다 **SHAP 설명**과 **공정성 점검**을 함께 보여 줍니다.
 
-| 영역 | 기능 | 하는 일 |
+| 영⁠역 | 기능 | 하는 일 |
 | :---: | --- | --- |
 | 🧾&nbsp;**심⁠사** | 고객&nbsp;심사 | 고객 ID로 불러오거나 새로 입력 → 승인 · 거절, 신용 점수, A\~E 등급, 부도 확률. 심사 이력 저장 |
 | 🧠&nbsp;**설⁠명** | 거절&nbsp;사유&nbsp;Top&nbsp;5 | SHAP으로 결과에 가장 크게 영향을 준 정보 5개를 고르고, 동일 연령대 평균과 비교한 안내 문장 생성 |
 | | 승인&nbsp;조건 | 바꿀 수 있는 정보만 한 칸씩 움직여 승인 기준을 넘는 변화를 찾아 제안 (Counterfactual) |
 | ⚖️&nbsp;**공⁠정⁠성** | 성별&nbsp;·&nbsp;나이&nbsp;점검 | 집단별 승인율 비율(DI Ratio)과 Equalized Odds 계산, 기준을 넘으면 집단별 승인 기준선 조정 |
-| ✅&nbsp;**검⁠증** | 모델&nbsp;성능&nbsp;·&nbsp;통계&nbsp;검증 | Test AUC · KS · PSI · 씬파일러 AUC 향상, 성능 차이가 우연이 아닌지 ANOVA와 Tukey HSD |
+| ✅&nbsp;**검⁠증** | 모⁠델&nbsp;성⁠능&nbsp;·&nbsp;통⁠계&nbsp;검⁠증 | Test AUC · KS · PSI · 씬파일러 AUC 향상, 성능 차이가 우연이 아닌지 ANOVA와 Tukey HSD |
 | 📡&nbsp;**모⁠니⁠터⁠링** | 데이터&nbsp;변화&nbsp;탐지 | 점수 분포(PSI)와 입력 칸별 분포(CSI)로 데이터가 바뀌었는지 경고 |
 
 > 아래 화면도 모두 실제 대시보드에서 캡처했습니다. 제목을 누르면 펼쳐집니다.
@@ -141,7 +141,7 @@
 
 ![시스템 구성: 대출 심사 담당자는 Streamlit 대시보드(8501)를 쓰고, 대시보드는 HTTP로만 FastAPI(8000)에 묻는다. API는 models/ · outputs/ · data/를 읽고, 오프라인 학습 파이프라인이 모델과 검증 결과를 만들어 두며 실험은 MLflow(5000)에 기록된다](docs/images/architecture.svg)
 
-| 서비스 | 주소 | 역할 |
+| 서⁠비⁠스 | 주소 | 역할 |
 | --- | --- | --- |
 | 🔌&nbsp;API&nbsp;(FastAPI) | `localhost:8000/docs` | `/predict` · `/explain` · `/counterfactual` · `/fairness` · `/metrics` · `/anova` · `/drift` · `/screenings` 등, 모든 응답에 Pydantic 스키마 |
 | 🖥️&nbsp;대⁠시⁠보⁠드&nbsp;(Streamlit) | `localhost:8501` | 고객 심사 · XAI 분석 · 공정성 · 모델 성능 · 통계 검증 5개 페이지 |
@@ -193,7 +193,7 @@
 
 ### 과제 성공 기준
 
-| 항목 | 목표 | 결과 | 판정 |
+| 항⁠목 | 목표 | 결과 | 판정 |
 | --- | :---: | :---: | :---: |
 | 🎯&nbsp;Test&nbsp;AUC-ROC | 0.78 이상 | **0.889** | 통과 |
 | 📏&nbsp;Test&nbsp;KS | 0.28 이상 | **0.613** | 통과 |
@@ -206,7 +206,7 @@
 
 ### 추가 과제 5개
 
-| 과제 | 결과 |
+| 과⁠제 | 결과 |
 | --- | --- |
 | 🔍&nbsp;LIME과&nbsp;SHAP&nbsp;비⁠교 | 고객 200명의 상위 5개 변수 평균 일치율 **0.405** (거절 고객 0.472). 두 기법이 보는 관점이 다름을 확인 |
 | 🔁&nbsp;승⁠인&nbsp;조⁠건&nbsp;제⁠안&nbsp;(Counterfactual) | 바꿀 수 없는 정보(나이 · 과거 연체 등)는 고정하고, 승인 기준을 넘는 변화를 단계적으로 찾아 제안 - `POST /counterfactual` |
@@ -289,7 +289,7 @@
 
 ### 기술 스택
 
-| 분류 | 기술 |
+| 분⁠류 | 기술 |
 | --- | --- |
 | 🧮&nbsp;**데⁠이⁠터&nbsp;·&nbsp;모⁠델** | ![Python](https://img.shields.io/badge/Python_3.12-3776AB?logo=python&logoColor=white) ![pandas](https://img.shields.io/badge/pandas-150458?logo=pandas&logoColor=white) ![scikit-learn](https://img.shields.io/badge/scikit--learn-F7931E?logo=scikitlearn&logoColor=white) ![XGBoost](https://img.shields.io/badge/XGBoost-337AB7) ![LightGBM](https://img.shields.io/badge/LightGBM-9ACD32) ![imbalanced-learn](https://img.shields.io/badge/imbalanced--learn_(SMOTE)-555555) |
 | 🧠&nbsp;**설⁠명&nbsp;(XAI)** | ![SHAP](https://img.shields.io/badge/SHAP-FF4B4B) ![LIME](https://img.shields.io/badge/LIME-6A1B9A) |
@@ -301,7 +301,7 @@
 
 ### 문서
 
-| 문서 | 내용 |
+| 문⁠서 | 내용 |
 | --- | --- |
 | 📝&nbsp;[실⁠험&nbsp;리⁠포⁠트](docs/report_draft.md) | 문제 정의 · EDA · 시뮬레이터 · 모델 비교 · XAI · 공정성 · ANOVA · 결론 |
 | 📐&nbsp;[칸&nbsp;이⁠름&nbsp;·&nbsp;단⁠위](docs/column_spec.md) | 입력 15개 칸의 이름 · 단위 · 월소득 환산(PPP) |
@@ -321,7 +321,7 @@ cd xai-credit-scoring
 docker compose up --build     # 처음 한 번은 이미지 빌드에 몇 분 걸림
 ```
 
-| 열기 | 주소 |
+| 열⁠기 | 주소 |
 | --- | --- |
 | 🖥️&nbsp;대⁠시⁠보⁠드 | http://localhost:8501 - 고객 심사 화면 오른쪽 "일반 고객" · "씬파일러" 예시부터 눌러 보세요 |
 | 🔌&nbsp;API&nbsp;문⁠서&nbsp;(Swagger) | http://localhost:8000/docs |
@@ -334,13 +334,13 @@ docker compose up --build     # 처음 한 번은 이미지 빌드에 몇 분 �
 ## 📎 부록: 데이터 · 점수 기준
 
 ### 데이터
-| 항목 | 값 |
+| 항⁠목 | 값 |
 |---|---|
-| 원본 | GMSC `data/raw/cs-training.csv` 150,000명 |
-| 부도율 (2년 내 90일 이상 연체) | 6.68% (Positive:Negative ≈ 1:14) |
-| 대안 변수 5개 | 통신비 정상납부율, 공과금 납부율, 소비 일관성, 정기결제 건수, 앱 로그인 빈도 (`src/data/simulator.py`) |
-| 씬파일러 | 4,110명 (2.74%) |
-| 분할 | Train / Validation / Test = 70 : 15 : 15 (stratify, 시드 42) |
+| 원⁠본 | GMSC `data/raw/cs-training.csv` 150,000명 |
+| 부⁠도⁠율&nbsp;(2⁠년&nbsp;내&nbsp;90⁠일&nbsp;이⁠상&nbsp;연⁠체⁠) | 6.68% (Positive:Negative ≈ 1:14) |
+| 대⁠안&nbsp;변⁠수&nbsp;5⁠개 | 통신비 정상납부율, 공과금 납부율, 소비 일관성, 정기결제 건수, 앱 로그인 빈도 (`src/data/simulator.py`) |
+| 씬⁠파⁠일⁠러 | 4,110명 (2.74%) |
+| 분⁠할 | Train / Validation / Test = 70 : 15 : 15 (stratify, 시드 42) |
 
 **씬파일러 판정 기준** (`label_thin_filer`): 과제 기준인 "연체 컬럼 2개 이상 결측"은 GMSC에 해당자가 없어서, 아래 기준을 함께 씁니다 (기준 1 OR 기준 2).
 - 기준 1: 연체 컬럼 2개 이상 결측
@@ -349,7 +349,7 @@ docker compose up --build     # 처음 한 번은 이미지 빌드에 몇 분 �
 ### 점수와 등급 기준
 신용 점수는 `credit_score = round((1 - default_probability) * 1000)` 입니다 (0~1000).
 
-| 등급 | 점수 | 위험도 | 심사 결과 |
+| 등⁠급 | 점수 | 위험도 | 심사 결과 |
 |---|---|---|---|
 | A | 800 이상 | 저위험 | 승인 |
 | B | 650 ~ 799 | 저위험 | 승인 |
@@ -375,10 +375,10 @@ cd xai-credit-scoring
 docker compose up --build     # .env 없이도 뜬다. 처음 한 번은 이미지 빌드에 몇 분 걸림
 ```
 
-| 서비스 | 주소 | 설명 |
+| 서⁠비⁠스 | 주소 | 설명 |
 |---|---|---|
 | API | http://localhost:8000/docs | Swagger UI. 화면별 태그로 엔드포인트 확인 |
-| 대시보드 | http://localhost:8501 | 고객 심사 / XAI 분석 / 공정성 / 모델 성능 / 통계 검증 |
+| 대⁠시⁠보⁠드 | http://localhost:8501 | 고객 심사 / XAI 분석 / 공정성 / 모델 성능 / 통계 검증 |
 | MLflow UI | http://localhost:5000 | 실험 `credit-scoring-metadata`에 모델 18개(5-Fold 평균 AUC·KS 등)와 최종 모델(`integrated/LightGBM/is_unbalance`의 Test AUC·KS·PSI) 기록 (아래 참고) |
 
 - 최종 모델·스케일러는 `models/`에 들어 있어서 clone 직후 바로 `/predict`·`/explain`이 동작합니다.
@@ -458,7 +458,7 @@ xai-credit-scoring/
 `.env.example`을 `.env`로 복사해서 씁니다. **`.env`는 git에 올리지 않고, 비밀번호는 `.env`에만 적습니다.** 모든 값에 기본값이 있어 `.env` 없이도 실행됩니다.
 
 ### `.env.example`에 있는 값
-| 변수 | 기본값 | 설명 |
+| 변⁠수 | 기본값 | 설명 |
 |---|---|---|
 | `API_PORT` | 8000 | Docker Compose에서 API를 열 PC 포트 |
 | `DASHBOARD_PORT` | 8501 | Docker Compose에서 대시보드를 열 PC 포트 |
@@ -470,8 +470,11 @@ xai-credit-scoring/
 
 시뮬레이터 설정(씬파일러 비율·편향·시드)은 환경 변수가 아니라 `main_step1.py`에 고정되어 있습니다: `thin_filer_ratio=None`, `bias_ratio=0`, `random_seed=42`.
 
-### 대시보드 (`src/dashboard/config.py`)
-| 변수 | 기본값 | 설명 |
+<details>
+<summary><b>코드 안 기본값</b> - 대시보드 · API · 공통 기준값 · 검증 스크립트 (모두 환경 변수로 바꿀 수 있음)</summary>
+
+**대시보드 (`src/dashboard/config.py`)**
+| 변⁠수 | 기본값 | 설명 |
 |---|---|---|
 | `API_BASE_URL` | `http://localhost:8000` | 대시보드가 부를 API 주소 (Docker Compose에서는 자동으로 `http://api:8000`) |
 | `API_TIMEOUT` / `HEALTH_TIMEOUT` | 5 / 2 | API 응답 대기 시간(초) |
@@ -483,16 +486,16 @@ xai-credit-scoring/
 | `WATERFALL_MAX_DISPLAY` | 8 | Waterfall에 따로 보여 줄 변수 수 |
 | `ADDITIVITY_TOLERANCE` | 0.005 | SHAP 가법성 검증 허용 오차 |
 
-### API (`src/api/`)
-| 변수 | 기본값 | 설명 |
+**API (`src/api/`)**
+| 변⁠수 | 기본값 | 설명 |
 |---|---|---|
 | `MODEL_PATH` | `models/lightgbm_is_unbalance_integrated_v1.0.joblib` | 최종 모델 파일 |
 | `SCALER_PATH` | `models/preprocess_scaler_v1.0.joblib` | 전처리 스케일러 파일 |
 | `MODEL_STAGE` | `Staging` | `/health`에 표시할 모델 단계 |
 | `OUTPUTS_DIR` | `outputs` | 검증 결과 JSON을 읽을 폴더 |
 
-### 공통 기준값 (API·대시보드·검증)
-| 변수 | 기본값 | 설명 |
+**공통 기준값 (API·대시보드·검증)**
+| 변⁠수 | 기본값 | 설명 |
 |---|---|---|
 | `APPROVAL_THRESHOLD` | 0.5 | 부도 확률이 이 값 미만이면 승인 |
 | `INCOME_KRW_PER_UNIT` | 816.33 | 월소득(원) ÷ 이 값 = 모델 단위(국제달러). World Bank 한국 GDP PPP 2025 (PA.NUS.PPP). 자세한 내용은 `docs/column_spec.md` §9 |
@@ -501,8 +504,8 @@ xai-credit-scoring/
 | `FAIRNESS_PROTECTED_GENDER` / `FAIRNESS_PROTECTED_AGE` | `female` / `55+` | DI Ratio 계산 시 보호 집단 |
 | `ANOVA_ALPHA` / `ANOVA_N_FOLDS` | 0.05 / 5 | ANOVA 유의수준, 폴드 수 |
 
-### 검증 스크립트 (`main_step3~6`, `src/explainer`)
-| 변수 | 기본값 | 설명 |
+**검증 스크립트 (`main_step3~6`, `src/explainer`)**
+| 변⁠수 | 기본값 | 설명 |
 |---|---|---|
 | `SPLITS_DIR` | `data/splits` | 분할 CSV 폴더 |
 | `RAW_DATA` | `data/intermediate/02_simulated.csv` | 거절 사유 문장에 쓸 원래 값 |
@@ -513,3 +516,5 @@ xai-credit-scoring/
 | `ANOVA_TEST2_DATA_TYPE` | `integrated` | ANOVA 검증 2(알고리즘별)에 쓸 데이터 |
 | `EVAL_OUTPUT_DIR` / `FAIRNESS_OUTPUT_DIR` / `ANOVA_OUTPUT_DIR` / `MLFLOW_SUMMARY_DIR` | `outputs/…` | 결과 저장 폴더 |
 | `PLOT_FONT` | (자동 탐색) | 그림의 한글 글꼴 경로 |
+
+</details>
