@@ -1,11 +1,11 @@
-<!doctype html><html lang="ko"><head><meta charset="utf-8"><link rel="stylesheet" href="shell.css"><style>
+﻿<!doctype html><html lang="ko"><head><meta charset="utf-8"><link rel="stylesheet" href="shell.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css"><style>
 .main{display:flex;justify-content:center;align-items:flex-start}
 .ld{width:600px;background:#FFF;border-radius:24px;padding:40px 48px 36px;margin-top:8px}
 .ld h1{text-align:center;font-size:26px;line-height:1.45;margin:0 0 6px}
 .ld .sub{text-align:center;margin-bottom:28px}
 .grp{font-size:12px;font-weight:700;color:var(--ink3);margin:18px 0 8px}
 .row{display:flex;align-items:center;gap:14px;height:56px}
-.lg{width:44px;height:44px;flex:none;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#FFF;letter-spacing:-.02em;position:relative}
+.lg i{font-size:22px}.lg{width:44px;height:44px;flex:none;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#FFF;letter-spacing:-.02em;position:relative}
 .kcb{background:#1B3A6B}.nice{background:#D7263D}.tel{background:#7F77DD}.hlt{background:#1D9E75}.card{background:#EF9F27}.bank{background:var(--accent)}
 .row .tx{flex:1;font-size:15px;color:var(--ink2)}.row .tx small{display:block;font-size:12px;color:var(--ink3)}
 .st{font-size:13px;font-weight:700;color:var(--ink3);width:70px;text-align:right}
@@ -23,13 +23,13 @@
 <div class="main"><div class="ld">
 <h1>이준호님의 정보를<br>가져오고 있어요</h1><p class="sub">고객님이 동의한 기관에서만 받아 와요</p>
 <div class="grp">신용정보 · CB사</div>
-<div class="row" data-i="0"><div class="lg kcb">KCB</div><div class="tx">KCB (코리아크레딧뷰로)<small>대출 · 카드 · 연체 기록</small></div><span class="st"></span></div>
-<div class="row" data-i="1"><div class="lg nice">NICE</div><div class="tx">NICE평가정보<small>대출 · 카드 · 연체 기록</small></div><span class="st"></span></div>
+<div class="row" data-i="0"><div class="lg kcb"><i class="ti ti-shield-check"></i></div><div class="tx">KCB (코리아크레딧뷰로)<small>대출 · 카드 · 연체 기록</small></div><span class="st"></span></div>
+<div class="row" data-i="1"><div class="lg nice"><i class="ti ti-chart-arrows-vertical"></i></div><div class="tx">NICE평가정보<small>대출 · 카드 · 연체 기록</small></div><span class="st"></span></div>
 <div class="grp">대안정보 · 마이데이터</div>
-<div class="row" data-i="2"><div class="lg tel">통신</div><div class="tx">통신사<small>통신요금 납부 기록</small></div><span class="st"></span></div>
+<div class="row" data-i="2"><div class="lg tel"><i class="ti ti-device-mobile"></i></div><div class="tx">통신사<small>통신요금 납부 기록</small></div><span class="st"></span></div>
 <div class="row" data-i="3"><div class="lg hlt">건보</div><div class="tx">국민건강보험공단<small>건강보험료 납부 기록</small></div><span class="st"></span></div>
-<div class="row" data-i="4"><div class="lg card">카드</div><div class="tx">카드사 · 은행<small>소비 · 정기결제 내역</small></div><span class="st"></span></div>
-<div class="row" data-i="5"><div class="lg bank">우리</div><div class="tx">우리 은행<small>앱 로그인 기록</small></div><span class="st"></span></div>
+<div class="row" data-i="4"><div class="lg card"><i class="ti ti-credit-card"></i></div><div class="tx">카드사 · 은행<small>소비 · 정기결제 내역</small></div><span class="st"></span></div>
+<div class="row" data-i="5"><div class="lg bank"><i class="ti ti-building-bank"></i></div><div class="tx">남궁 은행<small>앱 로그인 기록</small></div><span class="st"></span></div>
 <div class="bar"><i id="bar"></i></div>
 </div></div></div>
 <script>
