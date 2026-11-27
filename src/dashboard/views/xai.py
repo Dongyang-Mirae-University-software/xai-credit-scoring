@@ -15,7 +15,7 @@ import streamlit as st
 import api_client
 import config
 import features as F
-from components import connection
+from components import connection, identity
 from components import customer_form as CF
 from components import counterfactual
 from components import ui
@@ -97,6 +97,62 @@ def _head(customer_id):
             if st.button("상담 마치기", key="xai-end"):
                 CF.end_consult()
                 st.switch_page(CF.SCREENING_PAGE)
+
+
+def _past_lookup():
+    """조회: 이름 · 주민등록번호 → 그 고객의 가장 최근 심사 → 판단 근거 (지금 상담 고객이 된다)."""
+    ss = st.session_state
+    name = identity.clean_name(ss.get("xai_name"))
+    front, back = identity.digits(ss.get("xai_front")), identity.digits(ss.get("xai_back"))
+    ss.xai_errors = {"name": identity.name_error(name), "rrn": identity.rrn_error(front, back)}
+    ss.xai_notice = None
+    if any(ss.xai_errors.values()):
+        return
+    try:
+        status = CF.load_past(name, front + back, identity.masked(front, back))
+    except Exception as e:
+        ss.xai_notice = ("error", e)
+        return
+    if status != "ok":
+        ss.xai_notice = ({None: "not_found", api_client.NO_SCREENING: "no_screening",
+                          api_client.NOT_READY: "pending"}[status], None)
+
+
+def _field_error(key):
+    message = (st.session_state.get("xai_errors") or {}).get(key)
+    if message:
+        st.html(f'<p class="xai-find-error">{escape(message)}</p>')
+
+
+def _find_card():
+    """상담 중인 고객이 없을 때: 이미 심사한 고객의 판단 근거를 이름 · 주민등록번호로 찾는다."""
+    ss = st.session_state
+    with st.container(key="xai-find"):
+        st.html('<div class="xai-find-head"><h2>이미 심사한 고객의 판단 근거 보기</h2>'
+                '<p>고객의 이름과 주민등록번호를 입력하면 가장 최근 심사 결과가 왜 나왔는지 바로 보여 줘요.</p></div>')
+        with st.form("xai-find-form", border=False, enter_to_submit=True):
+            with st.container(key="xai-find-row", horizontal=True, vertical_alignment="bottom", gap="small"):
+                st.text_input("이름", key="xai_name", placeholder="홍길동", max_chars=identity.NAME_MAX)
+                st.text_input("주민등록번호", key="xai_front", placeholder="앞 6자리", max_chars=6)
+                st.html('<span class="xai-find-dash">-</span>')
+                st.text_input("주민등록번호 뒷자리", key="xai_back", placeholder="뒤 7자리", max_chars=7,
+                              type="password", label_visibility="hidden")
+                st.form_submit_button("판단 근거 보기", key="xai-find-go", type="primary", on_click=_past_lookup,
+                                      disabled=connection.is_down())
+            _field_error("name")
+            _field_error("rrn")
+        kind, error = ss.get("xai_notice") or (None, None)
+        if kind == "error":
+            st.html(api_error_html("POST /screenings/lookup", error, "inline"))
+        elif kind:
+            text = {"not_found": "일치하는 고객 정보가 없어요. 이름과 주민등록번호를 다시 확인해 주세요.",
+                    "no_screening": "이 고객은 아직 심사한 기록이 없어요. 고객 심사를 먼저 해 주세요.",
+                    "pending": "심사 기록 조회 API(POST /screenings/lookup)가 아직 서버에 없어요."}[kind]
+            st.html(f'<div class="xai-find-notice {kind}">{escape(text)}</div>')
+        with st.container(key="xai-find-foot", horizontal=True, vertical_alignment="center", gap="small"):
+            st.html('<span class="xai-find-hint">처음 오신 고객이면</span>')
+            if st.button("고객 심사로 가기", key="xai-go", type="tertiary"):
+                st.switch_page("views/screening.py")
 
 
 def _model_overview():
@@ -399,13 +455,7 @@ customer_id = CF.current_customer()
 _head(customer_id)
 
 if customer_id is None:
-    with st.container(key="xai-empty-box", horizontal=True, vertical_alignment="center"):
-        st.html(f'<div class="xai-empty-row"><div class="xai-empty-icon">{ui.icon("xai", "#3182F6", 28)}</div>'
-                '<div class="xai-empty-text"><h2>지금 상담 중인 고객이 없어요</h2>'
-                '<p>고객 심사를 하면 그 고객의 판단 근거(Waterfall, 거절 사유, 승인되려면)가 여기에 나와요. '
-                '아래는 모든 고객에게 같은 모델 전체 설명이에요.</p></div></div>')
-        if st.button("고객 심사로 가기", key="xai-go", type="primary"):
-            st.switch_page("views/screening.py")
+    _find_card()
     _model_overview()
 else:
     entry = st.session_state.customers[customer_id]

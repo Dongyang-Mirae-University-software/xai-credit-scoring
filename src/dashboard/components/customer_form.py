@@ -165,6 +165,27 @@ def end_consult():
     ss.consult_toast = "상담을 마쳤어요. 다음 고객을 맞이해 주세요."
 
 
+def load_past(name, rrn, rrn_masked):
+    """XAI 분석: 이미 심사한 고객의 가장 최근 심사를 불러와 지금 상담 고객으로 둔다 (판단 근거를 바로 보여 준다).
+    그때 입력값으로 /explain 을 다시 부른다. 돌려주는 값: "ok" · api_client.NO_SCREENING · NOT_READY · None(고객 없음)."""
+    record = api_client.latest_screening(name, rrn)
+    if not isinstance(record, dict):
+        return record
+    ss = st.session_state
+    _clear_consult()
+    payload = record["input"]
+    customer_id = record["customer_id"]
+    result = {**record["result"], "customer_id": customer_id}
+    profile = {**payload, "customer_id": customer_id, "name": record.get("name") or name,
+               "gender": record.get("gender"), "rrn_masked": rrn_masked}
+    ss.customers = {customer_id: {"payload": payload, "result": result, "profile": profile}}
+    try:
+        ss.xai_explain[customer_id] = api_client.explain(payload)
+    except Exception as e:
+        ss.xai_explain[customer_id] = e
+    return "ok"
+
+
 def open_result(customer_id):
     """XAI 분석 → 고객 심사 결과 화면: 이미 심사한 고객의 결과를 연다. 다른 화면에서 부르면 뒤에 st.switch_page."""
     entry = st.session_state.customers.get(customer_id)

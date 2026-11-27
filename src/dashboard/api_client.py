@@ -249,3 +249,29 @@ def lookup_customer(name, rrn):
                 route_missing = True
             return NOT_READY if route_missing else None
         raise
+
+
+NO_SCREENING = "no_screening"
+
+
+def latest_screening(name, rrn):
+    """POST /screenings/lookup {name, rrn}: 그 고객의 가장 최근 심사 기록.
+    형식: {screening_id, screened_at, customer_id, name, gender, input(/predict 요청), result(/predict 응답)}
+    고객이 없으면 None, 심사 기록이 없으면 NO_SCREENING, API 가 아직 없으면 NOT_READY."""
+    try:
+        return _post("/screenings/lookup", {"name": name, "rrn": rrn})
+    except requests.HTTPError as e:
+        response = e.response
+        if response is None:
+            raise
+        if response.status_code == 405:
+            return NOT_READY
+        if response.status_code == 404:
+            try:
+                detail = str(response.json().get("detail") or "")
+            except ValueError:
+                detail = "Not Found"
+            if detail == "Not Found":          # FastAPI 기본 404 = 경로 없음
+                return NOT_READY
+            return NO_SCREENING if "심사 기록" in detail else None
+        raise
