@@ -47,7 +47,7 @@
 
 .scr-figures { display: flex; }
 .scr-score {
-  flex: 2 1 420px; min-width: 0; padding: 24px 28px 22px; display: flex; flex-direction: column; gap: 12px;
+  flex: 2 1 420px; min-width: 0; padding: 18px 28px 16px; display: flex; flex-direction: column; gap: 20px;
   border-right: 1px solid var(--divider);
 }
 .scr-score-top { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
@@ -55,7 +55,7 @@
 .scr-score-top strong, .scr-prob strong { font-size: 40px; font-weight: 700; line-height: 1; color: var(--ink); }
 .scr-score-top strong small, .scr-prob strong small { font-size: 18px; font-weight: 500; color: var(--ink-3); }
 .scr-prob strong.fail { color: var(--fail-text); }
-.scr-bar-wrap { display: flex; flex-direction: column; gap: 6px; }
+.scr-bar-wrap { display: flex; flex-direction: column; gap: 10px; }
 .scr-bar { position: relative; height: 12px; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 3px; }
 .scr-bar i:first-child { border-radius: 6px 0 0 6px; }
 .scr-bar i:nth-child(5) { border-radius: 0 6px 6px 0; }
@@ -66,7 +66,7 @@
 .scr-bar .seg-A { background: #03A94D; }
 /* 승인 기준 점선 (점수는 API approval_score) */
 .scr-bar u { position: absolute; top: -4px; bottom: -4px; border-left: 2px dashed var(--ink); opacity: .45; }
-.scr-bar-note { margin: 2px 0 0; font-size: 12px; color: var(--ink-3); }
+.scr-bar-note { margin: 6px 0 0; font-size: 12px; color: var(--ink-3); }
 .scr-bar em { position: absolute; top: -6px; width: 4px; height: 24px; margin-left: -2px; border-radius: 2px; background: var(--ink); }
 .scr-bar-labels {
   display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 3px;
@@ -79,7 +79,7 @@
 .scr-bar-labels .ok b, .scr-bar-labels .ok small { color: var(--ok-text); }
 .scr-bar-labels .mid b, .scr-bar-labels .mid small { color: var(--mid-text); }
 .scr-bar-labels .fail b, .scr-bar-labels .fail small { color: var(--fail-text); }
-.scr-prob { flex: 1 1 240px; min-width: 0; padding: 24px 28px 22px; display: flex; flex-direction: column; gap: 8px; }
+.scr-prob { flex: 1 1 240px; min-width: 0; padding: 18px 28px 16px; display: flex; flex-direction: column; gap: 12px; }
 .scr-prob p { margin: 0; font-size: 13px; color: var(--ink-3); }
 
 /* 04 주요 거절 사유 */
