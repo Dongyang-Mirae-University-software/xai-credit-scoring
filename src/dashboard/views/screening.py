@@ -55,19 +55,19 @@ def _completed_at(result):
 
 
 def _summary_html(profile, result):
+    """제목 아래 한 줄: 이름 · 나이 · 성별, 심사에 쓴 핵심 값, 고객 유형, 심사 시각 (따로 카드를 두지 않아 자리를 아낀다)."""
     counts = [profile[f] for f, _ in CF.DELINQUENCY_FIELDS if profile[f] is not None]  # None = 기록 없음
     late = sum(int(c) for c in counts)
+    who = " · ".join(escape(str(v)) for v in (profile.get("name") or "고객", f'{profile["age"]}세', profile.get("gender")) if v)
     cells = [
-        ("이름", profile.get("name") or "-"),
-        ("나이", f'{profile["age"]}세'),
-        ("성별", profile.get("gender") or "-"),
         ("월 소득", f'{profile["MonthlyIncome"] / 10_000:,.0f}만원'),
         ("부채비율", f'{profile["DebtRatio"]:.0f}%'),
         ("연체", f"{late}회" if late else ("기록 없음" if not counts else "없음")),
-        ("고객 유형", "씬파일러" if result.get("is_thin_filer") else "일반 고객"),
     ]
-    return '<div class="scr-summary">' + "".join(
-        f'<div><span>{label}</span><b>{escape(str(value))}</b></div>' for label, value in cells) + "</div>"
+    kind = "씬파일러" if result.get("is_thin_filer") else "일반 고객"
+    return (f'<div class="scr-summary"><b class="scr-who">{who}</b>'
+            + "".join(f'<span>{label} <b>{escape(value)}</b></span>' for label, value in cells)
+            + f'<i class="scr-kind">{kind}</i><em>{_completed_at(result)} 심사 완료</em></div>')
 
 
 def _health():
@@ -192,19 +192,19 @@ def _shap_cell(value):
 def _factor_table(label, explain, rows):
     body = "".join(
         f'<div class="scr-rr-row"><span class="scr-rr-rank">{r.get("rank", i)}</span>'
-        f'<strong>{escape(F.name(r["feature"]))}</strong>'
-        f'<span class="scr-rr-text">{escape(_reason_text(r))}</span>'
+        f'<div class="scr-rr-main"><strong>{escape(F.name(r["feature"]))}</strong>'
+        f'<span class="scr-rr-text">{escape(_reason_text(r))}</span></div>'
         f'<b class="num">{F.fmt_value(r["feature"], r.get("current_value"))}</b>'
         f'<span class="num scr-rr-ref">{F.fmt_value(r["feature"], r.get("reference_value"))}</span>'
         f'{_shap_cell(_risk_shap(explain, r))}</div>'
         for i, r in enumerate(rows, 1))
     st.html(f"""
     <div class="scr-rr" role="table" aria-label="{label}">
-      <div class="scr-rr-row scr-rr-headrow"><span>순위</span><span>항목</span><span>설명</span>
-        <span class="num">현재</span><span class="num">기준</span><span class="num">SHAP 기여도</span></div>
+      <div class="scr-rr-row scr-rr-headrow"><span>순위</span><span>항목 · 설명</span>
+        <span class="num">현재</span><span class="num">기준</span><span class="num">SHAP</span></div>
       {body or f'<div class="scr-rr-empty">{label}가 없어요</div>'}
     </div>
-    <p class="scr-rr-note">SHAP 기여도는 부도 위험 기준이에요. 양수는 위험을 높이고, 음수는 위험을 낮췄다는 뜻이에요.</p>""")
+    <p class="scr-rr-note">SHAP 기여도는 부도 위험 기준이에요. 양수는 위험을 높이고, 음수는 낮췄다는 뜻이에요.</p>""")
 
 
 def _factors_section(result, profile, approved):
@@ -248,17 +248,16 @@ def _xai_preview(result):
     if base is not None:
         avg = 1 / (1 + math.exp(-base))
         flow = (f'<div class="scr-xp-flow"><span>평균 고객<b>{avg * 100:.0f}%</b></span>'
-                f'{ui.icon("arrow", "#8B95A1", 18)}'
-                f'<span>이 고객<b class="{"" if approved else "fail"}">{result["default_probability"] * 100:.0f}%</b></span>'
-                f'<em>위험을 높인 정보 {sum(v > 0 for v in shap.values())}개 · '
-                f'낮춘 정보 {sum(v < 0 for v in shap.values())}개</em></div>')
+                f'{ui.icon("arrow", "#8B95A1", 20)}'
+                f'<span>이 고객<b class="{"" if approved else "fail"}">{result["default_probability"] * 100:.0f}%</b></span></div>'
+                f'<p class="scr-xp-count">위험을 높인 정보 <b>{sum(v > 0 for v in shap.values())}개</b> · '
+                f'낮춘 정보 <b>{sum(v < 0 for v in shap.values())}개</b></p>')
     chips = "".join(f"<i>{c}</i>" for c in ("SHAP Waterfall", "사유 Top 5 전체", "승인되려면", "모델 전체 중요도"))
+    with st.container(key="scr-xp-head"):
+        st.html(ui.section_head("판단 근거", f'부도 확률이 어떻게 {"정해졌는지" if approved else "올라갔는지"} 보여 줘요.'))
     with st.container(key="scr-act-xai"):
-        st.html(f'<div class="scr-act scr-xp"><div class="scr-xp-main">'
-                f'<b>판단 근거 <small>XAI 분석</small></b>'
-                f'<span>부도 확률이 어떻게 {"정해졌는지" if approved else "올라갔는지"} 정보 하나하나의 영향으로 보여 줘요.</span>'
-                f'{flow}<div class="scr-xp-chips">{chips}</div></div>'
-                f'<span class="scr-xp-go">자세히 보기{ui.icon("chevron", "#3182F6", 18)}</span></div>')
+        st.html(f'<div class="scr-act scr-xp">{flow}<div class="scr-xp-chips">{chips}</div>'
+                f'<span class="scr-xp-go">XAI 분석에서 자세히 보기{ui.icon("chevron", "#3182F6", 18)}</span></div>')
         return st.button("판단 근거 자세히 보기", key="scr-act-btn-xai")
 
 
@@ -267,22 +266,23 @@ def _result_view():
     profile, result = current["profile"], current["result"]
     approved = result["approval_status"] == "APPROVED"
 
+    # 머리: 제목 + 고객 한 줄 요약 (왼쪽), 정보 수정 · 상담 마치기 (오른쪽)
     with st.container(key="scr-result-head", horizontal=True, vertical_alignment="bottom"):
-        st.html(f'<div class="ui-page-head"><div><h1>심사 결과</h1>'
-                f'<p>{_completed_at(result)} 심사 완료</p></div></div>')
+        st.html(f'<div class="ui-page-head"><div><h1>심사 결과</h1>{_summary_html(profile, result)}</div></div>')
         with st.container(key="scr-result-actions", horizontal=True, gap="small"):
+            st.button("정보 수정", key="scr-edit", on_click=CF.edit, args=(profile,),
+                      disabled=connection.is_down())
             st.button("상담 마치기", key="scr-end", on_click=CF.end_consult)
-
-    with st.container(key="scr-summary-card", horizontal=True, vertical_alignment="center"):
-        st.html(_summary_html(profile, result))
-        st.button("정보 수정", key="scr-edit", on_click=CF.edit, args=(profile,),
-                  disabled=connection.is_down())
 
     st.html(_decision_html(result))
 
-    _factors_section(result, profile, approved)
-
-    if _xai_preview(result):
+    # 아래 줄: 사유 표(왼쪽) + 판단 근거 카드(오른쪽). 1440 × 900 한 화면에 들어오게
+    left, right = st.columns([1.75, 1], gap="medium")
+    with left:
+        _factors_section(result, profile, approved)
+    with right:
+        go_xai = _xai_preview(result)
+    if go_xai:
         st.switch_page("views/xai.py")
 
 
