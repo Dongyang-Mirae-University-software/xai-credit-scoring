@@ -121,8 +121,10 @@ def find_customer(customer_id):
     """시연용 샘플 파일 → 이번 세션에서 심사한 고객 순서로 찾는다. 없으면 None. API 는 부르지 않는다."""
     found = CUSTOMERS.get(customer_id)
     if found:
+        rrn = found.get("rrn") or ""   # 시연용 가짜 번호 (화면에는 가린 값만)
+        masked = identity.masked(rrn[:6], rrn[6:]) if len(rrn) == 13 else None
         return {"customer_id": customer_id, "name": found.get("name"), "gender": found.get("gender"),
-                **{k: found.get(k) for k in REQUEST_KEYS}}
+                "rrn_masked": masked, **{k: found.get(k) for k in REQUEST_KEYS}}
     entry = st.session_state.customers.get(customer_id)
     if entry and "profile" in entry:
         return entry["profile"]
