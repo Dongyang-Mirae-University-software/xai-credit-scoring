@@ -811,8 +811,18 @@ def render_confirm(disabled=False):
 
         f1, f2 = st.columns([2.25, 1], gap="medium")
         with f1, st.container(key="frm-foot-row", horizontal=True, vertical_alignment="center"):
-            checks = "".join(f'<span><i>✓</i>{label} {n}</span>' for label, n in
-                             (("서류", len(docs)), ("신용정보", len(credit)), ("대안정보", len(alt))))
+            # 묶음마다 상태 아이콘: 빈칸(심사 실행 뒤) 빨간 ! > 고친 값 파란 연필 > 그대로 초록 체크
+            groups = (("서류", len(docs), BASIC_FIELDS + APPLY_FIELDS), ("신용정보", len(credit), CREDIT_FIELDS),
+                      ("대안정보", len(alt), ALT_FIELDS))
+            checks = ""
+            for label, n, fields in groups:
+                fixed = sum(_val(f) != snap.get(f) for f, *_ in fields)
+                if any(f[1] in ss.frm_missing for f in fields):
+                    checks += f'<span class="miss"><i>!</i>{label} {n}</span>'
+                elif fixed:
+                    checks += f'<span class="edit"><i>✎</i>{label} {n} · {fixed}개 고침</span>'
+                else:
+                    checks += f'<span><i>✓</i>{label} {n}</span>'
             if ss.frm_missing:
                 note = f'<span class="frm-foot-miss">{escape(", ".join(ss.frm_missing))} 칸을 채워 주세요</span>'
             else:
