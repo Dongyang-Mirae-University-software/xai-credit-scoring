@@ -15,7 +15,7 @@ from config import DISCLAIMER
 
 CSS_PATH = Path(__file__).with_suffix(".css")
 
-# 파비콘: 헤더 로고(components/ui.LOGO_SVG)를 남색 바탕에 올린 128px PNG
+# 파비콘: 헤더 로고(components/ui.LOGO_SVG, 파란 둥근 사각형 + 흰 그래프 선)를 그린 128px PNG (바탕 투명)
 st.set_page_config(page_title="대안신용평가 심사 시스템", page_icon=str(Path(__file__).with_name("favicon.png")),
                    layout="wide")
 st.html(f"<style>{CSS_PATH.read_text(encoding='utf-8')}</style>")
