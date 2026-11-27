@@ -1651,3 +1651,11 @@ div[role="dialog"]:has(.xai-find-sub) [data-testid="stFormSubmitButton"] button 
 [data-testid="stTabs"] .xai-card .xai-howto li { font-size: 15px; }
 [data-testid="stTabs"] .xai-howto { padding: 14px 18px; }
 [data-testid="stTabs"] .xai-howto ul { gap: 6px; }
+
+/* 색 역할: 파랑 = 중립 · 좋은 쪽, 빨강 = 실패 요인 · 위험을 높인 쪽 */
+/* 이 고객의 거절 사유인 줄: 빨간 바탕 + 빨간 표시 (실패 요인) */
+.xai-bs-card .bs li.mine { background: var(--fail-bg); }
+.xai-bs-card .xai-mine { background: var(--fail); color: #FFF; }
+/* 거절 사유 · 위험을 높인 정보 Top 5: 다섯 개 모두 위험을 높인 정보라 순위 원을 빨간 톤으로 */
+.xr-rank { background: var(--fail-bg); color: var(--fail-text); }
+.xr > li:first-child .xr-rank { background: var(--fail); color: #FFF; }
