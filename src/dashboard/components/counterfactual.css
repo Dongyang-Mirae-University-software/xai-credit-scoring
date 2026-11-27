@@ -80,3 +80,10 @@
 .cf2-more { margin: 6px 0 0; }
 .cf2-foot { margin: 10px 0 0; font-size: 13px; line-height: 1.6; color: var(--ink-3); }
 @media (max-width: 1100px) { .cf2 { grid-template-columns: 1fr; } }
+/* 승인에 도움이 되는 방법: 할 수 있는 일(굵게) + 효과 한 줄 */
+.cf2-tips { margin: 0; padding: 0; list-style: none; }
+.cf2-tips li { display: flex; flex-direction: column; gap: 4px; padding: 14px 0; margin: 0; }
+.cf2-tips li + li { border-top: 1px solid var(--divider); }
+.cf2-tips strong { font-size: 17px; font-weight: 700; line-height: 1.45; color: var(--ink); }
+.cf2-tips span { font-size: 14px; color: var(--ink-3); }
+.cf2-tips span b { font-weight: 700; color: var(--ok-text); }

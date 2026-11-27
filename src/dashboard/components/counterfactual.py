@@ -16,7 +16,7 @@ from components.api_error import render_api_error
 from components.empty_state import pending_html
 
 CSS_PATH = Path(__file__).with_suffix(".css")
-SINGLE_MAX = 4   # '하나만 바꿔도 되는 방법' 최대 개수 (API 는 작은 변화 순으로 준다)
+SINGLE_MAX = 4   # '승인에 도움이 되는 방법' 최대 개수 (API 는 작은 변화 순으로 준다)
 
 
 def _pct(p):
@@ -85,21 +85,40 @@ def _hero(cf, result):
     </section>"""
 
 
-def _singles(cf):
-    """하나만 바꿔도 되는 방법: 항목 · 지금 → 바꿀 값 ··· 그때 부도 확률 (초록)."""
-    singles = cf.get("single_changes") or []
-    if singles:
-        body = "".join(
-            f'<li><div><span class="cf2-name">{escape(c["feature_name_kr"])}</span>'
-            f'<span class="cf2-move small"><em>{_value(c["current_value"], c["unit"])}</em>{ui.icon("arrow", "#B0B8C1", 14)}'
-            f'<b>{_value(c["suggested_value"], c["unit"])}</b><i class="cf2-verb">{_verb(c)}</i></span></div>'
-            f'<div class="cf2-prob"><span>부도 확률</span><b>{_pct(c["new_probability"])}</b></div></li>'
-            for c in singles[:SINGLE_MAX] if c.get("new_probability") is not None)
-        more = (f'<p class="cf2-more">외 {len(singles) - SINGLE_MAX}가지</p>' if len(singles) > SINGLE_MAX else "")
-    else:
-        body, more = '<li class="cf2-empty">정보 하나만 바꿔서는 승인 기준에 닿지 않아요</li>', ""
-    return (f'<section class="cf2-card"><h3 class="cf2-side-title">하나만 바꿔도 되는 방법 '
-            f'<b>{len(singles)}가지</b></h3><ul class="cf2-singles">{body}</ul>{more}</section>')
+# 바꿀 수 있는 정보 → 고객이 실제로 할 수 있는 일 (승인에 도움이 되는 방법)
+TIPS = {
+    "RevolvingUtilizationOfUnsecuredLines": "카드 사용액을 한도의 30% 아래로 줄여요",
+    "DebtRatio": "대출 일부를 먼저 갚거나 상환 기간을 늘려 월 상환액을 줄여요",
+    "MonthlyIncome": "근로 · 사업 소득을 증빙하면 소득이 더 반영돼요",
+    "telecom_payment_rate": "통신비를 자동이체로 연체 없이 내요",
+    "utility_payment_rate": "공과금(전기 · 가스 · 수도)을 기한 안에 내요",
+    "spending_consistency": "매달 소비를 일정하게 유지해요 (큰 지출을 한 번에 몰지 않기)",
+    "regular_payment_count": "구독 · 보험 같은 정기결제를 꾸준히 유지해요",
+    "app_login_frequency": "은행 앱을 자주 써서 금융 활동 기록을 쌓아요",
+}
+
+
+def _tips(cf):
+    """승인에 도움이 되는 방법: 바꿀 수 있는 정보마다 실제로 할 수 있는 일 + 그 효과(하나만 바꿨을 때 부도 확률).
+    효과 숫자는 API 의 single_changes, 없으면 combined 의 바꿀 정보에서 가져온다."""
+    seen, items = set(), []
+    for c in (cf.get("single_changes") or []) + ((cf.get("combined") or {}).get("changes") or []):
+        if c["feature"] in seen or c["feature"] not in TIPS:
+            continue
+        seen.add(c["feature"])
+        items.append(c)
+    if not items:
+        return ('<section class="cf2-card"><h3 class="cf2-side-title">승인에 도움이 되는 방법</h3>'
+                '<p class="cf2-empty">고객이 바꿀 수 있는 정보가 없어요</p></section>')
+    rows = []
+    for c in items[:SINGLE_MAX]:
+        effect = (f'{escape(c["feature_name_kr"])} {_value(c["current_value"], c["unit"])} → '
+                  f'{_value(c["suggested_value"], c["unit"])}')
+        prob = (f'면 부도 확률 <b>{_pct(c["new_probability"])}</b>' if c.get("new_probability") is not None
+                else " (함께 바꿀 때)")
+        rows.append(f'<li><strong>{escape(TIPS[c["feature"]])}</strong><span>{effect}{prob}</span></li>')
+    return (f'<section class="cf2-card"><h3 class="cf2-side-title">승인에 도움이 되는 방법</h3>'
+            f'<ul class="cf2-tips">{"".join(rows)}</ul></section>')
 
 
 def render(customer_id, payload, result):
@@ -122,6 +141,6 @@ def _render(customer_id, payload, result):
         st.html(pending_html("POST /counterfactual", "#147"))
         return
     fixed = ", ".join(cf.get("immutable_features") or [])
-    st.html(f'<div class="cf2">{_hero(cf, result)}{_singles(cf)}</div>'
+    st.html(f'<div class="cf2">{_hero(cf, result)}{_tips(cf)}</div>'
             f'<p class="cf2-foot">바꿀 수 없어 그대로 둔 정보: {escape(fixed) or "-"}. '
             f'학습 데이터에 있는 값 범위(1~99%) 안에서만 찾았고, 실제 승인을 약속하지 않아요.</p>')
