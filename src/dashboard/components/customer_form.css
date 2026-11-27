@@ -22,10 +22,10 @@
 .st-key-idn-card input::placeholder { color: var(--ink-3); font-weight: 400; letter-spacing: 0; }
 .st-key-idn-card [data-testid="InputInstructions"] { display: none; }
 .st-key-idn-rrn { flex-wrap: nowrap; }
-.st-key-idn-rrn [data-baseweb="input"] { height: 40px; }
+.st-key-idn-rrn [data-baseweb="input"] { height: 56px; }  /* 이름 칸과 같은 높이 */
 .st-key-idn-rrn > .stElementContainer:has(.stTextInput) { flex: 1 1 0; min-width: 0; }
 .st-key-idn-rrn > .stElementContainer:has(.idn-dash) { flex: none; width: auto !important; }
-.idn-dash { display: grid; height: 40px; place-items: center; }
+.idn-dash { display: grid; height: 56px; place-items: center; }  /* 주민등록번호 칸 높이에 맞춰 하이픈을 가운데로 */
 .idn-dash::before { content: ""; width: 10px; height: 2px; border-radius: 1px; background: var(--ink-3); }
 .idn-error { margin: -4px 0 0; font-size: 13px; color: var(--fail-text); }
 
