@@ -17,7 +17,7 @@ API_LOG_BODY_MAX = int(os.getenv("API_LOG_BODY_MAX", "600"))
 
 # ---- 고객 심사 화면 표시용 값 ----
 # 2/3 → 3/3 사이 '신용정보원(CB) · 대안정보를 가져오는' 연출 시간(초). 실제 조회는 1/3 에서 끝난다. 0 이면 연출 없이 넘어간다
-CB_LOADING_SECONDS = float(os.getenv("CB_LOADING_SECONDS", "2.4"))
+CB_LOADING_SECONDS = float(os.getenv("CB_LOADING_SECONDS", "4"))
 # 점수·등급 기준 (README '점수와 등급 기준'): credit_score = round((1 - 부도 확률) × 1000)
 # 등급 구간 (등급, 구간 상한 점수)은 API(src/api/model.py GRADE_SCALE)와 같다:
 # E 300 미만 · D 300~499 · C 500~649 · B 650~799 · A 800 이상. API 가 구간을 내려주지 않아 여기에 둔다
