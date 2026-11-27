@@ -85,6 +85,13 @@ def _head(customer_id):
     with st.container(key="xai-head", horizontal=True, vertical_alignment="bottom"):
         st.html(f'<div class="ui-page-head"><div><h1>XAI 분석</h1><p>{sub}</p></div></div>')
         if not customer_id:
+            with st.container(key="xai-pick", horizontal=True, vertical_alignment="center", gap="small"):
+                if st.button("고객 심사로 가기", key="xai-go"):
+                    st.switch_page("views/screening.py")
+                if st.button("이미 심사한 고객 찾기", key="xai-find-open", type="primary", disabled=connection.is_down()):
+                    for key in ("xai_notice", "xai_errors"):
+                        st.session_state.pop(key, None)
+                    _find_dialog()
             return
         with st.container(key="xai-pick", horizontal=True, vertical_alignment="center", gap="small"):
             if st.button("심사 결과로", key="xai-to-result"):
@@ -100,47 +107,47 @@ def _head(customer_id):
 
 
 def _past_lookup():
-    """조회: 이름 · 주민등록번호 → 그 고객의 가장 최근 심사 → 판단 근거 (지금 상담 고객이 된다)."""
+    """조회: 이름 · 주민등록번호 → 그 고객의 가장 최근 심사 → 판단 근거 (지금 상담 고객이 된다). 찾으면 True."""
     ss = st.session_state
     name = identity.clean_name(ss.get("xai_name"))
     front, back = identity.digits(ss.get("xai_front")), identity.digits(ss.get("xai_back"))
     ss.xai_errors = {"name": identity.name_error(name), "rrn": identity.rrn_error(front, back)}
     ss.xai_notice = None
     if any(ss.xai_errors.values()):
-        return
+        return False
     try:
         status = CF.load_past(name, front + back, identity.masked(front, back))
     except Exception as e:
         ss.xai_notice = ("error", e)
-        return
+        return False
     if status != "ok":
         ss.xai_notice = ({None: "not_found", api_client.NO_SCREENING: "no_screening",
                           api_client.NOT_READY: "pending"}[status], None)
+        return False
+    return True
 
 
-def _field_error(key):
-    message = (st.session_state.get("xai_errors") or {}).get(key)
-    if message:
-        st.html(f'<p class="xai-find-error">{escape(message)}</p>')
-
-
-def _find_card():
-    """상담 중인 고객이 없을 때: 이미 심사한 고객의 판단 근거를 이름 · 주민등록번호로 찾는다."""
+@st.dialog("이미 심사한 고객의 판단 근거 보기", width="medium")
+def _find_dialog():
+    """이름 · 주민등록번호를 넣으면 그 고객의 가장 최근 심사의 판단 근거를 바로 연다 (찾으면 창이 닫힌다)."""
     ss = st.session_state
     with st.container(key="xai-find"):
-        st.html('<div class="xai-find-head"><h2>이미 심사한 고객의 판단 근거 보기</h2>'
-                '<p>고객의 이름과 주민등록번호를 입력하면 가장 최근 심사 결과가 왜 나왔는지 바로 보여 줘요.</p></div>')
+        st.html('<p class="xai-find-sub">고객의 이름과 주민등록번호를 입력하면 가장 최근 심사 결과가 왜 나왔는지 바로 보여 줘요.</p>')
         with st.form("xai-find-form", border=False, enter_to_submit=True):
+            st.text_input("이름", key="xai_name", placeholder="홍길동", max_chars=identity.NAME_MAX)
             with st.container(key="xai-find-row", horizontal=True, vertical_alignment="bottom", gap="small"):
-                st.text_input("이름", key="xai_name", placeholder="홍길동", max_chars=identity.NAME_MAX)
                 st.text_input("주민등록번호", key="xai_front", placeholder="앞 6자리", max_chars=6)
                 st.html('<span class="xai-find-dash">-</span>')
                 st.text_input("주민등록번호 뒷자리", key="xai_back", placeholder="뒤 7자리", max_chars=7,
                               type="password", label_visibility="hidden")
-                st.form_submit_button("판단 근거 보기", key="xai-find-go", type="primary", on_click=_past_lookup,
-                                      disabled=connection.is_down())
-            _field_error("name")
-            _field_error("rrn")
+            submitted = st.form_submit_button("판단 근거 보기", key="xai-find-go", type="primary",
+                                              use_container_width=True)
+        if submitted and _past_lookup():
+            st.rerun()  # 창을 닫고 그 고객의 판단 근거를 그린다
+        for key in ("name", "rrn"):
+            message = (ss.get("xai_errors") or {}).get(key)
+            if message:
+                st.html(f'<p class="xai-find-error">{escape(message)}</p>')
         kind, error = ss.get("xai_notice") or (None, None)
         if kind == "error":
             st.html(api_error_html("POST /screenings/lookup", error, "inline"))
@@ -149,10 +156,6 @@ def _find_card():
                     "no_screening": "이 고객은 아직 심사한 기록이 없어요. 고객 심사를 먼저 해 주세요.",
                     "pending": "심사 기록 조회 API(POST /screenings/lookup)가 아직 서버에 없어요."}[kind]
             st.html(f'<div class="xai-find-notice {kind}">{escape(text)}</div>')
-        with st.container(key="xai-find-foot", horizontal=True, vertical_alignment="center", gap="small"):
-            st.html('<span class="xai-find-hint">처음 오신 고객이면</span>')
-            if st.button("고객 심사로 가기", key="xai-go", type="tertiary"):
-                st.switch_page("views/screening.py")
 
 
 def _model_overview():
@@ -352,7 +355,7 @@ def _dot_color(t):
 
 def _jitter(feature, i):
     h = hashlib.md5(f"{feature}:{i}".encode()).digest()
-    return 2 + h[0] / 255 * 10  # 16px 줄 안에서 2~12px (xai.css .xai-sum-grid .bs-track)
+    return 15 + h[0] / 255 * 70  # 줄 높이의 15~85% (점 가운데 기준, xai.css .bs-track i 의 margin-top)
 
 
 def _share_bar(features):
@@ -390,7 +393,7 @@ def _beeswarm(summary, reason_features):
         data = swarm.get(f)
         if data:
             dots = "".join(
-                f'<i style="left:{pos(s):.2f}%;top:{_jitter(f, i):.1f}px;background:{_dot_color(v)}"></i>'
+                f'<i style="left:{pos(s):.2f}%;top:{_jitter(f, i):.1f}%;background:{_dot_color(v)}"></i>'
                 for i, (s, v) in enumerate(zip(data.get("shap", [])[:BEESWARM_MAX_DOTS], data.get("value", []))))
         else:  # 고객별 점이 아직 없으면 평균 영향 크기(|SHAP| 평균)를 0 양쪽 띠로 보여 준다
             m = x["mean_abs_shap"]
@@ -406,7 +409,7 @@ def _beeswarm(summary, reason_features):
     note = ("" if swarm else
             '<p class="xai-note warn">고객별 점 분포는 API(/explain/summary 의 beeswarm)가 추가되면 표시돼요. '
             "지금은 변수별 평균 영향 크기(|SHAP| 평균)를 띠로 보여줘요.</p>")
-    color_legend = ('<div class="bs-color">점 색은 그 고객의 변수 값이에요. 낮음<i></i>높음</div>' if swarm else "")
+    color_legend = ('<div class="bs-color">점 색은 그 고객의 변수 값이에요.<br>낮음<i></i>높음</div>' if swarm else "")
     return f"""
     <div class="xai-sum-grid">
       <div>
@@ -450,7 +453,6 @@ customer_id = CF.current_customer()
 _head(customer_id)
 
 if customer_id is None:
-    _find_card()
     _model_overview()
 else:
     entry = st.session_state.customers[customer_id]
