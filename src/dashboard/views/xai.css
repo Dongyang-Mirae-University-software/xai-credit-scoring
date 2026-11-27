@@ -1511,3 +1511,49 @@ div[role="dialog"]:has(.xai-find-sub) [data-testid="stFormSubmitButton"] button 
 [data-testid="stTabs"] .xai-howto { display: block; padding: 18px 20px; }
 [data-testid="stTabs"] .xai-howto ul { gap: 10px; }
 [data-testid="stTabs"] .xai-card .xai-howto li { font-size: 16px; }
+
+/* ========== 요약 탭 (토스식): 결론 카드 + 고객 정보 줄 목록 / 위험을 높인 · 낮춘 정보 ========== */
+.xs { display: grid; grid-template-columns: minmax(0, 1.7fr) minmax(0, 1fr); gap: 16px; }
+.xs-card { background: var(--card); border-radius: var(--radius-card); padding: 26px 28px; min-width: 0; }
+.xs-card h3 { margin: 0 0 14px; padding: 0; font-size: 18px; font-weight: 700; color: var(--ink); }
+.xs-card h3 b { margin-left: 4px; font-weight: 700; }
+.xs-card h3 b.up { color: var(--risk-up); }
+.xs-card h3 b.down { color: var(--risk-down); }
+/* 결론 */
+.xs-badges { display: flex; align-items: center; gap: 8px; }
+.xs-badge { padding: 5px 12px; border-radius: 999px; font-size: 14px; font-weight: 700; }
+.xs-badge.ok { background: var(--ok-bg); color: var(--ok-text); }
+.xs-badge.fail { background: var(--fail-bg); color: var(--fail-text); }
+.xs-grade { padding: 5px 12px; border-radius: 999px; font-size: 14px; font-weight: 700; background: var(--fill); color: var(--ink-2); }
+.xs-hero h2 { margin: 16px 0 0; padding: 0; font-size: 28px; font-weight: 700; line-height: 1.35; letter-spacing: -0.02em; color: var(--ink); }
+.xs-reason { margin: 8px 0 0; font-size: 18px; line-height: 1.5; color: var(--ink-2); }
+.xs-figs { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 36px; margin-top: 28px; align-items: end; }
+.xs-figs span { display: block; font-size: 15px; color: var(--ink-3); }
+.xs-figs strong { display: block; margin-top: 4px; font-size: 40px; font-weight: 700; line-height: 1.1; color: var(--ink); }
+.xs-figs strong.fail { color: var(--fail-text); }
+.xs-figs strong.ok { color: var(--ok-text); }
+.xs-figs strong small { margin-left: 2px; font-size: 20px; font-weight: 600; color: var(--ink-3); }
+.xs-track { position: relative; height: 10px; margin: 16px 0 26px; border-radius: 999px; background: var(--fill); }
+.xs-track em { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 999px; }
+.xs-track em.fail { background: var(--risk-up); }
+.xs-track em.ok { background: var(--ok); }
+.xs-track i.avg { position: absolute; top: -4px; width: 2px; height: 18px; margin-left: -1px; background: var(--ink); }
+.xs-track .avg-label { position: absolute; top: 18px; transform: translateX(-50%); white-space: nowrap; font-size: 13px; color: var(--ink-3); }
+/* 고객 정보: 라벨 ··· 값 */
+.xs-info ul, .xs-factors { margin: 0; padding: 0; list-style: none; }
+.xs-info li { display: flex; justify-content: space-between; align-items: center; padding: 11px 0; margin: 0; font-size: 16px; }
+.xs-info li + li { border-top: 1px solid var(--divider); }
+.xs-info li span { color: var(--ink-3); }
+.xs-info li b { font-weight: 700; color: var(--ink); }
+/* 위험을 높인 · 낮춘 정보 상위 3개 */
+.xs-factors li { display: grid; grid-template-columns: minmax(0, 1fr) 120px 56px; align-items: center; gap: 14px; padding: 10px 0; margin: 0; font-size: 16px; }
+.xs-factors li span { color: var(--ink); }
+.xs-factors li i { height: 8px; border-radius: 999px; background: var(--fill); overflow: hidden; }
+.xs-factors li em { display: block; height: 100%; border-radius: 999px; }
+.xs-factors em.up { background: var(--risk-up); }
+.xs-factors em.down { background: var(--risk-down); }
+.xs-factors li b { text-align: right; font-weight: 700; }
+.xs-factors b.up { color: var(--risk-up); }
+.xs-factors b.down { color: var(--risk-down); }
+.xs-more, .xs-none { margin: 6px 0 0; font-size: 14px; color: var(--ink-3); }
+@media (max-width: 1100px) { .xs { grid-template-columns: 1fr; } }

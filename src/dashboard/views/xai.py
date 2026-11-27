@@ -180,6 +180,60 @@ def _customer_strip(entry):
     return f'<section class="xai-strip">{inner}{badge}</section>'
 
 
+def _factor_list(items, top, kind):
+    """위험을 높인 · 낮춘 정보 상위 3개: 이름 ··· 작은 막대 + 기여도."""
+    if not items:
+        return '<p class="xs-none">해당하는 정보가 없어요</p>'
+    rows = "".join(
+        f'<li><span>{escape(F.label(f))}</span><i><em class="{kind}" style="width:{abs(v) / top * 100:.0f}%"></em></i>'
+        f'<b class="{kind}">{_signed(v)}</b></li>' for f, v in items[:3])
+    more = f'<p class="xs-more">외 {len(items) - 3}개</p>' if len(items) > 3 else ""
+    return f'<ul class="xs-factors">{rows}</ul>{more}'
+
+
+def _overview_tab(explain, entry):
+    """요약 탭 (토스식): 결론 한 줄 + 큰 숫자 · 고객 정보 줄 목록 · 위험을 높인 / 낮춘 정보 상위 3개."""
+    profile, result = entry["profile"], entry["result"]
+    approved = result["approval_status"] == "APPROVED"
+    name = profile.get("name") or "고객"
+    shap = explain.get("shap_values") or {}
+    ups = sorted([(f, v) for f, v in shap.items() if v > 0], key=lambda kv: -kv[1])
+    downs = sorted([(f, v) for f, v in shap.items() if v < 0], key=lambda kv: kv[1])
+    top = max([abs(v) for _, v in ups[:3] + downs[:3]] or [1]) or 1
+    if approved:
+        reason = (f"{_pair([F.label(f) for f, _ in downs[:2]])} 승인에 가장 크게 기여했어요." if downs
+                  else "부도 위험을 크게 높인 정보 없이 승인 기준을 통과했어요.")
+    else:
+        reason = (f"{_pair([F.label(f) for f, _ in ups[:2]])} 거절의 가장 큰 이유예요." if ups
+                  else "부도 확률이 승인 기준을 넘었어요.")
+    prob, base = result["default_probability"], explain.get("base_value")
+    avg = _sigmoid(base) if base is not None else None
+    avg_mark = (f'<i class="avg" style="left:{avg * 100:.1f}%"></i>'
+                f'<span class="avg-label" style="left:{avg * 100:.1f}%">평균 고객 {_pct(avg)}</span>') if avg is not None else ""
+    tone = "ok" if approved else "fail"
+    info = [("이름", name), ("나이", f'{profile["age"]}세'), ("성별", profile.get("gender") or "-"),
+            ("월소득", f'{profile["MonthlyIncome"] / 10_000:,.0f}만원'),
+            ("고객 유형", "씬파일러" if result.get("is_thin_filer") else "일반 고객")]
+    rows = "".join(f'<li><span>{k}</span><b>{escape(str(v))}</b></li>' for k, v in info)
+    return f"""
+    <div class="xs">
+      <section class="xs-card xs-hero">
+        <div class="xs-badges"><span class="xs-badge {tone}">{"승인" if approved else "거절"}</span>
+          <span class="xs-grade">{escape(str(result["risk_grade"]))}등급</span></div>
+        <h2>{escape(name)}님은 이번 심사에서 {"승인됐어요" if approved else "거절됐어요"}</h2>
+        <p class="xs-reason">{escape(reason)}</p>
+        <div class="xs-figs">
+          <div class="xs-prob"><span>부도 확률</span><strong class="{tone}">{_pct(prob)}</strong>
+            <div class="xs-track"><em class="{tone}" style="width:{prob * 100:.1f}%"></em>{avg_mark}</div></div>
+          <div class="xs-score"><span>신용 점수</span><strong>{result["credit_score"]}<small>점</small></strong></div>
+        </div>
+      </section>
+      <section class="xs-card xs-info"><h3>고객 정보</h3><ul>{rows}</ul></section>
+      <section class="xs-card"><h3>위험을 높인 정보 <b class="up">{len(ups)}개</b></h3>{_factor_list(ups, top, "up")}</section>
+      <section class="xs-card"><h3>위험을 낮춘 정보 <b class="down">{len(downs)}개</b></h3>{_factor_list(downs, top, "down")}</section>
+    </div>"""
+
+
 # ---------------------------------------------------------------------------
 # 결론: 한 줄 요약 + 지표 3개
 # ---------------------------------------------------------------------------
@@ -491,7 +545,7 @@ else:
         names += ["부도 확률이 정해진 과정", "모델이 중요하게 보는 정보"]
         tabs = dict(zip(names, st.tabs(names)))
         with tabs["요약"]:
-            st.html(overview)
+            st.html(_overview_tab(explain, entry))
         with tabs[names[1]]:
             _reasons(explain, entry["result"], entry["profile"].get("name"))
         if rejected:
