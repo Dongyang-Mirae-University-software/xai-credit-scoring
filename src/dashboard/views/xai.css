@@ -180,20 +180,22 @@ strong.wf-label { color: var(--ink); font-weight: 700; }
 .bs-color { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--ink-3); }
 .bs-color i { width: 72px; height: 8px; border-radius: 999px; background: linear-gradient(90deg, var(--risk-down), var(--risk-up)); }
 
-/* 고객이 없을 때 */
+/* 상담 중인 고객이 없을 때: 한 줄 안내 + 고객 심사로 가기 (아래에 모델 전체 설명) */
 .st-key-xai-empty-box {
-  background: var(--card); border-radius: var(--radius-card);
-  padding: 64px 32px; gap: 18px; align-items: center; text-align: center;
+  background: var(--card); border-radius: var(--radius-card); padding: 24px 28px; gap: 20px !important; flex-wrap: nowrap;
 }
-.xai-empty-text { display: flex; flex-direction: column; gap: 6px; margin-top: 18px; }
-.st-key-xai-empty-box h2 { margin: 0; padding: 0; font-size: 20px; font-weight: 700; line-height: 1.45; color: var(--ink); }
-.st-key-xai-empty-box p { margin: 0; font-size: 14px; color: var(--ink-3); }
+.st-key-xai-empty-box > .stElementContainer:has(.xai-empty-text) { flex: 1 1 auto; min-width: 0; }
+.xai-empty-row { display: flex; align-items: center; gap: 18px; }
+.st-key-xai-empty-box > .stElementContainer { width: auto !important; }
 .xai-empty-icon {
-  width: 64px; height: 64px; border-radius: 50%; background: var(--accent-bg); margin: 0 auto;
+  flex: none; width: 56px; height: 56px; border-radius: 50%; background: var(--accent-bg);
   display: flex; align-items: center; justify-content: center;
 }
-.st-key-xai-empty-box .stElementContainer:has(.stButton) { width: auto !important; align-self: center; }
-.st-key-xai-go button { height: 52px; padding: 0 24px; border-radius: var(--radius-ctl); background: var(--accent); border: 0; }
+.st-key-xai-empty-box .stElementContainer:has(.xai-empty-icon) { flex: none; }
+.xai-empty-text { display: flex; flex-direction: column; gap: 4px; }
+.xai-empty-text h2 { margin: 0; padding: 0; font-size: 18px; font-weight: 700; line-height: 1.4; color: var(--ink); }
+.xai-empty-text p { margin: 0; font-size: 14px; color: var(--ink-3); line-height: 1.5; }
+.st-key-xai-go button { height: 48px; padding: 0 22px; border-radius: var(--radius-ctl); background: var(--accent); border: 0; white-space: nowrap; }
 .st-key-xai-go button p { font-size: 15px; font-weight: 700; color: #FFF; }
 
 /* 흐름 경로: 고객 심사 › 이름 심사 결과 › 판단 근거 (고객 심사에서 이어진 화면임을 보여 준다) */
@@ -210,3 +212,7 @@ strong.wf-label { color: var(--ink); font-weight: 700; }
 }
 .st-key-xai-to-result button p { font-size: 14px; font-weight: 700; color: var(--ink-2); white-space: nowrap; }
 .st-key-xai-crumb > * { flex: 0 0 auto !important; width: auto !important; min-width: 0; }
+.st-key-xai-end button {
+  height: 44px; min-height: 44px; padding: 0 16px; border: 0; border-radius: 12px; background: var(--ink);
+}
+.st-key-xai-end button p { font-size: 14px; font-weight: 700; color: #FFF; white-space: nowrap; }

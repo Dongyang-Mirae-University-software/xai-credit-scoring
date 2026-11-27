@@ -55,17 +55,8 @@ def _get_explain(customer_id):
 
 
 # ---------------------------------------------------------------------------
-# 머리: 제목 + 분석 대상 선택 + 조건 바꿔 재심사
+# 머리: 흐름 경로 + 제목 + 심사 결과로 · 조건 바꿔 재심사 · 상담 마치기
 # ---------------------------------------------------------------------------
-def _option_label(customer_id):
-    entry = st.session_state.customers[customer_id]
-    status = "승인" if entry["result"]["approval_status"] == "APPROVED" else "거절"
-    profile = entry["profile"]
-    # 고객 번호는 보여 주지 않는다. 이름이 같은 고객도 나이 · 성별로 구분되게 붙인다
-    who = " · ".join(str(v) for v in (profile.get("name"), f'{profile.get("age")}세', profile.get("gender")) if v)
-    return f'{who} ({status})'
-
-
 def _crumb(customer_id):
     """흐름 경로: 고객 심사 › 이름 심사 결과 › 판단 근거. 앞의 두 단계는 눌러서 돌아갈 수 있다."""
     name = st.session_state.customers[customer_id]["profile"].get("name") or "고객"
@@ -82,22 +73,20 @@ def _crumb(customer_id):
         st.switch_page(CF.SCREENING_PAGE)
 
 
-def _head(ids):
-    if ids:
-        if st.session_state.get("xai_customer") not in ids:
-            st.session_state.xai_customer = ids[0]
-        _crumb(st.session_state.xai_customer)
+def _head(customer_id):
+    """제목 + (상담 중인 고객이 있으면) 흐름 경로 · 심사 결과로 · 조건 바꿔 재심사 · 상담 마치기.
+    창구는 한 번에 한 고객이라 다른 고객을 고르는 목록은 두지 않는다."""
+    if customer_id:
+        _crumb(customer_id)
+    name = customer_id and st.session_state.customers[customer_id]["profile"].get("name")
+    sub = (f"{escape(name)}님이 이런 결과를 받은 이유예요." if name
+           else "이 고객이 왜 이런 결과를 받았는지 설명해요." if customer_id
+           else "모델이 평소에 무엇을 보고 판단하는지 보여 줘요.")
     with st.container(key="xai-head", horizontal=True, vertical_alignment="bottom"):
-        st.html('<div class="ui-page-head"><div><h1>XAI 분석</h1>'
-                '<p>이 고객이 왜 이런 결과를 받았는지 설명해요.</p></div></div>')
-        if not ids:
-            return None
-        if st.session_state.get("xai_customer") not in ids:
-            st.session_state.xai_customer = ids[0]
+        st.html(f'<div class="ui-page-head"><div><h1>XAI 분석</h1><p>{sub}</p></div></div>')
+        if not customer_id:
+            return
         with st.container(key="xai-pick", horizontal=True, vertical_alignment="center", gap="small"):
-            st.html('<span class="xai-pick-label">분석 대상</span>')
-            customer_id = st.selectbox("분석 대상", ids, key="xai_customer", format_func=_option_label,
-                                       label_visibility="collapsed")
             if st.button("심사 결과로", key="xai-to-result"):
                 CF.open_result(customer_id)
                 st.switch_page(CF.SCREENING_PAGE)
@@ -105,7 +94,25 @@ def _head(ids):
                 # 고객 심사의 3/3 전체 확인으로 (그 고객 값이 채워진다). 심사 실행 → 고객 심사 결과 화면
                 CF.edit(st.session_state.customers[customer_id]["profile"])
                 st.switch_page(CF.SCREENING_PAGE)
-    return customer_id
+            if st.button("상담 마치기", key="xai-end"):
+                CF.end_consult()
+                st.switch_page(CF.SCREENING_PAGE)
+
+
+def _model_overview():
+    """상담 중인 고객이 없을 때: 모든 고객에게 같은 모델 전체 설명 (SHAP Summary Plot)."""
+    try:
+        summary = api_client.shap_summary()
+    except Exception as e:
+        render_api_error("GET /explain/summary", e)
+        return
+    if not summary:
+        render_no_report("shap_summary")
+        return
+    st.html(ui.section_head("모델이 중요하게 보는 정보",
+                            f"SHAP Summary Plot, 상위 {SUMMARY_TOP}개 변수. 어떤 고객이든 모델은 이 기준으로 판단해요. "
+                            "점 하나가 고객 한 명이고, 위에 있을수록 영향이 커요.")
+            + f'<div class="xai-card">{_beeswarm(summary, set())}</div>')
 
 
 def _customer_strip(entry):
@@ -388,16 +395,18 @@ def _detail(explain, entry):
 # ---------------------------------------------------------------------------
 st.html(f"<style>{CF.WORKSPACE_CSS}{CSS_PATH.read_text(encoding='utf-8')}</style>")
 _init_state()
-ids = list(reversed(st.session_state.customers.keys()))  # 최근에 심사한 고객이 먼저
-customer_id = _head(ids)
+customer_id = CF.current_customer()
+_head(customer_id)
 
 if customer_id is None:
-    with st.container(key="xai-empty-box"):
-        st.html(f'<div class="xai-empty-icon">{ui.icon("xai", "#3182F6", 28)}</div>'
-                '<div class="xai-empty-text"><h2>아직 분석할 고객이 없어요</h2>'
-                '<p>고객 심사에서 심사를 실행하면, 그 고객의 판단 근거가 여기에 표시돼요.</p></div>')
+    with st.container(key="xai-empty-box", horizontal=True, vertical_alignment="center"):
+        st.html(f'<div class="xai-empty-row"><div class="xai-empty-icon">{ui.icon("xai", "#3182F6", 28)}</div>'
+                '<div class="xai-empty-text"><h2>지금 상담 중인 고객이 없어요</h2>'
+                '<p>고객 심사를 하면 그 고객의 판단 근거(Waterfall, 거절 사유, 승인되려면)가 여기에 나와요. '
+                '아래는 모든 고객에게 같은 모델 전체 설명이에요.</p></div></div>')
         if st.button("고객 심사로 가기", key="xai-go", type="primary"):
             st.switch_page("views/screening.py")
+    _model_overview()
 else:
     entry = st.session_state.customers[customer_id]
     st.html(_customer_strip(entry))
@@ -411,4 +420,3 @@ else:
         _reasons(explain, entry["result"], entry["profile"].get("name"))
         counterfactual.render(customer_id, entry["payload"], entry["result"])
         _detail(explain, entry)
-
