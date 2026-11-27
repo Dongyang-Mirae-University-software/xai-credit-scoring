@@ -29,9 +29,10 @@ ICONS = {
     "warn": ('<path d="M12 3l10 18H2L12 3z"/><path d="M12 10v5M12 18v.5"/>', 1.8),
 }
 
+# 흰 헤더 위 로고: 파란 둥근 사각형 + 흰 그래프 선
 LOGO_SVG = ('<svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 28 28">'
-            '<rect x="2" y="2" width="24" height="24" rx="6" fill="none" stroke="#FFFFFF" stroke-width="2"/>'
-            '<path d="M8 18l4-5 3 3 5-7" fill="none" stroke="#7EA6FF" stroke-width="2" '
+            '<rect x="1" y="1" width="26" height="26" rx="8" fill="#3182F6"/>'
+            '<path d="M8 18l4-5 3 3 5-7" fill="none" stroke="#FFFFFF" stroke-width="2.2" '
             'stroke-linecap="round" stroke-linejoin="round"/></svg>')
 
 

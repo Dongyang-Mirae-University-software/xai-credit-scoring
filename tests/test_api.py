@@ -163,3 +163,75 @@ def test_drift_missing_file_returns_example(tmp_path, monkeypatch):
         assert r.status_code == 200, r.text
         assert r.json()['scenarios'].keys() == {'baseline', 'app_login_change'}
         assert all('tables' not in s for s in r.json()['scenarios'].values())
+
+
+def test_lookup_by_name_and_rrn():
+    """POST /customers/lookup: Swagger 예시 그대로 조회된다. 은행 기록(CB · 대안정보)만 주고 주민등록번호는 없다."""
+    from src.api.schemas import LOOKUP_EXAMPLE, CustomerProfile
+    r = client.post('/customers/lookup', json=LOOKUP_EXAMPLE)
+    assert r.status_code == 200, r.text
+    body = r.json()
+    assert body['customer_id'] == 'C100001' and body['name'] == LOOKUP_EXAMPLE['name']
+    # 고객이 신청서에 적는 값(월소득 · 부양가족 수)과 그걸로 계산하는 부채비율은 주지 않는다
+    assert not {'rrn', 'MonthlyIncome', 'NumberOfDependents', 'DebtRatio'} & set(body)
+    record = client.get('/customers/C100001').json()
+    assert 'rrn' not in record
+    assert body['MonthlyRepayment'] == round(record['DebtRatio'] / 100 * record['MonthlyIncome'])
+    assert body == CustomerProfile.model_config['json_schema_extra']['examples'][0]   # Swagger 응답 예시 = 실제 응답
+    # '-' 없이 보내도, 이름에 공백이 섞여도 같은 고객
+    digits = LOOKUP_EXAMPLE['rrn'].replace('-', '')
+    assert client.post('/customers/lookup', json={'name': f" {LOOKUP_EXAMPLE['name']} ", 'rrn': digits}).status_code == 200
+    if model.ready():  # 조회 결과 + 고객이 적은 월소득 · 부양가족 수 → 부채비율을 만들어 /predict 에 넣을 수 있어요
+        income = 4_000_000
+        payload = {k: v for k, v in body.items() if k not in ('name', 'gender', 'MonthlyRepayment')}
+        payload |= {'MonthlyIncome': income, 'NumberOfDependents': 1,
+                    'DebtRatio': body['MonthlyRepayment'] / income * 100}
+        assert client.post('/predict', json=payload).status_code == 200
+
+
+def test_lookup_not_found_and_bad_format():
+    from src.api.schemas import LOOKUP_EXAMPLE
+    r = client.post('/customers/lookup', json={**LOOKUP_EXAMPLE, 'name': '없는사람'})
+    assert r.status_code == 404
+    assert r.json()['detail'] != 'Not Found'   # 대시보드는 기본 404('경로 없음')와 '고객 없음'을 이 문구로 구분한다
+    assert client.post('/customers/lookup', json={**LOOKUP_EXAMPLE, 'rrn': '0000000000000'}).status_code == 404
+    assert client.post('/customers/lookup', json={**LOOKUP_EXAMPLE, 'rrn': '81040821'}).status_code == 422
+
+
+def test_customer_identity_matches_age_and_gender():
+    """가짜 주민등록번호: 기준일 만 나이 = age, 뒷자리 첫 숫자 = 성별, 검증 숫자는 일부러 틀림, 번호는 모두 다름."""
+    import json
+    from datetime import date
+    from scripts.add_customer_identity import PATH, REFERENCE_DATE, check_digit
+    customers = json.loads(PATH.read_text(encoding='utf-8'))
+    assert len({c['rrn'] for c in customers}) == len(customers)
+    for c in customers:
+        rrn = c['rrn']
+        century = 1900 if rrn[6] in '12' else 2000
+        born = date(century + int(rrn[:2]), int(rrn[2:4]), int(rrn[4:6]))
+        age = REFERENCE_DATE.year - born.year - ((REFERENCE_DATE.month, REFERENCE_DATE.day) < (born.month, born.day))
+        assert age == c['age'], c['customer_id']
+        assert (rrn[6] in '13') == (c['gender'] == '남성'), c['customer_id']
+        assert int(rrn[12]) != check_digit(rrn[:12]), c['customer_id']
+        assert c['name']
+
+
+def test_latest_screening_by_name_and_rrn(tmp_path, monkeypatch):
+    """POST /screenings/lookup: 이름 · 주민등록번호로 그 고객의 가장 최근 심사(입력값 + 결과)를 돌려준다."""
+    from src.api.schemas import LOOKUP_EXAMPLE
+    monkeypatch.setenv('SCREENINGS_DB', str(tmp_path / 's.db'))
+    # 심사 기록이 없으면 404 (고객 없음과 다른 문구)
+    r = client.post('/screenings/lookup', json=LOOKUP_EXAMPLE)
+    assert r.status_code == 404 and '심사 기록' in r.json()['detail']
+    for grade, income in (('B', 3_000_000), ('E', 1_000_000)):   # 같은 고객을 두 번 심사 → 나중 것
+        client.post('/screenings', json={'input': {'customer_id': 'C100001', 'MonthlyIncome': income},
+                                         'result': {'customer_id': 'C100001', 'approval_status': 'REJECTED',
+                                                    'risk_grade': grade, 'credit_score': 100}})
+    client.post('/screenings', json={'input': {'customer_id': 'C999999'}, 'result': {'risk_grade': 'A'}})
+    body = client.post('/screenings/lookup', json=LOOKUP_EXAMPLE).json()
+    assert body['customer_id'] == 'C100001' and body['name'] == LOOKUP_EXAMPLE['name']
+    assert body['result']['risk_grade'] == 'E' and body['input']['MonthlyIncome'] == 1_000_000
+    assert 'rrn' not in body and 'rrn' not in body['input']
+    # 없는 고객은 고객 조회와 같은 404 문구
+    r = client.post('/screenings/lookup', json={**LOOKUP_EXAMPLE, 'name': '없는사람'})
+    assert r.status_code == 404 and '일치하는 고객' in r.json()['detail']

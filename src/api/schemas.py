@@ -9,7 +9,7 @@ import json
 from pathlib import Path
 from typing import Optional
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from src.api.model import INCOME_KRW_PER_UNIT
 from src.explainer.performance import DISCLAIMER
@@ -73,6 +73,87 @@ class CustomerInput(BaseModel):
             values[key] = values[key] / 100
         values['MonthlyIncome'] = values['MonthlyIncome'] / INCOME_KRW_PER_UNIT
         return values
+
+
+# 본인 확인 → 고객 정보 조회 (POST /customers/lookup). 예시는 data/customers.json 의 C100001
+# (scripts/add_customer_identity.py 가 붙인 가짜 이름 · 주민등록번호, 검증 숫자를 일부러 틀리게 만들어 실존 번호가 아니다)
+LOOKUP_EXAMPLE = {"name": "최민은", "rrn": "810408-2182892"}
+
+
+class CustomerLookup(BaseModel):
+    """이름 + 주민등록번호. 주민등록번호는 URL 에 남지 않도록 본문으로 받는다."""
+    model_config = ConfigDict(json_schema_extra={'examples': [LOOKUP_EXAMPLE]})
+
+    name: str = Field(..., min_length=1, max_length=20, description='이름')
+    rrn: str = Field(..., description="주민등록번호 13자리 ('-' 는 있어도 없어도 된다)")
+
+    @field_validator('name')
+    @classmethod
+    def _name(cls, v):
+        v = ' '.join(v.split())
+        if not v:
+            raise ValueError('이름을 입력해 주세요')
+        return v
+
+    @field_validator('rrn')
+    @classmethod
+    def _rrn(cls, v):
+        digits = v.replace('-', '').strip()
+        if len(digits) != 13 or not digits.isdigit():
+            raise ValueError('주민등록번호는 숫자 13자리여야 합니다')
+        return digits
+
+
+class CustomerProfile(BaseModel):
+    """은행이 가진 고객 기록: 신용정보원(CB) 금융 기록 + 대안정보 + 이름 · 성별 · 나이.
+
+    월소득 · 부양가족 수는 대출 신청서에 고객이 직접 적는 값이라 여기 없다. 부채비율도 월소득이 있어야 나오므로
+    월 대출 상환액(CB 대출 정보로 계산)만 준다 → 화면이 '상환액 ÷ 입력한 월소득 × 100' 으로 부채비율을 만들어
+    /predict 에 넣는다. 주민등록번호는 돌려주지 않는다."""
+    model_config = ConfigDict(populate_by_name=True, json_schema_extra={'examples': [{
+        "customer_id": "C100001", "name": "최민은", "gender": "여성", "age": 45, "MonthlyRepayment": 5978145,
+        "RevolvingUtilizationOfUnsecuredLines": 0.7661, "NumberOfOpenCreditLinesAndLoans": 13,
+        "NumberRealEstateLoansOrLines": 6, "NumberOfTime30-59DaysPastDueNotWorse": 2,
+        "NumberOfTime60-89DaysPastDueNotWorse": 0, "NumberOfTimes90DaysLate": 0,
+        "telecom_payment_rate": 82.5419, "utility_payment_rate": 81.5973, "spending_consistency": 87.1619,
+        "regular_payment_count": 10, "app_login_frequency": 20}]})
+
+    customer_id: str = Field(..., description='고객 번호')
+    name: str = Field(..., description='이름')
+    gender: Optional[str] = Field(None, description='성별 (점수에는 쓰지 않는다)')
+    age: int = Field(..., description='나이')
+    # 신용정보원(CB)
+    MonthlyRepayment: int = Field(..., ge=0, description='월 대출 상환액 (원). 부채비율 = 이 값 ÷ 월소득 × 100')
+    RevolvingUtilizationOfUnsecuredLines: float = Field(..., ge=0, description='신용한도 소진율 (0~1, 초과 가능)')
+    NumberOfOpenCreditLinesAndLoans: int = Field(..., ge=0, description='보유 대출·신용 한도 개수')
+    NumberRealEstateLoansOrLines: int = Field(..., ge=0, description='부동산 담보대출 개수')
+    past_due_30_59: int = Field(..., ge=0, alias='NumberOfTime30-59DaysPastDueNotWorse', description='최근 2년 30~59일 연체 횟수')
+    past_due_60_89: int = Field(..., ge=0, alias='NumberOfTime60-89DaysPastDueNotWorse', description='최근 2년 60~89일 연체 횟수')
+    NumberOfTimes90DaysLate: int = Field(..., ge=0, description='90일 이상 연체 횟수')
+    # 대안정보
+    telecom_payment_rate: float = Field(..., description='통신비 정상납부율 %')
+    utility_payment_rate: float = Field(..., description='공과금 납부율 %')
+    spending_consistency: float = Field(..., description='소비 일관성 점수')
+    regular_payment_count: int = Field(..., description='정기결제 건수 (월)')
+    app_login_frequency: int = Field(..., description='앱 로그인 빈도 (월)')
+
+
+class ScreeningRecord(BaseModel):
+    """고객의 가장 최근 심사 기록 (POST /screenings/lookup)."""
+    model_config = ConfigDict(json_schema_extra={'examples': [{
+        "screening_id": "S0012", "screened_at": "2026-11-27T10:06:12+09:00", "customer_id": "C100001",
+        "name": "최민은", "gender": "여성",
+        "input": {**CUSTOMER_EXAMPLE, "customer_id": "C100001"},
+        "result": {"customer_id": "C100001", "credit_score": 75, "risk_grade": "E", "approval_status": "REJECTED",
+                   "default_probability": 0.925, "approval_threshold": 0.5}}]})
+
+    screening_id: str
+    screened_at: str = Field(..., description='심사 시각 (한국 시간)')
+    customer_id: str
+    name: str
+    gender: Optional[str] = None
+    input: dict = Field(..., description='그때 심사에 넣은 값 (/predict 요청과 같다)')
+    result: dict = Field(..., description='그때 심사 결과 (/predict 응답과 같다)')
 
 
 PREDICT_EXAMPLE = {

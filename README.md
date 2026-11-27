@@ -457,7 +457,8 @@ xai-credit-scoring/
 ├── notebooks/01_eda.ipynb   # 탐색적 데이터 분석
 ├── docs/                    # report_draft.md(실험 리포트 초안) · column_spec.md(칸 이름·단위)
 ├── tests/                   # pytest 단위 테스트
-├── scripts/                 # add_dashboard_fields.py (대시보드 시안용 고객 예시·결과 JSON 추가 필드 생성, #116)
+├── scripts/                 # add_dashboard_fields.py (대시보드 시안용 고객 예시·결과 JSON 추가 필드 생성, #116),
+│                            # add_customer_identity.py (고객 조회용 가짜 이름 · 주민등록번호, 예: 최민은 810408-2182892)
 ├── mlflow/                  # 팀 MLflow 서버 배포 설정 (서버용, 로컬 실행에는 필요 없음)
 ├── docker-compose.yml       # api(8000) · dashboard(8501) · mlflow(5000) · mlflow-seed(기록 채우기, 일회성)
 ├── Dockerfile
@@ -491,6 +492,8 @@ xai-credit-scoring/
 | `API_BASE_URL` | `http://localhost:8000` | 대시보드가 부를 API 주소 (Docker Compose에서는 자동으로 `http://api:8000`) |
 | `API_TIMEOUT` / `HEALTH_TIMEOUT` | 5 / 2 | API 응답 대기 시간(초) |
 | `COUNTERFACTUAL_TIMEOUT` | 15 | `POST /counterfactual` 응답 대기 시간(초). 후보를 여러 번 계산해 다른 API보다 느림 |
+| `CB_LOADING_SECONDS` | 4 | 고객 심사 2/3 → 3/3 사이 '신용정보원(CB) · 대안정보를 가져오는' 연출 시간(초). 0 이면 연출 없음 |
+| `SCREENING_LOADING_SECONDS` | 3 | 고객 심사 3/3 '심사 실행' → 결과 사이 '심사를 진행하고 있어요' 연출의 최소 시간(초). 실제 심사가 더 걸리면 그만큼 길어짐 |
 | `API_LOG` | (끔) | 대시보드의 API 호출을 터미널에 기록. `1` 은 `POST /predict 200 (24ms)` 한 줄, `body` 는 요청·응답 JSON 까지 (목록은 한 건씩 한 줄) |
 | `API_LOG_BODY_MAX` | 600 | `API_LOG=body` 에서 한 줄 최대 글자 수. `0` 이면 자르지 않음 |
 | `HEALTH_CACHE_TTL` | 10 | 서버 상태 카드 새로고침 간격(초) |

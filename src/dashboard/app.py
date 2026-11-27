@@ -15,7 +15,7 @@ from config import DISCLAIMER
 
 CSS_PATH = Path(__file__).with_suffix(".css")
 
-# 파비콘: 헤더 로고(components/ui.LOGO_SVG)를 남색 바탕에 올린 128px PNG
+# 파비콘: 헤더 로고(components/ui.LOGO_SVG, 파란 둥근 사각형 + 흰 그래프 선)를 그린 128px PNG (바탕 투명)
 st.set_page_config(page_title="대안신용평가 심사 시스템", page_icon=str(Path(__file__).with_name("favicon.png")),
                    layout="wide")
 st.html(f"<style>{CSS_PATH.read_text(encoding='utf-8')}</style>")
@@ -29,9 +29,9 @@ pages = [
 ]
 pg = st.navigation(pages, position="hidden")
 # 화면을 옮기면 떠난 화면의 입력·선택 상태를 지운다 (위젯 값은 Streamlit 이 지우고, 위젯이 아닌 상태만 여기서).
-# 입력 창은 열 때마다 새로 채운다 (components/customer_form.open_form)
+# 고객 심사는 1/3 부터 다시 (입력값은 frm_values 에 남지만 단계는 처음으로) (다른 화면에서 맡긴 고객은 frm_pending 으로 남는다)
 if st.session_state.get("_page") not in (None, pg.url_path):
-    for key in ("scr_load_id", "scr_load_invalid", "dlg_open"):
+    for key in ("scr_step", "idn_notice", "idn_errors"):
         st.session_state.pop(key, None)
 st.session_state._page = pg.url_path
 render_header(pg)

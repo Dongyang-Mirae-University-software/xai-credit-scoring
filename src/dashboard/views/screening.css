@@ -1,125 +1,18 @@
-/* 고객 심사 (디자인 01 첫 화면 · 02 입력 창 · 03/04 결과). 색·글자 토큰은 app.css */
+/* 고객 심사: 결과 화면. 1/2 본인 확인 · 2/2 정보 확인은 components/customer_form.css,
+   색 · 글자 토큰은 components/workspace.css */
 
 /* =========================================================================
    01 첫 화면
    ========================================================================= */
-.st-key-scr-start-head { justify-content: space-between; flex-wrap: nowrap; }
-.st-key-scr-new button {
-  display: inline-flex; align-items: center; gap: 8px;
-  height: 44px; min-height: 44px; padding: 0 18px; border-radius: 10px; border: 0; background: var(--accent);
-  color: #FFF;
-}
-.st-key-scr-new button p { font-size: 15px; font-weight: 700; color: #FFF; }
 /* 결과 화면 '이전': 흰 바탕 테두리 버튼 + 왼쪽 화살표 (오른쪽 화살표 아이콘을 뒤집는다) */
 .st-key-scr-back button {
   display: inline-flex; align-items: center; gap: 6px;
-  height: 44px; min-height: 44px; padding: 0 18px 0 14px; border-radius: 10px;
-  border: 1px solid var(--input); background: #FFF; color: var(--ink-2);
+  height: 44px; min-height: 44px; padding: 0 18px 0 14px; border-radius: var(--radius-ctl);
+  border: 0; background: var(--card); color: var(--ink-2);
 }
 .st-key-scr-back button::before { transform: rotate(180deg); }
 .st-key-scr-back button p { font-size: 15px; font-weight: 700; color: var(--ink-2); }
-.st-key-scr-back button:hover { border-color: var(--accent); }
-
-/* 고객 불러오기 카드: 왼쪽 ID 입력, 오른쪽 시연용 샘플 */
-.st-key-scr-load-card {
-  background: var(--card); border: 1px solid var(--border); border-radius: 14px;
-  padding: 24px 28px; gap: 32px; flex-wrap: nowrap;
-}
-[data-testid="stLayoutWrapper"]:has(> .st-key-scr-load-box) { flex: 1 1 auto; min-width: 0; }
-.st-key-scr-load-box { gap: 8px; }
-.scr-load-label { font-size: 14px; font-weight: 700; color: var(--ink); line-height: 1.5; }
-.st-key-scr-load-box [data-testid="stForm"] { padding: 0; border: 0; }
-.st-key-scr-load { gap: 8px; flex-wrap: nowrap; }
-.st-key-scr-load .stTextInput { flex: 1 1 0; min-width: 0; }
-.st-key-scr-load [data-baseweb="input"] {
-  height: 52px; border: 1px solid var(--input) !important; border-radius: 10px; background: #FFF;
-}
-.st-key-scr-load [data-baseweb="base-input"] { background: #FFF; }
-.st-key-scr-load input { height: 50px; padding: 0 16px; font-size: 16px; color: var(--ink); }
-.st-key-scr-load input::placeholder { color: #8A94A6; opacity: 1; }
-.st-key-scr-load [data-testid="InputInstructions"] { display: none; }
-.st-key-scr-load [data-testid="stFormSubmitButton"] button {
-  height: 52px; min-height: 52px; padding: 0 24px; border-radius: 10px; border: 0;
-  background: var(--ink); color: #FFF; white-space: nowrap;
-}
-.st-key-scr-load [data-testid="stFormSubmitButton"] button p { font-size: 15px; font-weight: 700; color: #FFF; }
-
-[data-testid="stLayoutWrapper"]:has(> .st-key-scr-samples) { flex: 0 0 auto; width: auto !important; }
-.st-key-scr-samples { gap: 8px; padding-left: 32px; border-left: 1px solid var(--divider); }
-.scr-samples-label { font-size: 13px; color: var(--ink-3); white-space: nowrap; line-height: 1.5; }
-.st-key-scr-sample-chips { gap: 8px; flex-wrap: nowrap; }
-.st-key-scr-sample-chips button {
-  height: 36px; min-height: 36px; padding: 0 14px;
-  border: 1px solid var(--input); border-radius: 999px; background: #FFF;
-}
-.st-key-scr-sample-chips button p { font-size: 14px; color: var(--ink-2); white-space: nowrap; }
-.st-key-scr-sample-chips button:hover { border-color: var(--accent); }
-
-/* 심사 이력 */
-.st-key-scr-history { gap: 12px; }
-/* 심사 이력 머리: 제목·건수·안내 | 적용 기간 · (직접 설정: 날짜 ~ 날짜 조회) · 기간 버튼 */
-.st-key-scr-history-head { gap: 12px; flex-wrap: nowrap; }
-.st-key-scr-history-head > div { flex: 0 0 auto; width: auto !important; }
-.st-key-scr-history-head > div:first-child { flex: 1 1 auto; }
-.scr-history-title h2 { margin: 0; padding: 0; font-size: 18px; font-weight: 700; line-height: 1.4; color: var(--ink); white-space: nowrap; }
-.scr-history-title h2 span { font-size: 15px; font-weight: 500; color: var(--ink-3); margin-left: 2px; }
-.scr-history-title p { margin: 2px 0 0; font-size: 13px; color: var(--ink-3); }
-.scr-history-range { font-size: 13px; color: var(--ink-2); white-space: nowrap; margin-right: 8px; font-variant-numeric: tabular-nums; }
-.scr-history-tilde { font-size: 14px; color: var(--ink-3); }
-.st-key-scr-history-head [data-testid="stDateInput"] { width: 150px; }
-.st-key-scr-history-head [data-testid="stDateInput"] [data-baseweb="input"] {
-  height: 36px; border-radius: 8px; background: #FFF; border: 1px solid var(--input);
-}
-.st-key-scr-history-head [data-testid="stDateInput"] [data-baseweb="input"]:focus-within { border-color: var(--accent); }
-.st-key-scr-history-head [data-testid="stDateInput"] [data-baseweb="input"] > div { background: #FFF; }
-.st-key-scr-history-head [data-testid="stDateInput"] input { font-size: 14px; color: var(--ink); background: #FFF; }
-.st-key-scr-range-go button,
-.st-key-scr-range-go button:hover, .st-key-scr-range-go button:focus, .st-key-scr-range-go button:active {
-  height: 36px; min-height: 36px; padding: 0 16px; border-radius: 8px; background: var(--ink); border-color: var(--ink);
-}
-.st-key-scr-range-go button:hover { opacity: .9; }
-.st-key-scr-range-go button p { color: #FFF; font-size: 14px; font-weight: 700; }
-.st-key-scr-history-head [role="radiogroup"] {
-  display: flex; gap: 0; height: 36px; flex-wrap: nowrap;
-  border: 1px solid var(--input); border-radius: 8px; overflow: hidden; background: #FFF;
-}
-.st-key-scr-history-head [role="radiogroup"] > label {
-  margin: 0; padding: 0 14px; height: 100%; display: flex; align-items: center; justify-content: center; cursor: pointer;
-}
-.st-key-scr-history-head [role="radiogroup"] > label + label { border-left: 1px solid var(--input); }
-.st-key-scr-history-head [role="radiogroup"] > label > div:first-child { display: none; }
-.st-key-scr-history-head [role="radiogroup"] > label p { font-size: 14px; color: var(--ink-2); white-space: nowrap; }
-.st-key-scr-history-head [role="radiogroup"] > label:has(input:checked) { background: var(--accent-bg); }
-.st-key-scr-history-head [role="radiogroup"] > label:has(input:checked) p { color: var(--accent); font-weight: 700; }
-.st-key-scr-history-card {
-  background: var(--card); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; gap: 0;
-}
-.scr-htable { width: 100%; border-collapse: collapse; table-layout: fixed; font-size: 14px; margin: 0; }
-.scr-htable th {
-  padding: 12px 16px; font-size: 12px; font-weight: 500; color: var(--ink-3); text-align: left; background: #F8FAFC;
-}
-.scr-htable td { padding: 14px 16px; border-top: 1px solid var(--divider); color: var(--ink); vertical-align: middle; }
-.scr-htable .num { text-align: right; }
-.scr-htable .scr-id { font-weight: 700; }
-.scr-htable .scr-type { color: var(--ink-2); }
-.scr-htable .scr-time { color: var(--ink-3); }
-.scr-htable .scr-go { text-align: right; }
-.scr-htable .scr-go img { display: inline-block; vertical-align: middle; }
-.scr-risk { display: inline-flex; align-items: center; gap: 8px; }
-.scr-risk i { width: 8px; height: 8px; border-radius: 50%; }
-.scr-risk b { font-weight: 700; }
-.scr-risk span { color: var(--ink-3); }
-.st-key-scr-history .scr-empty {
-  margin: 0; padding: 24px 16px; border-top: 1px solid var(--divider);
-  color: var(--ink-3); text-align: center; font-size: 14px;
-}
-/* 줄 전체가 버튼: 보이는 줄(HTML) 위에 투명 버튼을 덮는다 */
-.st-key-scr-history [class*="st-key-scr-hrow-"]:not([class*="btn"]) { position: relative; gap: 0; cursor: pointer; }
-.st-key-scr-history [class*="st-key-scr-hrow-"]:not([class*="btn"]):hover td { background: var(--page); }
-.st-key-scr-history [class*="st-key-scr-hrow-btn-"] { position: absolute; inset: 0; width: 100% !important; height: 100%; margin: 0; z-index: 1; }
-.st-key-scr-history [class*="st-key-scr-hrow-btn-"] button {
-  width: 100%; height: 100%; min-height: 0; opacity: 0; cursor: pointer;
-}
+.st-key-scr-back button:hover { background: var(--fill-hover); }
 
 /* =========================================================================
    03 / 04 결과
@@ -128,7 +21,7 @@
 
 /* 입력 요약 줄 */
 .st-key-scr-summary-card {
-  background: var(--card); border: 1px solid var(--border); border-radius: 12px;
+  background: var(--card); border-radius: var(--radius-card);
   padding: 14px 16px 14px 20px; flex-wrap: nowrap; gap: 12px;
 }
 .scr-summary { display: flex; flex-wrap: wrap; gap: 12px 28px; }
@@ -138,13 +31,13 @@
 .st-key-scr-edit { margin-left: auto; }
 .st-key-scr-edit button {
   display: inline-flex; align-items: center; gap: 6px;
-  height: 40px; min-height: 40px; padding: 0 14px; border: 1px solid var(--input); border-radius: 8px; background: #FFF;
+  height: 40px; min-height: 40px; padding: 0 14px; border: 0; border-radius: 12px; background: var(--fill);
   color: var(--ink-2);
 }
 .st-key-scr-edit button p { font-size: 14px; font-weight: 700; color: var(--ink-2); }
 
 /* 결과 카드: 배너 + 점수 / 부도 확률 */
-.scr-decision { background: var(--card); border: 1px solid var(--border); border-radius: 16px; overflow: hidden; }
+.scr-decision { background: var(--card); border-radius: var(--radius-card); overflow: hidden; }
 .scr-banner { padding: 32px; display: flex; align-items: center; justify-content: space-between; gap: 24px; }
 .scr-decision.ok .scr-banner { background: var(--ok-bg); }
 .scr-decision.fail .scr-banner { background: var(--fail-bg); }
@@ -183,11 +76,11 @@
 .scr-bar { position: relative; height: 12px; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 3px; }
 .scr-bar i:first-child { border-radius: 6px 0 0 6px; }
 .scr-bar i:nth-child(5) { border-radius: 0 6px 6px 0; }
-.scr-bar .seg-E { background: #C62828; }
-.scr-bar .seg-D { background: #E8807A; }
-.scr-bar .seg-C { background: #E39A1B; }
-.scr-bar .seg-B { background: #5FB892; }
-.scr-bar .seg-A { background: #0E7C5A; }
+.scr-bar .seg-E { background: #F04452; }
+.scr-bar .seg-D { background: #FF8E8E; }
+.scr-bar .seg-C { background: #FFC342; }
+.scr-bar .seg-B { background: #7DD3A8; }
+.scr-bar .seg-A { background: #03A94D; }
 /* 승인 기준 점선 (650점) */
 .scr-bar u { position: absolute; top: -4px; bottom: -4px; border-left: 2px dashed var(--ink); opacity: .45; }
 .scr-bar-note { margin: 4px 0 0; font-size: 12px; color: var(--ink-3); }
@@ -203,19 +96,19 @@
 .scr-prob p { margin: 0; font-size: 13px; color: var(--ink-3); }
 
 /* 04 주요 거절 사유 */
-.st-key-scr-reasons-head { justify-content: space-between; flex-wrap: nowrap; margin-bottom: -8px; }
+.st-key-scr-reasons-head { justify-content: space-between; flex-wrap: nowrap; margin-bottom: -12px; }
 .st-key-scr-reasons-head > .stElementContainer:first-child { flex: 1 1 auto; width: auto !important; min-width: 0; }
 .st-key-scr-reasons-head > [data-testid="stLayoutWrapper"] { flex: 0 0 100px; width: 100px !important; }
 .st-key-scr-copy { gap: 0; }
 .st-key-scr-copy iframe { display: block; }
-.scr-rr { background: var(--card); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; }
+.scr-rr { background: var(--card); border-radius: var(--radius-card); overflow: hidden; }
 .scr-rr-row {
   display: grid; grid-template-columns: 40px 200px minmax(0, 1fr) 80px 80px 110px; column-gap: 24px;
   align-items: center; padding: 0 24px; min-height: 60px;
 }
 .scr-rr-row + .scr-rr-row { border-top: 1px solid var(--divider); }
 .scr-rr-headrow {
-  min-height: 40px; height: 40px; background: #F8FAFC; border-bottom: 1px solid var(--border);
+  min-height: 40px; height: 40px; background: var(--card); border-bottom: 1px solid var(--border);
   font-size: 12px; color: var(--ink-3);
 }
 .scr-rr-headrow + .scr-rr-row { border-top: 0; }
@@ -228,31 +121,47 @@
 .scr-rr-empty { padding: 20px 24px; color: var(--ink-3); font-size: 14px; }
 .scr-rr-row strong.num { text-align: right; font-size: 15px; }
 .scr-rr-row strong.up { color: var(--fail-text); }
-.scr-rr-row strong.down { color: #1A56A8; }
+.scr-rr-row strong.down { color: var(--risk-down); }
 .scr-rr-note { margin: 12px 0 0; font-size: 12px; color: var(--ink-3); }
 
 /* 아래 이동 카드 (카드 전체가 버튼) */
 [class*="st-key-scr-act-"]:not([class*="st-key-scr-act-btn"]) { position: relative; gap: 0; }
 .scr-act {
   display: flex; align-items: center; justify-content: space-between; gap: 16px;
-  padding: 20px 22px; background: var(--card); border: 1px solid var(--border); border-radius: 12px;
+  padding: 20px 22px; background: var(--card); border-radius: var(--radius-card);
 }
 .scr-act > div { display: flex; flex-direction: column; gap: 4px; }
 .scr-act b { font-size: 15px; font-weight: 700; color: var(--ink); }
 .scr-act span { font-size: 13px; color: var(--ink-3); }
-[class*="st-key-scr-act-"]:hover .scr-act { border-color: var(--accent); }
+[class*="st-key-scr-act-"]:hover .scr-act { background: #FAFBFC; }
 /* 버튼 칸은 Streamlit 이 내용 폭(fit-content)으로 잡으므로 카드 전체 폭으로 늘린다 */
 [class*="st-key-scr-act-btn"] { position: absolute; inset: 0; width: 100% !important; height: 100%; margin: 0 !important; z-index: 1; }
 [class*="st-key-scr-act-btn"] .stButton, [class*="st-key-scr-act-btn"] button {
   width: 100%; height: 100%; opacity: 0; cursor: pointer;
 }
 
-/* API 연결 실패: 심사로 이어지는 버튼을 끈다 (시안 #api-down: 회색 버튼, 샘플 칩은 반투명) */
-.st-key-scr-new button:disabled,
-.st-key-scr-load [data-testid="stFormSubmitButton"] button:disabled {
-  background: var(--input) !important; border: 0; color: #FFF; cursor: not-allowed; opacity: 1;
+/* 판단 근거 미리 보기 (XAI 분석으로 이어지는 카드) */
+.scr-xp { align-items: center; padding: 24px 28px; border: 1.5px solid var(--accent-bg); }
+.scr-xp-main { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.scr-xp-main > b { font-size: 18px; font-weight: 700; color: var(--ink); }
+.scr-xp-main > b small { margin-left: 6px; font-size: 13px; font-weight: 600; color: var(--accent); }
+.scr-xp-main > span { font-size: 14px; color: var(--ink-3); }
+.scr-xp-flow { display: flex; align-items: center; gap: 12px; margin-top: 4px; padding: 12px 16px; border-radius: 12px; background: var(--fill); flex-wrap: wrap; }
+.scr-xp-flow > span { display: inline-flex; align-items: baseline; gap: 8px; font-size: 13px; color: var(--ink-3); }
+.scr-xp-flow b { font-size: 20px; font-weight: 700; color: var(--ink); }
+.scr-xp-flow b.fail { color: var(--fail-text); }
+.scr-xp-flow em { margin-left: auto; font-style: normal; font-size: 13px; color: var(--ink-2); }
+.scr-xp-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.scr-xp-chips i { font-style: normal; padding: 4px 10px; border-radius: 999px; background: var(--accent-bg); color: var(--accent); font-size: 12px; font-weight: 600; }
+.scr-xp-go { flex: none; display: inline-flex; align-items: center; gap: 2px; font-size: 15px; font-weight: 700; color: var(--accent); white-space: nowrap; }
+[class*="st-key-scr-act-"]:hover .scr-xp { background: #F7FAFF; }
+
+/* 결과 화면 오른쪽 위: 이전 · 상담 마치기 */
+.st-key-scr-result-actions { width: auto !important; flex: 0 0 auto; }
+.st-key-scr-result-actions .stElementContainer { width: auto !important; }
+.st-key-scr-end button {
+  height: 44px; min-height: 44px; padding: 0 18px; border-radius: var(--radius-ctl); border: 0; background: var(--ink);
 }
-.st-key-scr-new button:disabled p,
-.st-key-scr-load [data-testid="stFormSubmitButton"] button:disabled p { color: #FFF !important; }
-.st-key-scr-sample-chips button:disabled { opacity: .5; cursor: not-allowed; background: #FFF; border-color: var(--input); }
-.st-key-scr-sample-chips button:disabled p { color: var(--ink-2) !important; }
+.st-key-scr-end button p { font-size: 15px; font-weight: 700; color: #FFF; }
+[data-testid="stLayoutWrapper"]:has(> .st-key-scr-result-actions) { flex: 0 0 auto; width: auto !important; margin-left: auto; }
+.st-key-scr-result-actions { justify-content: flex-end; }

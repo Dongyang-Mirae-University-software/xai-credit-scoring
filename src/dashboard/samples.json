@@ -1,6 +1,8 @@
 [
   {
     "customer_id": "C001234",
+    "name": "김민지",
+    "rrn": "8406052517502",
     "sample_label": "일반 고객",
     "gender": "여성",
     "age": 42,
@@ -22,6 +24,8 @@
   },
   {
     "customer_id": "C005678",
+    "name": "이준호",
+    "rrn": "9811021094947",
     "sample_label": "씬파일러",
     "gender": "남성",
     "age": 27,
@@ -43,6 +47,8 @@
   },
   {
     "customer_id": "C116731",
+    "name": "박서연",
+    "rrn": "3709042479311",
     "gender": "여성",
     "age": 89,
     "MonthlyIncome": 2000000,
@@ -63,6 +69,8 @@
   },
   {
     "customer_id": "C135990",
+    "name": "최도윤",
+    "rrn": "7010021665108",
     "gender": "남성",
     "age": 56,
     "MonthlyIncome": 6529000,
@@ -83,6 +91,8 @@
   },
   {
     "customer_id": "C196843",
+    "name": "정하은",
+    "rrn": "4104022112656",
     "gender": "여성",
     "age": 85,
     "MonthlyIncome": 4000000,
@@ -103,6 +113,8 @@
   },
   {
     "customer_id": "C118955",
+    "name": "강지훈",
+    "rrn": "8807141091561",
     "gender": "남성",
     "age": 38,
     "MonthlyIncome": 5500000,
