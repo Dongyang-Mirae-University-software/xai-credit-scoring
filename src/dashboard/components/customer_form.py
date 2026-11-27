@@ -28,9 +28,20 @@ import features as F
 from components import identity, ui
 from components.api_error import api_error_html
 
-CSS = Path(__file__).with_suffix(".css").read_text(encoding="utf-8")
-# 심사 업무 화면(고객 심사 · XAI 분석) 공통 톤. 두 화면이 맨 앞에 넣는다
-WORKSPACE_CSS = Path(__file__).with_name("workspace.css").read_text(encoding="utf-8")
+CSS_PATH = Path(__file__).with_suffix(".css")
+WORKSPACE_CSS_PATH = Path(__file__).with_name("workspace.css")
+
+
+def css():
+    """customer_form.css. 그릴 때마다 파일을 읽는다 (처음 불러올 때만 읽으면 CSS 를 고쳐도 재시작 전까지 안 바뀐다)."""
+    return CSS_PATH.read_text(encoding="utf-8")
+
+
+def workspace_css():
+    """심사 업무 화면 공통 톤 (workspace.css). 그릴 때마다 읽는다."""
+    return WORKSPACE_CSS_PATH.read_text(encoding="utf-8")
+
+
 SCREENING_PAGE = "views/screening.py"
 NEW_ID_LOOKUP = 100  # 신규 고객 ID 를 고를 때 피할 서버 이력 수 (GET /screenings 최대치)
 

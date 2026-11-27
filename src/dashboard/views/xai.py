@@ -527,7 +527,7 @@ def _summary_tab(reason_features=frozenset()):
 # ---------------------------------------------------------------------------
 # 페이지
 # ---------------------------------------------------------------------------
-st.html(f"<style>{CF.WORKSPACE_CSS}{CSS_PATH.read_text(encoding='utf-8')}</style>")
+st.html(f"<style>{CF.workspace_css()}{CSS_PATH.read_text(encoding='utf-8')}</style>")
 _init_state()
 customer_id = CF.current_customer()
 _head(customer_id)

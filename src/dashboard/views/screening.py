@@ -289,7 +289,7 @@ def _result_view():
 # ---------------------------------------------------------------------------
 # 페이지
 # ---------------------------------------------------------------------------
-st.html(f"<style>{CF.WORKSPACE_CSS}{CSS_PATH.read_text(encoding='utf-8')}{CF.CSS}"
+st.html(f"<style>{CF.workspace_css()}{CSS_PATH.read_text(encoding='utf-8')}{CF.css()}"
         + ui.mask_css(".st-key-frm-back button::before", "chevron", 16)
         + ui.mask_css(".st-key-apl-back button::before", "chevron", 16)
         + ui.mask_css(".st-key-agr-back button::before", "chevron", 16)
