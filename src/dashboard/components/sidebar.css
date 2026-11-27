@@ -85,3 +85,34 @@ section[data-testid="stSidebar"] .stElementContainer:has(> .stPageLink),
 section[data-testid="stSidebar"] .stPageLink { margin: 0 !important; height: 44px; }
 section[data-testid="stSidebar"] .stElementContainer.st-key-nav-start { margin: 0 !important; height: 44px; }
 section[data-testid="stSidebar"] [class*="st-key-nav-"]:not([class*="st-key-nav-group"]) { gap: 0; }
+
+/* ========== 토스식: 흰 바탕 · 경계선 거의 없이, 메뉴는 둥근 칸 · 고른 칸은 회색 바탕 + 진한 굵은 글씨 + 파란 아이콘 ========== */
+section[data-testid="stSidebar"] {
+  --ink: #191F28; --ink-2: #4E5968; --ink-3: #8B95A1; --page: #F2F4F6; --border: #F2F4F6;
+  --accent: #3182F6; --accent-bg: #E8F3FF;
+  --ok: #03A94D; --ok-text: #038740; --fail: #F04452; --fail-text: #D22030;
+  border-right: 1px solid #F2F4F6;
+}
+.sb-group { padding: 0 14px 8px; font-size: 13px; font-weight: 600; color: var(--ink-3); }
+section[data-testid="stSidebar"] a[data-testid="stPageLink-NavLink"],
+section[data-testid="stSidebar"] .st-key-nav-start button {
+  height: 46px; padding: 0 14px; border-radius: 12px; color: var(--ink-2); transition: background .15s;
+}
+section[data-testid="stSidebar"] .stElementContainer:has(> .stPageLink),
+section[data-testid="stSidebar"] .stPageLink,
+section[data-testid="stSidebar"] .stElementContainer.st-key-nav-start { height: 46px; }
+section[data-testid="stSidebar"] .st-key-nav-start button { min-height: 46px; }
+section[data-testid="stSidebar"] a[data-testid="stPageLink-NavLink"]:hover,
+section[data-testid="stSidebar"] .st-key-nav-start button:hover { background: #F9FAFB; }
+section[data-testid="stSidebar"] a[data-testid="stPageLink-NavLink"] p,
+section[data-testid="stSidebar"] a[data-testid="stPageLink-NavLink"] span,
+section[data-testid="stSidebar"] .st-key-nav-start button p,
+section[data-testid="stSidebar"] .st-key-nav-start button div { font-size: 16px; font-weight: 500; }
+/* 고른 메뉴: 회색 바탕 + 진한 굵은 글씨, 아이콘만 파랑 */
+section[data-testid="stSidebar"] [class*="-active"] a[data-testid="stPageLink-NavLink"],
+section[data-testid="stSidebar"] [class*="-active"] .st-key-nav-start button { background: #F2F4F6; color: var(--ink); }
+section[data-testid="stSidebar"] [class*="-active"] a[data-testid="stPageLink-NavLink"]::before,
+section[data-testid="stSidebar"] [class*="-active"] .st-key-nav-start button::before { background: var(--accent); }
+/* 시스템 상태: 회색 둥근 상자 */
+.sb-status { border-radius: 16px; background: #F9FAFB; padding: 16px 18px; }
+.sb-status-head { font-size: 13px; font-weight: 600; }
