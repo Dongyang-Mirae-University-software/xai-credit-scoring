@@ -76,8 +76,9 @@ class CustomerInput(BaseModel):
 
 
 PREDICT_EXAMPLE = {
-    "customer_id": "C-10482", "credit_score": 937, "risk_grade": "A", "approval_status": "APPROVED",
-    "default_probability": 0.063, "is_thin_filer": False, "approval_threshold": 0.5,
+    "customer_id": "C-10482", "credit_score": 458, "risk_grade": "E", "approval_status": "REJECTED",
+    "default_probability": 0.7322, "is_thin_filer": False, "approval_threshold": 0.5, "approval_score": 487,
+    "score_method": "pdo-600-50-20",
     "model_version": "lightgbm_is_unbalance_integrated_v1.0", "timestamp": "2026-10-15T10:15:30+00:00",
     "disclaimer": DISCLAIMER,
 }
@@ -87,12 +88,14 @@ class PredictResponse(BaseModel):
     model_config = ConfigDict(json_schema_extra={'examples': [PREDICT_EXAMPLE]})
 
     customer_id: str
-    credit_score: int = Field(description='0~1000, (1 - 부도확률) × 1000')
+    credit_score: int = Field(description='300~850, PDO 스코어카드: 모델 확률(보정 전) 기준 odds 50:1 이면 600점, 20점마다 odds 2배. 확률 보정은 다음 단계 (score_method)')
     risk_grade: str = Field(description='A·B 저위험 / C 중위험 / D·E 고위험')
     approval_status: str = Field(description='APPROVED | REJECTED')
     default_probability: float
     is_thin_filer: bool = Field(description='씬파일러 판정 (src.data.simulator.label_thin_filer 기준)')
     approval_threshold: float = Field(description='부도확률이 이 값 미만이면 승인')
+    approval_score: int = Field(description='approval_threshold 에 해당하는 점수 (화면 표시용, 승인 판정은 부도확률로 한다)')
+    score_method: str = Field(description='점수 산식: pdo-<기준점수>-<기준 odds>-<PDO>')
     model_version: str
     timestamp: str
     disclaimer: str = DISCLAIMER
@@ -326,7 +329,9 @@ class DriftResponse(BaseModel):
 class HealthResponse(BaseModel):
     model_config = ConfigDict(json_schema_extra={'examples': [{
         "status": "healthy", "model_ready": True, "model_version": "lightgbm_is_unbalance_integrated_v1.0",
-        "model_stage": "Staging", "test_auc": 0.984, "approval_threshold": 0.5,
+        "model_stage": "Staging", "test_auc": 0.984, "approval_threshold": 0.5, "approval_score": 487,
+        "score_method": "pdo-600-50-20", "score_range": [300, 850],
+        "grade_scale": [["E", 463], ["D", 487], ["C", 505], ["B", 527], ["A", 851]],
         "reports": {"metrics": "example", "fairness": "outputs/fairness/fairness.json"},
         "timestamp": "2026-10-15T10:15:30+00:00"}]})
 
@@ -336,6 +341,10 @@ class HealthResponse(BaseModel):
     model_stage: str
     test_auc: Optional[float] = None
     approval_threshold: float
+    approval_score: int = Field(description='approval_threshold 에 해당하는 점수')
+    score_method: str
+    score_range: list[int] = Field(description='[최저, 최고] 점수')
+    grade_scale: list[tuple[str, int]] = Field(description='[등급, 상한] 낮은 등급부터. 점수가 상한 미만이면 그 등급')
     reports: dict[str, str] = Field(description='리포트별 데이터 출처: 파일 경로 또는 "example"(내장 예시)')
     timestamp: str
     disclaimer: str = DISCLAIMER

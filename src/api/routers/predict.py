@@ -16,7 +16,7 @@ def require_model():
 
 @router.post('/predict', response_model=PredictResponse, summary='신용점수·승인 여부 예측',
              description='입력 15개 변수를 스케일러로 맞춘 뒤 최종 모델로 부도 확률을 구하고, '
-                         '신용점수(0~1000)·리스크 등급(A~E)·승인 여부·씬파일러 판정을 돌려준다.',
+                         '신용점수(300~850, PDO)·리스크 등급(A~E)·승인 여부·씬파일러 판정을 돌려준다.',
              responses={503: {'description': '모델 파일 없음'}})
 def predict(customer: CustomerInput):
     require_model()
@@ -27,5 +27,6 @@ def predict(customer: CustomerInput):
         customer_id=customer.customer_id, credit_score=score, risk_grade=model.risk_grade(score),
         approval_status=model.approval_status(prob), default_probability=round(prob, 4),
         is_thin_filer=model.is_thin_filer(features), approval_threshold=model.APPROVAL_THRESHOLD,
+        approval_score=model.approval_score(), score_method=model.SCORE_METHOD,
         model_version=model.MODEL_VERSION, timestamp=datetime.now(timezone.utc).isoformat(), disclaimer=DISCLAIMER,
     )

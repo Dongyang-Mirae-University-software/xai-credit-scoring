@@ -16,12 +16,8 @@ API_LOG = "" if API_LOG in ("", "0", "false", "off") else ("body" if API_LOG == 
 API_LOG_BODY_MAX = int(os.getenv("API_LOG_BODY_MAX", "600"))
 
 # ---- 고객 심사 화면 표시용 값 ----
-# 점수·등급 기준 (README '점수와 등급 기준'): credit_score = round((1 - 부도 확률) × 1000)
-# 등급 구간 (등급, 구간 상한 점수)은 API(src/api/model.py GRADE_SCALE)와 같다:
-# E 300 미만 · D 300~499 · C 500~649 · B 650~799 · A 800 이상. API 가 구간을 내려주지 않아 여기에 둔다
-# 결과 화면 등급 막대의 칸 폭(30:20:15:15:20)은 이 구간 길이를 그대로 쓴다
-GRADE_SCALE = [("E", 300), ("D", 500), ("C", 650), ("B", 800), ("A", 1000)]
-# 승인 기준(막대의 점선)은 여기 두지 않는다: /predict 응답(없으면 /health)의 approval_threshold 로 계산한다
+# 점수·등급 기준 (README '점수와 등급 기준'): PDO 스코어카드 300~850점. 등급 구간·점수 범위·승인 기준 점수는
+# 여기 두지 않고 API(/health 의 grade_scale·score_range·approval_score, src/api/model.py)에서 받는다
 
 # ---- XAI 분석 화면 표시용 값 ----
 # 거절 사유 카드의 위험 표시: 부도 쪽 SHAP 값(log-odds)이 이 값 이상이면 고위험 / 중위험, 그 아래는 저위험

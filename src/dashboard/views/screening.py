@@ -304,37 +304,45 @@ def _summary_html(profile, result):
         f'<div><span>{label}</span><b>{escape(str(value))}</b></div>' for label, value in cells) + "</div>"
 
 
+def _health():
+    try:
+        return api_client.health()
+    except Exception:
+        return {}
+
+
 def _approval_score(result):
-    """승인 기준 점수 = round((1 - approval_threshold) × 1000). 기준은 API 값을 쓴다:
-    그 결과를 낸 /predict 응답의 approval_threshold, 없으면 /health 의 것. 둘 다 없으면 None (점선 없음)."""
-    threshold = result.get("approval_threshold")
-    if threshold is None:
-        try:
-            threshold = api_client.health().get("approval_threshold")
-        except Exception:
-            threshold = None
-    return None if threshold is None else round((1 - threshold) * 1000)
+    """승인 기준 점수: 그 결과를 낸 /predict 응답의 approval_score, 없으면 /health 의 것. 둘 다 없으면 None (점선 없음)."""
+    return result.get("approval_score", _health().get("approval_score"))
+
+
+def _bar_pos(score, scale, low):
+    """점수 → 막대 위치(%). 다섯 칸을 같은 폭으로 그리고 칸 안에서는 점수 비율로 놓는다
+    (확률 보정 전이라 C·D 구간이 20점 안팎으로 좁아서, 점수 길이 그대로면 칸이 안 보인다)."""
+    lowers = [low] + [upper for _, upper in scale[:-1]]
+    for i, ((_, upper), lower) in enumerate(zip(scale, lowers)):
+        if score < upper or i == len(scale) - 1:
+            return (i + min(max((score - lower) / (upper - lower), 0), 1)) / len(scale) * 100
 
 
 def _score_bar(score, grade, approval_score):
-    """E~A 다섯 칸을 점수 구간 길이 비율(config.GRADE_SCALE, API 와 같은 구간)로 그리고,
-    점수 위치와 승인 기준 점선(API 의 approval_threshold 환산)을 표시한다."""
-    scale = config.GRADE_SCALE  # [(등급, 구간 상한)] 낮은 등급부터
-    lowers = [0] + [upper for _, upper in scale[:-1]]
-    widths = " ".join(f"{upper - lower}fr" for (_, upper), lower in zip(scale, lowers))
-    top = scale[-1][1]
-    marker = min(max(score / top, 0), 1) * 100
+    """E~A 다섯 칸(구간은 API /health 의 grade_scale)과 점수 위치, 승인 기준 점선을 그린다. 구간을 못 받으면 막대 없이 문구만."""
+    health = _health()
+    scale, (low, high) = health.get("grade_scale"), health.get("score_range") or (300, 850)
+    note = f'<p class="scr-bar-note">점수는 PDO 스코어카드 방식({low}~{high}점)이에요. 20점 오를 때마다 부도 위험(odds)이 절반이 돼요.'
+    if not scale:
+        return note + "</p>"
+    widths = " ".join("1fr" for _ in scale)
     tone = RISK_TONE[GRADE_RISK.get(grade, "high")]
     segs = "".join(f'<i class="seg-{g}"></i>' for g, _ in scale)
     labels = "".join(f'<b class="{tone}">{g}</b>' if g == grade else f"<span>{g}</span>" for g, _ in scale)
-    line = note = ""
+    line = ""
     if approval_score is not None:
-        line = f'<u style="left:{approval_score / top * 100:.1f}%"></u>'
-        note = f" 점선은 승인 기준 {approval_score}점이에요."
+        line = f'<u style="left:{_bar_pos(approval_score, scale, low):.1f}%"></u>'
+        note += f" 점선은 승인 기준 {approval_score}점이에요."
     return (f'<div class="scr-bar" style="grid-template-columns:{widths}">{segs}'
-            f'{line}<em style="left:{marker:.1f}%"></em></div>'
-            f'<div class="scr-bar-labels" style="grid-template-columns:{widths}">{labels}</div>'
-            f'<p class="scr-bar-note">점수는 (1 - 부도 확률) × 1000이에요.{note}</p>')
+            f'{line}<em style="left:{_bar_pos(score, scale, low):.1f}%"></em></div>'
+            f'<div class="scr-bar-labels" style="grid-template-columns:{widths}">{labels}</div>{note}</p>')
 
 
 def _decision_html(result):
@@ -356,7 +364,7 @@ def _decision_html(result):
       </div>
       <div class="scr-figures">
         <div class="scr-score">
-          <div class="scr-score-top"><span>신용 점수</span><strong>{score}<small> / 1000</small></strong></div>
+          <div class="scr-score-top"><span>신용 점수</span><strong>{score}<small> / {_health().get("score_range", [300, 850])[1]}</small></strong></div>
           <div class="scr-bar-wrap">{_score_bar(score, grade, _approval_score(result))}</div>
         </div>
         <div class="scr-prob">
