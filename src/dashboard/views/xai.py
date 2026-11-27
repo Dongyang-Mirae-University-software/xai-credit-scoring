@@ -414,7 +414,8 @@ def _jitter(feature, i):
     return 15 + h[0] / 255 * 70  # 줄 높이의 15~85% (점 가운데 기준, xai.css .bs-track i 의 margin-top)
 
 
-def _share_bar(features):
+def _share_head(features):
+    """머리 오른쪽: 대안 데이터 비중 큰 숫자 + 세 묶음 막대 + 범례 한 줄."""
     totals = {"financial": 0.0, "alternative": 0.0, "basic": 0.0}
     for x in features:
         totals[F.group_of(x["feature"])] += x["mean_abs_shap"]
@@ -422,10 +423,10 @@ def _share_bar(features):
     share = {g: v / total * 100 for g, v in totals.items()}
     order = ["financial", "alternative", "basic"]
     bars = "".join(f'<i class="{g}" style="width:{share[g]:.1f}%"></i>' for g in order)
-    legend = "".join(f'<span><i class="{g}"></i>{F.GROUP_LABELS[g]} <b>{share[g]:.0f}%</b></span>' for g in order)
-    return (f'<div class="xai-share"><span>대안 데이터가 판단의 <strong>{share["alternative"]:.0f}%</strong>를 차지해요</span>'
+    legend = " · ".join(f'<span><i class="{g}"></i>{F.GROUP_LABELS[g]} {share[g]:.0f}%</span>' for g in order)
+    return (f'<div class="bs2-share"><span>판단에서 대안 데이터 비중</span><strong>{share["alternative"]:.0f}%</strong>'
             f'<div class="xai-share-bar" role="img" aria-label="영향력 비중">{bars}</div>'
-            f'<div class="xai-share-legend">{legend}</div></div>')
+            f'<div class="bs2-share-legend">{legend}</div></div>')
 
 
 def _how_to_read():
@@ -438,7 +439,23 @@ def _how_to_read():
     return f'<div class="xai-howto"><strong>읽는 법</strong><ul>{rows}</ul></div>'
 
 
-def _beeswarm(summary, reason_features, caption=""):
+def _beeswarm_head(summary):
+    """카드 머리 (토스식): '모델은 ○○과 ○○를 가장 많이 봐요' 큰 한 줄 + 대안 데이터 비중."""
+    feats = sorted(summary.get("features", []), key=lambda x: x["mean_abs_shap"], reverse=True)
+    names = [F.label(x["feature"]) for x in feats[:2]]
+    if len(names) == 2:
+        title = f'모델은 {names[0]}{F.josa(names[0], "과", "와")} {names[1]}{F.josa(names[1], "을", "를")} 가장 많이 봐요'
+    elif names:
+        title = f'모델은 {names[0]}{F.josa(names[0], "을", "를")} 가장 많이 봐요'
+    else:
+        title = "모델이 중요하게 보는 정보"
+    return (f'<div class="bs2-head"><div><h3>{escape(title)}</h3>'
+            f'<p>어떤 고객이든 같은 기준이에요. 점 하나가 고객 한 명이고, 위에 있을수록 영향이 커요. '
+            f'(SHAP Summary Plot, 상위 {SUMMARY_TOP}개 변수)</p></div>'
+            f'{_share_head(summary.get("features", []))}</div>')
+
+
+def _beeswarm(summary, reason_features):
     features = sorted(summary.get("features", []), key=lambda x: x["mean_abs_shap"], reverse=True)[:SUMMARY_TOP]
     swarm = summary.get("beeswarm") or {}   # {feature: {"shap": [...], "value": [0~1 ...]}}. 예전 서버엔 없다
     if swarm:
@@ -477,6 +494,7 @@ def _beeswarm(summary, reason_features, caption=""):
             "지금은 변수별 평균 영향 크기(|SHAP| 평균)를 띠로 보여줘요.</p>")
     color_legend = ('<div class="bs-color">점 색은 그 고객의 변수 값이에요.<br>낮음<i></i>높음</div>' if swarm else "")
     return f"""
+    {_beeswarm_head(summary)}
     <div class="xai-sum-grid">
       <div>
         <ol class="bs" role="img" aria-label="SHAP 요약 플롯, 상위 {len(features)}개 변수">{"".join(rows)}</ol>
@@ -485,7 +503,7 @@ def _beeswarm(summary, reason_features, caption=""):
           <em class="zero" style="left:{pos(0):.2f}%">SHAP 값</em>
           <em class="plus" style="left:calc({pos(0):.2f}% + 44px)">위험 증가 →</em></span><span></span></div>
       </div>
-      <aside>{caption}{_share_bar(summary.get("features", []))}{_how_to_read()}{note}{color_legend}</aside>
+      <aside>{_how_to_read()}{note}{color_legend}</aside>
     </div>"""
 
 
@@ -494,9 +512,8 @@ def _waterfall_tab(explain, entry):
     st.html(f'<div class="xai-card xai-wf-card">{_waterfall(explain, entry)}</div>')
 
 
-def _summary_tab(reason_features=frozenset(), in_tab=False):
-    """탭: 모델이 중요하게 보는 정보 (SHAP Summary). 이 고객의 사유인 변수는 표시한다.
-    탭 안에서는 설명 한 줄을 그림 위가 아니라 오른쪽 칸에 둬서, 그림 줄 간격을 넓힌다."""
+def _summary_tab(reason_features=frozenset()):
+    """모델이 중요하게 보는 정보 (SHAP Summary). 탭 안 · 고객이 없을 때 같은 카드. 이 고객의 사유인 변수는 표시한다."""
     try:
         summary = api_client.shap_summary()
     except Exception as e:
@@ -505,13 +522,7 @@ def _summary_tab(reason_features=frozenset(), in_tab=False):
     if not summary:
         render_no_report("shap_summary")
         return
-    sub = (f"SHAP Summary Plot, 상위 {SUMMARY_TOP}개 변수. 어떤 고객이든 모델은 이 기준으로 판단해요. "
-           "점 하나가 고객 한 명이고, 위에 있을수록 영향이 커요.")
-    if in_tab:
-        st.html(f'<div class="xai-card">{_beeswarm(summary, set(reason_features), f"<p class=xai-sum-cap>{sub}</p>")}</div>')
-    else:
-        st.html(ui.section_head("모델이 중요하게 보는 정보", sub)
-                + f'<div class="xai-card">{_beeswarm(summary, set(reason_features))}</div>')
+    st.html(f'<div class="xai-card xai-bs-card">{_beeswarm(summary, set(reason_features))}</div>')
 
 
 # ---------------------------------------------------------------------------
@@ -553,4 +564,4 @@ else:
         with tabs["부도 확률이 정해진 과정"]:
             _waterfall_tab(explain, entry)
         with tabs["모델이 중요하게 보는 정보"]:
-            _summary_tab({r["feature"] for r in explain.get("rejection_reasons") or []}, in_tab=True)
+            _summary_tab({r["feature"] for r in explain.get("rejection_reasons") or []})

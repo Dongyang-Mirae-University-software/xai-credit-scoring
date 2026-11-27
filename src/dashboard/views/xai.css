@@ -1615,3 +1615,24 @@ div[role="dialog"]:has(.xai-find-sub) [data-testid="stFormSubmitButton"] button 
 .xai-wf-card .wf-ticks em { font-size: 12px; color: #B0B8C1; }
 .xai-wf-card .wf-row > strong:last-child { font-size: 16px; }
 @media (max-width: 1100px) { .wf2-head { flex-direction: column; } .xai-wf-card .wf-row { grid-template-columns: 180px minmax(0, 1fr) 60px; } }
+
+/* ========== 모델이 중요하게 보는 정보 (토스식): 큰 한 줄 머리 + 대안 데이터 비중 / 점 그림 | 읽는 법 ========== */
+.xai-bs-card { display: flex; flex-direction: column; gap: 22px; padding: 26px 30px; }
+.bs2-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 32px; }
+.bs2-head h3 { margin: 0; padding: 0; font-size: 26px; font-weight: 700; line-height: 1.35; letter-spacing: -0.02em; color: var(--ink); }
+.bs2-head p { margin: 6px 0 0; font-size: 15px; line-height: 1.5; color: var(--ink-3); }
+.bs2-share { flex: 0 0 300px; display: flex; flex-direction: column; gap: 8px; }
+.bs2-share > span { font-size: 14px; color: var(--ink-3); }
+.bs2-share strong { font-size: 32px; font-weight: 700; line-height: 1.1; color: var(--accent); }
+.bs2-share-legend { display: flex; flex-wrap: wrap; gap: 4px 10px; font-size: 13px; color: var(--ink-2); }
+.bs2-share-legend span { display: inline-flex; align-items: center; gap: 5px; }
+.bs2-share-legend i { width: 8px; height: 8px; border-radius: 50%; }
+.bs2-share-legend i.financial { background: var(--baseline); }
+.bs2-share-legend i.alternative { background: var(--accent); }
+.bs2-share-legend i.basic { background: var(--input); }
+/* 이 고객의 사유인 줄: 은은한 파란 바탕 + 작은 표시 */
+.xai-bs-card .bs li { border-radius: 10px; }
+.xai-bs-card .bs li.mine { background: var(--accent-bg); }
+.xai-bs-card .xai-mine { background: var(--accent); color: #FFF; border-radius: 999px; padding: 0 8px; }
+.xai-bs-card .xai-sum-grid aside { padding-top: 2px; }
+@media (max-width: 1100px) { .bs2-head { flex-direction: column; } .bs2-share { flex-basis: auto; width: 100%; } }
