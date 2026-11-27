@@ -68,7 +68,7 @@
 .scr-bar .seg-C { background: #FFC342; }
 .scr-bar .seg-B { background: #7DD3A8; }
 .scr-bar .seg-A { background: #03A94D; }
-/* 승인 기준 점선 (650점) */
+/* 승인 기준 점선 (점수는 API approval_score) */
 .scr-bar u { position: absolute; top: -4px; bottom: -4px; border-left: 2px dashed var(--ink); opacity: .45; }
 .scr-bar-note { margin: 4px 0 0; font-size: 12px; color: var(--ink-3); }
 .scr-bar em { position: absolute; top: -6px; width: 4px; height: 24px; margin-left: -2px; border-radius: 2px; background: var(--ink); }
@@ -76,9 +76,13 @@
   display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 3px;
   font-size: 12px; color: var(--ink-3); text-align: center;
 }
-.scr-bar-labels b.ok { color: var(--ok-text); }
-.scr-bar-labels b.mid { color: var(--mid-text); }
-.scr-bar-labels b.fail { color: var(--fail-text); }
+.scr-bar-labels > div { display: flex; flex-direction: column; align-items: center; gap: 2px; }
+.scr-bar-labels b { font-weight: 500; }
+.scr-bar-labels small { font-size: 11px; color: var(--ink-3); opacity: .8; font-variant-numeric: tabular-nums; }
+.scr-bar-labels .on b, .scr-bar-labels .on small { font-weight: 700; opacity: 1; }
+.scr-bar-labels .ok b, .scr-bar-labels .ok small { color: var(--ok-text); }
+.scr-bar-labels .mid b, .scr-bar-labels .mid small { color: var(--mid-text); }
+.scr-bar-labels .fail b, .scr-bar-labels .fail small { color: var(--fail-text); }
 .scr-prob { flex: 1 1 240px; min-width: 0; padding: 28px 32px; display: flex; flex-direction: column; gap: 10px; }
 .scr-prob p { margin: 0; font-size: 13px; color: var(--ink-3); }
 

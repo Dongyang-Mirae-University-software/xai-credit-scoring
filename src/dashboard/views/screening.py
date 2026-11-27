@@ -92,7 +92,8 @@ def _bar_pos(score, scale, low):
 
 
 def _score_bar(score, grade, approval_score):
-    """E~A 다섯 칸(구간은 API /health 의 grade_scale)과 점수 위치, 승인 기준 점선을 그린다. 구간을 못 받으면 막대 없이 문구만."""
+    """E~A 다섯 칸(구간은 API /health 의 grade_scale)과 점수 위치, 승인 기준 점선을 그린다.
+    칸 아래에 등급과 점수 구간(예: A 527~850)을 적는다. 구간을 못 받으면 막대 없이 문구만."""
     health = _health()
     scale, (low, high) = health.get("grade_scale"), health.get("score_range") or (300, 850)
     note = f'<p class="scr-bar-note">점수는 PDO 스코어카드 방식({low}~{high}점)이에요. 20점 오를 때마다 부도 위험(odds)이 절반이 돼요.'
@@ -101,7 +102,10 @@ def _score_bar(score, grade, approval_score):
     widths = " ".join("1fr" for _ in scale)
     tone = RISK_TONE[GRADE_RISK.get(grade, "high")]
     segs = "".join(f'<i class="seg-{g}"></i>' for g, _ in scale)
-    labels = "".join(f'<b class="{tone}">{g}</b>' if g == grade else f"<span>{g}</span>" for g, _ in scale)
+    lowers = [low] + [upper for _, upper in scale[:-1]]
+    ranges = [f"{lower}~{min(upper - 1, high)}" for (_, upper), lower in zip(scale, lowers)]
+    labels = "".join(f'<div class="{tone} on"><b>{g}</b><small>{r}</small></div>' if g == grade
+                     else f"<div><b>{g}</b><small>{r}</small></div>" for (g, _), r in zip(scale, ranges))
     line = ""
     if approval_score is not None:
         line = f'<u style="left:{_bar_pos(approval_score, scale, low):.1f}%"></u>'
