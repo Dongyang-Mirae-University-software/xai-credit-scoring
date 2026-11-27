@@ -10,6 +10,7 @@ from pathlib import Path
 import streamlit as st
 
 import api_client
+import features as F
 from components import ui
 from components.api_error import render_api_error
 from components.empty_state import pending_html
@@ -40,47 +41,65 @@ def _fetch(customer_id, payload):
     return cache[key]
 
 
-def _change_row(c, with_prob=False):
-    up = c["suggested_value"] > c["current_value"]
-    prob = (f'<span class="cf-prob">부도 확률 <b>{_pct(c["new_probability"])}</b></span>'
-            if with_prob and c.get("new_probability") is not None else "")
-    return (f'<div class="cf-row"><strong>{escape(c["feature_name_kr"])}</strong>'
-            f'<span class="cf-from">{_value(c["current_value"], c["unit"])}</span>'
-            f'<span class="cf-arrow">{ui.icon("arrow", "#5B6577", 16)}</span>'
-            f'<b class="cf-to">{_value(c["suggested_value"], c["unit"])}</b>'
-            f'{ui.pill("높이기" if up else "낮추기", "info")}{prob}</div>')
+def _verb(c):
+    return "늘리기" if c["suggested_value"] > c["current_value"] else "줄이기"
 
 
-def _combined(cf, result):
+def _change_row(c):
+    """바꿀 정보 한 줄 (토스식): 항목 ··· 지금 값 → 바꿀 값 · 늘리기/줄이기."""
+    return (f'<li><span class="cf2-name">{escape(c["feature_name_kr"])}</span>'
+            f'<span class="cf2-move"><em>{_value(c["current_value"], c["unit"])}</em>{ui.icon("arrow", "#B0B8C1", 16)}'
+            f'<b>{_value(c["suggested_value"], c["unit"])}</b></span><i class="cf2-verb">{_verb(c)}</i></li>')
+
+
+def _hero(cf, result):
+    """결론 카드: 승인 가능 여부 · 큰 한 줄 · 부도 확률 / 신용 점수 → · 바꿀 정보 목록."""
     plan = cf.get("combined") or {}
-    thr = cf["approval_threshold"]
     changes = plan.get("changes") or []
-    if plan.get("success"):
-        title = (f"아래 {len(changes)}가지를 함께 바꾸면 승인 기준을 통과해요" if len(changes) > 1
-                 else "아래 한 가지만 바꾸면 승인 기준을 통과해요")
-        tone = "ok"
+    ok = bool(plan.get("success"))
+    if ok and len(changes) == 1:
+        c = changes[0]
+        name = c["feature_name_kr"]
+        title = (f'{name}{F.josa(name, "을", "를")} {_value(c["suggested_value"], c["unit"])}로 '
+                 f'{"늘리면" if _verb(c) == "늘리기" else "줄이면"} 승인될 수 있어요')
+    elif ok:
+        title = f"아래 {len(changes)}가지를 함께 바꾸면 승인될 수 있어요"
     else:
-        title = "바꿀 수 있는 정보를 모두 움직여도 승인 기준에 닿지 않아요"
-        tone = "fail"
-    flow = (f'<div class="cf-flow"><span>부도 확률</span><em>{_pct(cf["default_probability"])}</em>'
-            f'{ui.icon("arrow", "#5B6577", 16)}<b class="{tone}">{_pct(plan["new_probability"])}</b>'
-            f'<small>승인 기준 {_pct(thr)} 미만</small>'
-            f'<span class="cf-sep"></span><span>신용 점수</span><em>{result["credit_score"]}점</em>'
-            f'{ui.icon("arrow", "#5B6577", 16)}<b class="{tone}">{plan["new_credit_score"]}점</b></div>')
-    rows = "".join(_change_row(c) for c in changes) or '<div class="cf-empty">바꿀 수 있는 정보가 없어요</div>'
-    return (f'<div class="cf-col"><span class="cf-col-title">여러 정보를 함께 바꾸기</span>'
-            f'<p class="cf-title {tone}">{title}</p>{flow}<div class="cf-rows">{rows}</div></div>')
+        title = "바꿀 수 있는 정보만으로는 승인 기준에 닿지 않아요"
+    tone = "ok" if ok else "fail"
+    rows = "".join(_change_row(c) for c in changes) or '<li class="cf2-empty">바꿀 수 있는 정보가 없어요</li>'
+    return f"""
+    <section class="cf2-card cf2-hero">
+      <span class="cf2-badge {tone}">{"승인 가능" if ok else "승인 어려움"}</span>
+      <h3>{escape(title)}</h3>
+      <p class="cf2-sub">바꿀 수 있는 정보만 움직여 찾은 가장 작은 변화예요. 고객 상담에 참고하세요.</p>
+      <div class="cf2-figs">
+        <div><span>부도 확률</span><p><em>{_pct(cf["default_probability"])}</em>{ui.icon("arrow", "#B0B8C1", 18)}
+          <b class="{tone}">{_pct(plan.get("new_probability", cf["default_probability"]))}</b></p>
+          <small>승인 기준 {_pct(cf["approval_threshold"])} 미만</small></div>
+        <div><span>신용 점수</span><p><em>{result["credit_score"]}점</em>{ui.icon("arrow", "#B0B8C1", 18)}
+          <b class="{tone}">{plan.get("new_credit_score", result["credit_score"])}점</b></p></div>
+      </div>
+      <h4>{"바꿀 정보" if ok else "끝까지 움직여 본 정보"}</h4>
+      <ul class="cf2-list">{rows}</ul>
+    </section>"""
 
 
 def _singles(cf):
+    """하나만 바꿔도 되는 방법: 항목 · 지금 → 바꿀 값 ··· 그때 부도 확률 (초록)."""
     singles = cf.get("single_changes") or []
     if singles:
-        body = "".join(_change_row(c, with_prob=True) for c in singles[:SINGLE_MAX])
-        more = (f'<span class="cf-more">외 {len(singles) - SINGLE_MAX}가지</span>' if len(singles) > SINGLE_MAX else "")
+        body = "".join(
+            f'<li><div><span class="cf2-name">{escape(c["feature_name_kr"])}</span>'
+            f'<span class="cf2-move small"><em>{_value(c["current_value"], c["unit"])}</em>{ui.icon("arrow", "#B0B8C1", 14)}'
+            f'<b>{_value(c["suggested_value"], c["unit"])}</b><i class="cf2-verb">{_verb(c)}</i></span></div>'
+            f'<div class="cf2-prob"><span>부도 확률</span><b>{_pct(c["new_probability"])}</b></div></li>'
+            for c in singles[:SINGLE_MAX] if c.get("new_probability") is not None)
+        more = (f'<p class="cf2-more">외 {len(singles) - SINGLE_MAX}가지</p>' if len(singles) > SINGLE_MAX else "")
     else:
-        body, more = '<div class="cf-empty">정보 하나만 바꿔서는 승인 기준에 닿지 않아요</div>', ""
-    return (f'<div class="cf-col"><span class="cf-col-title">하나만 바꿔도 되는 방법</span>'
-            f'<div class="cf-rows">{body}</div>{more}</div>')
+        body, more = '<li class="cf2-empty">정보 하나만 바꿔서는 승인 기준에 닿지 않아요</li>', ""
+    return (f'<section class="cf2-card"><h3 class="cf2-side-title">하나만 바꿔도 되는 방법 '
+            f'<b>{len(singles)}가지</b></h3><ul class="cf2-singles">{body}</ul>{more}</section>')
 
 
 def render(customer_id, payload, result):
@@ -92,8 +111,7 @@ def render(customer_id, payload, result):
 
 
 def _render(customer_id, payload, result):
-    st.html(f"<style>{CSS_PATH.read_text(encoding='utf-8')}</style>"
-            + ui.section_head("승인되려면", "바꿀 수 있는 정보만 움직여 찾은 가장 작은 변화예요. 고객 상담에 참고하세요."))
+    st.html(f"<style>{CSS_PATH.read_text(encoding='utf-8')}</style>")
     try:
         with st.spinner("승인 조건을 찾고 있어요"):
             cf = _fetch(customer_id, payload)
@@ -104,6 +122,6 @@ def _render(customer_id, payload, result):
         st.html(pending_html("POST /counterfactual", "#147"))
         return
     fixed = ", ".join(cf.get("immutable_features") or [])
-    st.html(f'<section class="cf-card"><div class="cf-grid">{_combined(cf, result)}{_singles(cf)}</div>'
-            f'<div class="cf-foot">바꿀 수 없어 그대로 둔 정보: {escape(fixed) or "-"}. '
-            f'학습 데이터에 있는 값 범위(1~99%) 안에서만 찾았고, 실제 승인을 약속하지 않아요.</div></section>')
+    st.html(f'<div class="cf2">{_hero(cf, result)}{_singles(cf)}</div>'
+            f'<p class="cf2-foot">바꿀 수 없어 그대로 둔 정보: {escape(fixed) or "-"}. '
+            f'학습 데이터에 있는 값 범위(1~99%) 안에서만 찾았고, 실제 승인을 약속하지 않아요.</p>')

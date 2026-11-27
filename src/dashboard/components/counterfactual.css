@@ -39,3 +39,44 @@
 }
 /* XAI 분석 탭 안: 줄과 글씨를 크게 */
 [data-testid="stTabs"] .cf-row { min-height: 54px; font-size: 16px; }
+
+/* ========== 승인되려면 (토스식): 결론 카드 | 하나만 바꿔도 되는 방법 ========== */
+.cf2 { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); gap: 16px; align-items: stretch; }
+.cf2-card { background: var(--card); border-radius: var(--radius-card, 20px); padding: 26px 28px; min-width: 0; }
+.cf2-badge { display: inline-block; padding: 5px 12px; border-radius: 999px; font-size: 14px; font-weight: 700; }
+.cf2-badge.ok { background: var(--ok-bg); color: var(--ok-text); }
+.cf2-badge.fail { background: var(--fail-bg); color: var(--fail-text); }
+.cf2-hero h3 { margin: 14px 0 0; padding: 0; font-size: 26px; font-weight: 700; line-height: 1.35; letter-spacing: -0.02em; color: var(--ink); }
+.cf2-sub { margin: 6px 0 0; font-size: 15px; color: var(--ink-3); }
+.cf2-figs { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 22px; }
+.cf2-figs > div { padding: 16px 18px; border-radius: 14px; background: var(--fill); }
+.cf2-figs span { display: block; font-size: 14px; color: var(--ink-3); }
+.cf2-figs p { display: flex; align-items: center; gap: 8px; margin: 6px 0 0; }
+.cf2-figs em { font-style: normal; font-size: 18px; color: var(--ink-3); }
+.cf2-figs b { font-size: 26px; font-weight: 700; color: var(--ink); }
+.cf2-figs b.ok { color: var(--ok-text); }
+.cf2-figs b.fail { color: var(--fail-text); }
+.cf2-figs small { display: block; margin-top: 4px; font-size: 12px; color: var(--ink-3); }
+.cf2-hero h4 { margin: 22px 0 6px; padding: 0; font-size: 15px; font-weight: 700; color: var(--ink-2); }
+.cf2-list, .cf2-singles { margin: 0; padding: 0; list-style: none; }
+.cf2-list li { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; align-items: center; gap: 14px; padding: 12px 0; margin: 0; }
+.cf2-list li + li, .cf2-singles li + li { border-top: 1px solid var(--divider); }
+.cf2-name { font-size: 17px; font-weight: 600; color: var(--ink); }
+.cf2-move { display: inline-flex; align-items: center; gap: 6px; }
+.cf2-move em { font-style: normal; font-size: 16px; color: var(--ink-3); }
+.cf2-move b { font-size: 17px; font-weight: 700; color: var(--ink); }
+.cf2-move img { display: block; }
+.cf2-verb { font-style: normal; padding: 3px 9px; border-radius: 999px; font-size: 12px; font-weight: 700; background: var(--fill); color: var(--ink-2); }
+.cf2-side-title { margin: 0 0 8px; padding: 0; font-size: 18px; font-weight: 700; color: var(--ink); }
+.cf2-side-title b { color: var(--ok-text); }
+.cf2-singles li { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 0; margin: 0; }
+.cf2-singles li > div:first-child { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.cf2-move.small em, .cf2-move.small b { font-size: 15px; }
+.cf2-move.small .cf2-verb { margin-left: 4px; }
+.cf2-prob { text-align: right; flex: none; }
+.cf2-prob span { display: block; font-size: 12px; color: var(--ink-3); }
+.cf2-prob b { font-size: 20px; font-weight: 700; color: var(--ok-text); }
+.cf2-empty, .cf2-more { font-size: 14px; color: var(--ink-3); }
+.cf2-more { margin: 6px 0 0; }
+.cf2-foot { margin: 10px 0 0; font-size: 13px; line-height: 1.6; color: var(--ink-3); }
+@media (max-width: 1100px) { .cf2 { grid-template-columns: 1fr; } }
