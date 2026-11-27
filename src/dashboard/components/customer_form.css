@@ -7,8 +7,8 @@
 .st-key-idn-card {
   padding: 40px 40px 32px; border-radius: var(--radius-card); background: var(--card); gap: 0 !important;
 }
-.st-key-idn-card [data-testid="stForm"] { margin-top: 32px; padding: 0; border: 0; }
-.st-key-idn-card [data-testid="stForm"] [data-testid="stVerticalBlock"] { gap: 12px; }
+.st-key-idn-card [data-testid="stForm"] { margin-top: 40px; padding: 0; border: 0; }
+.st-key-idn-card [data-testid="stForm"] [data-testid="stVerticalBlock"] { gap: 18px; }
 
 /* 입력칸: 회색 바탕, 테두리 없음, 누르면 파란 테두리 */
 .st-key-idn-card [data-testid="stWidgetLabel"] p { font-size: 14px; color: var(--ink-3); font-weight: 500; }
@@ -27,7 +27,7 @@
 .idn-dash { display: block; padding-bottom: 14px; font-size: 20px; color: var(--ink-3); }
 .idn-error { margin: -4px 0 0; font-size: 13px; color: var(--fail-text); }
 
-.st-key-idn-card [data-testid="stFormSubmitButton"] { margin-top: 16px; }
+.st-key-idn-card [data-testid="stFormSubmitButton"] { margin-top: 22px; }
 .st-key-idn-card [data-testid="stFormSubmitButton"] button,
 .st-key-idn-manual button { height: 56px; min-height: 56px; }
 .st-key-idn-card [data-testid="stFormSubmitButton"] button p,
@@ -55,8 +55,8 @@
 .st-key-apl-back button::before { transform: rotate(180deg); }
 .st-key-apl-back button p { font-size: 15px; color: var(--ink-2); font-weight: 600; }
 .st-key-apl-back button:hover { background: var(--fill); }
-.st-key-apl-income { margin-top: 32px; }
-.st-key-apl-income, .st-key-apl-dep { margin-bottom: 12px; }
+.st-key-apl-income { margin-top: 40px; }
+.st-key-apl-income, .st-key-apl-dep { margin-bottom: 18px; }
 .st-key-apl-card [data-testid="stWidgetLabel"] p { font-size: 14px; color: var(--ink-3); font-weight: 500; }
 .st-key-apl-card [data-testid="stNumberInputContainer"] { height: 56px; border: 0; background: none; }
 .st-key-apl-card [data-baseweb="input"] {
@@ -72,7 +72,7 @@
 .st-key-apl-card [data-baseweb="input"]::after { align-self: center; font-size: 16px; color: var(--ink-3); white-space: nowrap; }
 .st-key-apl-income [data-baseweb="input"]::after { content: "만원"; }
 .st-key-apl-dep [data-baseweb="input"]::after { content: "명"; }
-.st-key-apl-next { margin-top: 20px; }
+.st-key-apl-next { margin-top: 28px; }
 .st-key-apl-next button { height: 56px; min-height: 56px; }
 .st-key-apl-next button p { font-size: 17px; }
 
@@ -84,7 +84,7 @@
 .ld-card .tz-title { margin-top: 24px; }
 .ld-spin {
   width: 56px; height: 56px; margin: 0 auto; border-radius: 50%;
-  border: 5px solid var(--accent-bg); border-top-color: var(--accent); animation: ld-rot .9s linear infinite;
+  border: 5px solid var(--accent-bg); border-top-color: var(--accent); animation: ld-rot 1.6s linear infinite;
 }
 .ld-spin.ok { animation: none; border-color: var(--accent); }
 @keyframes ld-rot { to { transform: rotate(360deg); } }
@@ -98,7 +98,7 @@
 .ld-steps li.done i { background: var(--accent); }
 .ld-steps li.doing { color: var(--ink-2); font-weight: 600; }
 .ld-steps li.doing i { border: 3px solid var(--accent-bg); border-top-color: var(--accent); box-sizing: border-box; background: none;
-  animation: ld-rot .9s linear infinite; }
+  animation: ld-rot 1.6s linear infinite; }
 
 /* ---------- 3/3 전체 확인 ---------- */
 .st-key-frm-wrap { gap: 16px !important; padding-bottom: 8px; }
