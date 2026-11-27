@@ -138,6 +138,24 @@ class CustomerProfile(BaseModel):
     app_login_frequency: int = Field(..., description='앱 로그인 빈도 (월)')
 
 
+class ScreeningRecord(BaseModel):
+    """고객의 가장 최근 심사 기록 (POST /screenings/lookup)."""
+    model_config = ConfigDict(json_schema_extra={'examples': [{
+        "screening_id": "S0012", "screened_at": "2026-11-27T10:06:12+09:00", "customer_id": "C100001",
+        "name": "최민은", "gender": "여성",
+        "input": {**CUSTOMER_EXAMPLE, "customer_id": "C100001"},
+        "result": {"customer_id": "C100001", "credit_score": 75, "risk_grade": "E", "approval_status": "REJECTED",
+                   "default_probability": 0.925, "approval_threshold": 0.5}}]})
+
+    screening_id: str
+    screened_at: str = Field(..., description='심사 시각 (한국 시간)')
+    customer_id: str
+    name: str
+    gender: Optional[str] = None
+    input: dict = Field(..., description='그때 심사에 넣은 값 (/predict 요청과 같다)')
+    result: dict = Field(..., description='그때 심사 결과 (/predict 응답과 같다)')
+
+
 PREDICT_EXAMPLE = {
     "customer_id": "C-10482", "credit_score": 937, "risk_grade": "A", "approval_status": "APPROVED",
     "default_probability": 0.063, "is_thin_filer": False, "approval_threshold": 0.5,

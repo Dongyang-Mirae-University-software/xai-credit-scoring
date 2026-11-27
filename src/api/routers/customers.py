@@ -33,6 +33,15 @@ def _customers():
     return _load()[0]
 
 
+def find_by_identity(name, rrn):
+    """이름 + 주민등록번호(숫자 13자리)가 모두 맞는 고객 기록. 없으면 None."""
+    by_id, by_rrn = _load()
+    customer = by_id.get(by_rrn.get(rrn))
+    if customer is None or ' '.join(customer.get('name', '').split()) != name:
+        return None
+    return customer
+
+
 @router.get('/customers/{customer_id}', summary='고객 정보 조회 (고객 번호)',
             description='`/predict` 입력 15개(+ 표시용 name · gender). 월소득은 원, 부채비율·납부율은 %, 신용한도 소진율은 0~1.',
             responses={404: {'description': '없는 고객'}})
@@ -52,9 +61,8 @@ def get_customer(customer_id: str):
                          '데이터의 이름 · 주민등록번호는 시연용 가짜 값이다.',
              responses={404: {'description': '일치하는 고객 없음'}, 422: {'description': '주민등록번호 형식 오류'}})
 def lookup_customer(body: CustomerLookup):
-    by_id, by_rrn = _load()
-    customer = by_id.get(by_rrn.get(body.rrn))
-    if customer is None or ' '.join(customer.get('name', '').split()) != body.name:
+    customer = find_by_identity(body.name, body.rrn)
+    if customer is None:
         raise HTTPException(404, NOT_FOUND)
     # 은행 기록만: 월 상환액은 부채비율 × 기록상 월소득 (데이터에 상환액 칸이 없어 거꾸로 계산한다)
     repayment = int(round(customer['DebtRatio'] / 100 * customer['MonthlyIncome']))
