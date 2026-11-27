@@ -147,12 +147,14 @@
 .scr-xp-go { flex: none; display: inline-flex; align-items: center; gap: 2px; font-size: 15px; font-weight: 700; color: var(--accent); white-space: nowrap; }
 [class*="st-key-scr-act-"]:hover .scr-xp { background: #F7FAFF; }
 
-/* 결과 화면 오른쪽 위: 이전 · 상담 마치기 */
+/* 결과 화면 오른쪽 위: 상담 마치기 */
 .st-key-scr-result-actions { width: auto !important; flex: 0 0 auto; }
 .st-key-scr-result-actions .stElementContainer { width: auto !important; }
 .st-key-scr-end button {
   height: 44px; min-height: 44px; padding: 0 18px; border-radius: var(--radius-ctl); border: 0; background: var(--ink);
 }
 .st-key-scr-end button p { font-size: 15px; font-weight: 700; color: #FFF; }
+/* 공통 secondary 호버(연회색)가 덮으면 흰 글자가 안 보여서, 진한 배경을 조금 밝게만 */
+.st-key-scr-end button:hover { background: #333D4B; }
 [data-testid="stLayoutWrapper"]:has(> .st-key-scr-result-actions) { flex: 0 0 auto; width: auto !important; margin-left: auto; }
 .st-key-scr-result-actions { justify-content: flex-end; }

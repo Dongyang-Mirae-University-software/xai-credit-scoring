@@ -857,6 +857,9 @@ div[role="dialog"]:has(.xai-find-sub) > div:first-child p {
   color: #fff;
   white-space: nowrap;
 }
+.st-key-xai-end button:hover {
+  background: #333d4b;
+}
 
 /* ========== 한 화면 배치: 고객 정보 + 한 줄 요약 한 카드, 아래는 탭 ========== */
 .st-key-xai-crumb {
