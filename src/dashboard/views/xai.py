@@ -58,19 +58,13 @@ def _get_explain(customer_id):
 # 머리: 흐름 경로 + 제목 + 조건 바꿔 재심사 · 상담 마치기
 # ---------------------------------------------------------------------------
 def _crumb(customer_id):
-    """흐름 경로: 고객 심사 › 이름 심사 결과 › 판단 근거. 앞의 두 단계는 눌러서 돌아갈 수 있다."""
+    """흐름 경로: 고객 심사 › 이름 심사 결과 › 판단 근거. 어디서 이어진 화면인지만 보여 주는 글자 (누를 수 없음)."""
     name = st.session_state.customers[customer_id]["profile"].get("name") or "고객"
-    with st.container(key="xai-crumb", horizontal=True, vertical_alignment="center", gap=None):
-        go_start = st.button("고객 심사", key="xai-crumb-start", type="tertiary")
-        st.html('<span class="xai-crumb-sep">›</span>')
-        go_result = st.button(f"{name} 심사 결과", key="xai-crumb-result", type="tertiary")
-        st.html('<span class="xai-crumb-sep">›</span><b class="xai-crumb-now">판단 근거</b>')
-    if go_start:
-        CF.clear_result()
-        st.switch_page(CF.SCREENING_PAGE)
-    if go_result:
-        CF.open_result(customer_id)
-        st.switch_page(CF.SCREENING_PAGE)
+    with st.container(key="xai-crumb"):
+        st.html('<div class="xai-crumb-line"><span class="xai-crumb-item">고객 심사</span>'
+                '<span class="xai-crumb-sep">›</span>'
+                f'<span class="xai-crumb-item">{escape(name)} 심사 결과</span>'
+                '<span class="xai-crumb-sep">›</span><b class="xai-crumb-now">판단 근거</b></div>')
 
 
 def _head(customer_id):
