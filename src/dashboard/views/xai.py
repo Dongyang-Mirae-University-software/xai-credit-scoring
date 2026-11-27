@@ -372,6 +372,16 @@ def _share_bar(features):
             f'<div class="xai-share-legend">{legend}</div></div>')
 
 
+def _how_to_read():
+    """그림 읽는 법 (오른쪽 칸)."""
+    items = [("위치", "가운데 선보다 오른쪽이면 부도 위험을 높였고, 왼쪽이면 낮췄어요"),
+             ("퍼진 폭", "옆으로 넓게 퍼질수록 고객마다 영향이 크게 달라요"),
+             ("순서", "위에 있을수록 모델이 판단할 때 많이 보는 정보예요"),
+             ("파란 이름", "통신비 · 공과금 같은 대안 데이터예요")]
+    rows = "".join(f"<li><b>{k}</b><span>{v}</span></li>" for k, v in items)
+    return f'<div class="xai-howto"><strong>읽는 법</strong><ul>{rows}</ul></div>'
+
+
 def _beeswarm(summary, reason_features):
     features = sorted(summary.get("features", []), key=lambda x: x["mean_abs_shap"], reverse=True)[:SUMMARY_TOP]
     swarm = summary.get("beeswarm") or {}   # {feature: {"shap": [...], "value": [0~1 ...]}}. 예전 서버엔 없다
@@ -416,7 +426,7 @@ def _beeswarm(summary, reason_features):
         <ol class="bs" role="img" aria-label="SHAP 요약 플롯, 상위 {len(features)}개 변수">{"".join(rows)}</ol>
         <div class="bs-axis"><span></span><span></span><span><em>← 위험 감소</em><em>SHAP 값</em><em>위험 증가 →</em></span><span></span></div>
       </div>
-      <aside>{_share_bar(summary.get("features", []))}{color_legend}{note}</aside>
+      <aside>{_share_bar(summary.get("features", []))}{_how_to_read()}{note}{color_legend}</aside>
     </div>"""
 
 
