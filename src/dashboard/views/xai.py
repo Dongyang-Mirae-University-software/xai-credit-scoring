@@ -478,18 +478,21 @@ else:
         explain = _get_explain(customer_id)
     except Exception as e:
         explain, explain_error = None, e
-    # 고객 정보 + 한 줄 요약을 한 카드로 (한 화면에 들어오게)
-    st.html(f'<section class="xai-overview">{_customer_strip(entry)}'
-            f'{_summary_html(explain, entry["result"]).replace("<br>", " ") if explain else ""}</section>')
+    overview = (f'<section class="xai-overview">{_customer_strip(entry)}'
+                f'{_summary_html(explain, entry["result"]) if explain else ""}</section>')
     if explain is None:
+        st.html(overview)
         render_api_error("POST /explain", explain_error)
     else:
+        # 고객 정보 + 한 줄 요약도 탭 하나로 (아래 탭들이 화면 높이를 넉넉히 쓰게)
         rejected = entry["result"]["approval_status"] != "APPROVED"
-        names = ["거절 사유 Top 5" if rejected else "위험을 높인 정보 Top 5"]
+        names = ["요약", "거절 사유 Top 5" if rejected else "위험을 높인 정보 Top 5"]
         names += ["승인되려면"] if rejected else []
         names += ["부도 확률이 정해진 과정", "모델이 중요하게 보는 정보"]
         tabs = dict(zip(names, st.tabs(names)))
-        with tabs[names[0]]:
+        with tabs["요약"]:
+            st.html(overview)
+        with tabs[names[1]]:
             _reasons(explain, entry["result"], entry["profile"].get("name"))
         if rejected:
             with tabs["승인되려면"]:
