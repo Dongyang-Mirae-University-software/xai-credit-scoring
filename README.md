@@ -65,10 +65,10 @@
 
 | 수치 · 사실 | 내용 |
 | :---: | --- |
-| 👥 **약 1,107만 명** | 국내 금융이력부족자(씬파일러) - 주부 · 사회초년생 · 프리랜서 등 |
-| 📄 **금융 기록만 본다** | 기존 신용평가(CB)는 대출 · 카드 기록으로 점수를 매겨, 기록이 얇으면 판단할 근거가 없어 거절되기 쉽다 |
-| ⚖️ **이유를 설명해야 한다** | AI로 심사받은 고객은 결과의 이유를 요구할 수 있다 (신용정보법 제36조의2) |
-| 🚫 **차별하면 안 된다** | 성별 · 나이 등으로 대출 조건을 차별할 수 없다 (금융소비자보호법 제15조, 금융분야 AI 가이드라인) |
+| 👥&nbsp;**약&nbsp;1,107만&nbsp;명** | 국내 금융이력부족자(씬파일러) - 주부 · 사회초년생 · 프리랜서 등 |
+| 📄&nbsp;**금융&nbsp;기록만&nbsp;본다** | 기존 신용평가(CB)는 대출 · 카드 기록으로 점수를 매겨, 기록이 얇으면 판단할 근거가 없어 거절되기 쉽다 |
+| ⚖️&nbsp;**이유를&nbsp;설명해야&nbsp;한다** | AI로 심사받은 고객은 결과의 이유를 요구할 수 있다 (신용정보법 제36조의2) |
+| 🚫&nbsp;**차별하면&nbsp;안&nbsp;된다** | 성별 · 나이 등으로 대출 조건을 차별할 수 없다 (금융소비자보호법 제15조, 금융분야 AI 가이드라인) |
 
 <sub>출처: 금융위원회 보도자료 「데이터 경제 활성화를 위한 신용정보산업 선진화 방안」(2018.11.21) · 신용정보법 · 금융소비자보호법 · 금융위원회 「금융분야 인공지능(AI) 가이드라인」(2021.7.8)</sub>
 
@@ -82,12 +82,12 @@
 
 | 영역 | 기능 | 하는 일 |
 | :---: | --- | --- |
-| 🧾 **심사** | 고객 심사 | 고객 ID로 불러오거나 새로 입력 → 승인 · 거절, 신용 점수, A\~E 등급, 부도 확률. 심사 이력 저장 |
-| 🧠 **설명** | 거절 사유 Top 5 | SHAP으로 결과에 가장 크게 영향을 준 정보 5개를 고르고, 동일 연령대 평균과 비교한 안내 문장 생성 |
-| | 승인 조건 | 바꿀 수 있는 정보만 한 칸씩 움직여 승인 기준을 넘는 변화를 찾아 제안 (Counterfactual) |
-| ⚖️ **공정성** | 성별 · 나이 점검 | 집단별 승인율 비율(DI Ratio)과 Equalized Odds 계산, 기준을 넘으면 집단별 승인 기준선 조정 |
-| ✅ **검증** | 모델 성능 · 통계 검증 | Test AUC · KS · PSI · 씬파일러 AUC 향상, 성능 차이가 우연이 아닌지 ANOVA와 Tukey HSD |
-| 📡 **모니터링** | 데이터 변화 탐지 | 점수 분포(PSI)와 입력 칸별 분포(CSI)로 데이터가 바뀌었는지 경고 |
+| 🧾&nbsp;**심사** | 고객&nbsp;심사 | 고객 ID로 불러오거나 새로 입력 → 승인 · 거절, 신용 점수, A\~E 등급, 부도 확률. 심사 이력 저장 |
+| 🧠&nbsp;**설명** | 거절&nbsp;사유&nbsp;Top&nbsp;5 | SHAP으로 결과에 가장 크게 영향을 준 정보 5개를 고르고, 동일 연령대 평균과 비교한 안내 문장 생성 |
+| | 승인&nbsp;조건 | 바꿀 수 있는 정보만 한 칸씩 움직여 승인 기준을 넘는 변화를 찾아 제안 (Counterfactual) |
+| ⚖️&nbsp;**공정성** | 성별&nbsp;·&nbsp;나이&nbsp;점검 | 집단별 승인율 비율(DI Ratio)과 Equalized Odds 계산, 기준을 넘으면 집단별 승인 기준선 조정 |
+| ✅&nbsp;**검증** | 모델&nbsp;성능&nbsp;·&nbsp;통계&nbsp;검증 | Test AUC · KS · PSI · 씬파일러 AUC 향상, 성능 차이가 우연이 아닌지 ANOVA와 Tukey HSD |
+| 📡&nbsp;**모니터링** | 데이터&nbsp;변화&nbsp;탐지 | 점수 분포(PSI)와 입력 칸별 분포(CSI)로 데이터가 바뀌었는지 경고 |
 
 > 아래 화면도 모두 실제 대시보드에서 캡처했습니다. 제목을 누르면 펼쳐집니다.
 
@@ -139,25 +139,13 @@
 
 학습 파이프라인이 만든 모델과 검증 결과를 API가 제공하고, 대시보드는 **모델 파일을 직접 읽지 않고 API로만** 결과를 받습니다 (MSA 구조).
 
-```mermaid
-flowchart LR
-    subgraph P["학습 파이프라인 (main_step1~6, main_bonus_*)"]
-        D["GMSC 15만 명<br/>+ 대안 데이터 시뮬레이터"] --> T["전처리 · 분할<br/>Train / Validation / Test"]
-        T --> M["모델 18개 학습<br/>5-Fold CV"]
-        M --> V["검증<br/>성능 · SHAP · 공정성 · ANOVA"]
-    end
-    M -- "최종 모델 (models/)" --> A
-    V -- "검증 결과 JSON (outputs/)" --> A
-    M -. "실험 기록" .-> F[("MLflow<br/>:5000")]
-    A["FastAPI<br/>:8000"] <-- "HTTP" --> S["Streamlit 대시보드<br/>:8501"]
-    U(["대출 심사 담당자"]) --> S
-```
+![시스템 구성: 대출 심사 담당자는 Streamlit 대시보드(8501)를 쓰고, 대시보드는 HTTP로만 FastAPI(8000)에 묻는다. API는 models/ · outputs/ · data/를 읽고, 오프라인 학습 파이프라인이 모델과 검증 결과를 만들어 두며 실험은 MLflow(5000)에 기록된다](docs/images/architecture.svg)
 
 | 서비스 | 주소 | 역할 |
 | --- | --- | --- |
-| 🔌 API (FastAPI) | `localhost:8000/docs` | `/predict` · `/explain` · `/counterfactual` · `/fairness` · `/metrics` · `/anova` · `/drift` · `/screenings` 등, 모든 응답에 Pydantic 스키마 |
-| 🖥️ 대시보드 (Streamlit) | `localhost:8501` | 고객 심사 · XAI 분석 · 공정성 · 모델 성능 · 통계 검증 5개 페이지 |
-| 🧪 MLflow | `localhost:5000` | 후보 모델 18개와 최종 모델 기록 |
+| 🔌&nbsp;API&nbsp;(FastAPI) | `localhost:8000/docs` | `/predict` · `/explain` · `/counterfactual` · `/fairness` · `/metrics` · `/anova` · `/drift` · `/screenings` 등, 모든 응답에 Pydantic 스키마 |
+| 🖥️&nbsp;대시보드&nbsp;(Streamlit) | `localhost:8501` | 고객 심사 · XAI 분석 · 공정성 · 모델 성능 · 통계 검증 5개 페이지 |
+| 🧪&nbsp;MLflow | `localhost:5000` | 후보 모델 18개와 최종 모델 기록 |
 
 ---
 
@@ -207,24 +195,24 @@ flowchart LR
 
 | 항목 | 목표 | 결과 | 판정 |
 | --- | :---: | :---: | :---: |
-| 🎯 Test AUC-ROC | 0.78 이상 | **0.889** | 통과 |
-| 📏 Test KS | 0.28 이상 | **0.613** | 통과 |
-| 🧊 PSI (Train vs Test) | 0.1 미만 | **0.0004** | 통과 |
-| 🌱 씬파일러 AUC 향상 | +0.03 이상 | **+0.066** | 통과 |
-| ⚖️ 공정성 (DI Ratio · Equalized Odds) | 0.8\~1.25 · 0.10 이하 | **0.988 · 0.04 / 0.06** (보정 후) | 통과 |
-| 📊 ANOVA | 1개 이상 p < 0.05 | **두 검증 모두 p < 0.001** | 통과 |
-| ⏱️ `/predict` 응답 시간 | 2초 이내 | **첫 호출 0.92초, 이후 0.1초 이하** | 통과 |
-| 🧪 pytest | 10개 이상 · 80% 통과 | **179개 모두 통과** | 통과 |
+| 🎯&nbsp;Test&nbsp;AUC-ROC | 0.78 이상 | **0.889** | 통과 |
+| 📏&nbsp;Test&nbsp;KS | 0.28 이상 | **0.613** | 통과 |
+| 🧊&nbsp;PSI&nbsp;(Train&nbsp;vs&nbsp;Test) | 0.1 미만 | **0.0004** | 통과 |
+| 🌱&nbsp;씬파일러&nbsp;AUC&nbsp;향상 | +0.03 이상 | **+0.066** | 통과 |
+| ⚖️&nbsp;공정성&nbsp;(DI&nbsp;Ratio&nbsp;·&nbsp;Equalized&nbsp;Odds) | 0.8\~1.25 · 0.10 이하 | **0.988 · 0.04 / 0.06** (보정 후) | 통과 |
+| 📊&nbsp;ANOVA | 1개 이상 p < 0.05 | **두 검증 모두 p < 0.001** | 통과 |
+| ⏱️&nbsp;`/predict`&nbsp;응답&nbsp;시간 | 2초 이내 | **첫 호출 0.92초, 이후 0.1초 이하** | 통과 |
+| 🧪&nbsp;pytest | 10개 이상 · 80% 통과 | **179개 모두 통과** | 통과 |
 
 ### 추가 과제 5개
 
 | 과제 | 결과 |
 | --- | --- |
-| 🔍 LIME과 SHAP 비교 | 고객 200명의 상위 5개 변수 평균 일치율 **0.405** (거절 고객 0.472). 두 기법이 보는 관점이 다름을 확인 |
-| 🔁 승인 조건 제안 (Counterfactual) | 바꿀 수 없는 정보(나이 · 과거 연체 등)는 고정하고, 승인 기준을 넘는 변화를 단계적으로 찾아 제안 - `POST /counterfactual` |
-| 📊 이원 분산분석 | 대안 데이터 효과가 씬파일러(**+0.070**)에서 일반 고객(+0.027)보다 큼 - 교호작용 F = 15.58, p < 0.001 |
-| 📡 PSI · CSI 데이터 변화 탐지 | 시나리오 4개로 점수 PSI와 칸별 CSI 비교 (위 ⑤) - `GET /drift` |
-| 🏦 기존 신용평가 모델과의 비교 실험 모의 시행 | 같은 승인율(76.8%)에서 부도율 **2.07% → 1.72% (-16.5%)**, 부도 357명 → 298명 |
+| 🔍&nbsp;LIME과&nbsp;SHAP&nbsp;비교 | 고객 200명의 상위 5개 변수 평균 일치율 **0.405** (거절 고객 0.472). 두 기법이 보는 관점이 다름을 확인 |
+| 🔁&nbsp;승인&nbsp;조건&nbsp;제안&nbsp;(Counterfactual) | 바꿀 수 없는 정보(나이 · 과거 연체 등)는 고정하고, 승인 기준을 넘는 변화를 단계적으로 찾아 제안 - `POST /counterfactual` |
+| 📊&nbsp;이원&nbsp;분산분석 | 대안 데이터 효과가 씬파일러(**+0.070**)에서 일반 고객(+0.027)보다 큼 - 교호작용 F = 15.58, p < 0.001 |
+| 📡&nbsp;PSI&nbsp;·&nbsp;CSI&nbsp;데이터&nbsp;변화&nbsp;탐지 | 시나리오 4개로 점수 PSI와 칸별 CSI 비교 (위 ⑤) - `GET /drift` |
+| 🏦&nbsp;기존&nbsp;신용평가&nbsp;모델과의&nbsp;비교&nbsp;실험&nbsp;모의&nbsp;시행 | 같은 승인율(76.8%)에서 부도율 **2.07% → 1.72% (-16.5%)**, 부도 357명 → 298명 |
 
 <details>
 <summary>📈 모델 18개 비교 · ANOVA 그림 보기</summary>
@@ -303,11 +291,11 @@ flowchart LR
 
 | 분류 | 기술 |
 | --- | --- |
-| 🧮 **데이터 · 모델** | ![Python](https://img.shields.io/badge/Python_3.12-3776AB?logo=python&logoColor=white) ![pandas](https://img.shields.io/badge/pandas-150458?logo=pandas&logoColor=white) ![scikit-learn](https://img.shields.io/badge/scikit--learn-F7931E?logo=scikitlearn&logoColor=white) ![XGBoost](https://img.shields.io/badge/XGBoost-337AB7) ![LightGBM](https://img.shields.io/badge/LightGBM-9ACD32) ![imbalanced-learn](https://img.shields.io/badge/imbalanced--learn_(SMOTE)-555555) |
-| 🧠 **설명 (XAI)** | ![SHAP](https://img.shields.io/badge/SHAP-FF4B4B) ![LIME](https://img.shields.io/badge/LIME-6A1B9A) |
-| ⚖️ **공정성 · 통계** | ![Fairlearn](https://img.shields.io/badge/Fairlearn-4B8BBE) ![SciPy](https://img.shields.io/badge/SciPy_(ANOVA,_Tukey_HSD)-8CAAE6?logo=scipy&logoColor=white) |
-| 🔌 **API · 화면** | ![FastAPI](https://img.shields.io/badge/FastAPI-009688?logo=fastapi&logoColor=white) ![Pydantic](https://img.shields.io/badge/Pydantic-E92063?logo=pydantic&logoColor=white) ![Streamlit](https://img.shields.io/badge/Streamlit-FF4B4B?logo=streamlit&logoColor=white) ![Plotly](https://img.shields.io/badge/Plotly-3F4F75?logo=plotly&logoColor=white) |
-| 🐳 **실험 · 배포** | ![MLflow](https://img.shields.io/badge/MLflow-0194E2?logo=mlflow&logoColor=white) ![Docker](https://img.shields.io/badge/Docker_Compose-2496ED?logo=docker&logoColor=white) ![pytest](https://img.shields.io/badge/pytest-0A9EDC?logo=pytest&logoColor=white) ![GitHub Actions](https://img.shields.io/badge/GitHub_Actions-2088FF?logo=githubactions&logoColor=white) |
+| 🧮&nbsp;**데이터&nbsp;·&nbsp;모델** | ![Python](https://img.shields.io/badge/Python_3.12-3776AB?logo=python&logoColor=white) ![pandas](https://img.shields.io/badge/pandas-150458?logo=pandas&logoColor=white) ![scikit-learn](https://img.shields.io/badge/scikit--learn-F7931E?logo=scikitlearn&logoColor=white) ![XGBoost](https://img.shields.io/badge/XGBoost-337AB7) ![LightGBM](https://img.shields.io/badge/LightGBM-9ACD32) ![imbalanced-learn](https://img.shields.io/badge/imbalanced--learn_(SMOTE)-555555) |
+| 🧠&nbsp;**설명&nbsp;(XAI)** | ![SHAP](https://img.shields.io/badge/SHAP-FF4B4B) ![LIME](https://img.shields.io/badge/LIME-6A1B9A) |
+| ⚖️&nbsp;**공정성&nbsp;·&nbsp;통계** | ![Fairlearn](https://img.shields.io/badge/Fairlearn-4B8BBE) ![SciPy](https://img.shields.io/badge/SciPy_(ANOVA,_Tukey_HSD)-8CAAE6?logo=scipy&logoColor=white) |
+| 🔌&nbsp;**API&nbsp;·&nbsp;화면** | ![FastAPI](https://img.shields.io/badge/FastAPI-009688?logo=fastapi&logoColor=white) ![Pydantic](https://img.shields.io/badge/Pydantic-E92063?logo=pydantic&logoColor=white) ![Streamlit](https://img.shields.io/badge/Streamlit-FF4B4B?logo=streamlit&logoColor=white) ![Plotly](https://img.shields.io/badge/Plotly-3F4F75?logo=plotly&logoColor=white) |
+| 🐳&nbsp;**실험&nbsp;·&nbsp;배포** | ![MLflow](https://img.shields.io/badge/MLflow-0194E2?logo=mlflow&logoColor=white) ![Docker](https://img.shields.io/badge/Docker_Compose-2496ED?logo=docker&logoColor=white) ![pytest](https://img.shields.io/badge/pytest-0A9EDC?logo=pytest&logoColor=white) |
 
 정확한 버전은 [`requirements.txt`](requirements.txt)에 있습니다.
 
@@ -315,11 +303,11 @@ flowchart LR
 
 | 문서 | 내용 |
 | --- | --- |
-| 📝 [실험 리포트](docs/report_draft.md) | 문제 정의 · EDA · 시뮬레이터 · 모델 비교 · XAI · 공정성 · ANOVA · 결론 |
-| 📐 [칸 이름 · 단위](docs/column_spec.md) | 입력 15개 칸의 이름 · 단위 · 월소득 환산(PPP) |
-| 🧪 [대안 데이터 시뮬레이션](docs/alt_data_simulation.md) | 시뮬레이터 설계와 보정 실험 |
-| 📦 [모델 기록](models/README.md) | 최종 모델 · 스케일러 변경 이력 |
-| 🌿 [Git 규칙](docs/git_conventions.md) | 브랜치 · 커밋 · PR 규칙 |
+| 📝&nbsp;[실험&nbsp;리포트](docs/report_draft.md) | 문제 정의 · EDA · 시뮬레이터 · 모델 비교 · XAI · 공정성 · ANOVA · 결론 |
+| 📐&nbsp;[칸&nbsp;이름&nbsp;·&nbsp;단위](docs/column_spec.md) | 입력 15개 칸의 이름 · 단위 · 월소득 환산(PPP) |
+| 🧪&nbsp;[대안&nbsp;데이터&nbsp;시뮬레이션](docs/alt_data_simulation.md) | 시뮬레이터 설계와 보정 실험 |
+| 📦&nbsp;[모델&nbsp;기록](models/README.md) | 최종 모델 · 스케일러 변경 이력 |
+| 🌿&nbsp;[Git&nbsp;규칙](docs/git_conventions.md) | 브랜치 · 커밋 · PR 규칙 |
 
 ---
 
@@ -335,9 +323,9 @@ docker compose up --build     # 처음 한 번은 이미지 빌드에 몇 분 �
 
 | 열기 | 주소 |
 | --- | --- |
-| 🖥️ 대시보드 | http://localhost:8501 - 고객 심사 화면 오른쪽 "일반 고객" · "씬파일러" 예시부터 눌러 보세요 |
-| 🔌 API 문서 (Swagger) | http://localhost:8000/docs |
-| 🧪 MLflow | http://localhost:5000 |
+| 🖥️&nbsp;대시보드 | http://localhost:8501 - 고객 심사 화면 오른쪽 "일반 고객" · "씬파일러" 예시부터 눌러 보세요 |
+| 🔌&nbsp;API&nbsp;문서&nbsp;(Swagger) | http://localhost:8000/docs |
+| 🧪&nbsp;MLflow | http://localhost:5000 |
 
 로컬 실행, 파이프라인 재실행, 테스트는 [상세 실행 방법](#-부록-상세-실행-방법)에 있습니다.
 
