@@ -13,16 +13,6 @@ section[data-testid="stSidebar"] .stElementContainer:has(.hdr) { position: stati
 .hdr-brand div { display: flex; flex-direction: column; }
 .hdr-brand b { font-size: 17px; font-weight: 700; line-height: 1.3; color: #191F28; letter-spacing: -0.01em; }
 .hdr-brand span { font-size: 12px; line-height: 1.3; color: #8B95A1; }
-.hdr-right { display: flex; align-items: center; gap: 12px; font-size: 13px; }
-.hdr-badge {
-  box-sizing: border-box; text-align: center;
-  padding: 6px 12px; border-radius: 999px; border: 0; background: #F2F4F6;
-  color: #4E5968; font-weight: 600; white-space: nowrap; line-height: 1.4;
-}
-.hdr-account {
-  width: 40px; height: 40px; border-radius: 50%; background: #F2F4F6;
-  display: flex; align-items: center; justify-content: center;
-}
 
 /* 로고 영역 전체가 '처음 화면으로' 버튼 (투명 버튼을 겹친다) */
 section[data-testid="stSidebar"] .st-key-hdr-home {

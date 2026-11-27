@@ -327,6 +327,8 @@ docker compose up --build     # 처음 한 번은 이미지 빌드에 몇 분 �
 | 🔌&nbsp;API&nbsp;문⁠서&nbsp;(Swagger) | http://localhost:8000/docs |
 | 🧪&nbsp;MLflow | http://localhost:5000 |
 
+고객 심사 3/3 화면은 서류 · 신용정보 · 대안정보를 출처별 카드로 보여 줍니다. 대안정보는 원천 기록 형태로 환산해 보여 줘요 (예: 통신비 정상납부율 78% → 통신요금 19 / 24개월). 모델 입력값과 데이터는 그대로입니다.
+
 로컬 실행, 파이프라인 재실행, 테스트는 [상세 실행 방법](#-부록-상세-실행-방법)에 있습니다.
 
 ---
@@ -493,7 +495,7 @@ xai-credit-scoring/
 | `API_BASE_URL` | `http://localhost:8000` | 대시보드가 부를 API 주소 (Docker Compose에서는 자동으로 `http://api:8000`) |
 | `API_TIMEOUT` / `HEALTH_TIMEOUT` | 5 / 2 | API 응답 대기 시간(초) |
 | `COUNTERFACTUAL_TIMEOUT` | 15 | `POST /counterfactual` 응답 대기 시간(초). 후보를 여러 번 계산해 다른 API보다 느림 |
-| `CB_LOADING_SECONDS` | 4 | 고객 심사 2/3 → 3/3 사이 '신용정보원(CB) · 대안정보를 가져오는' 연출 시간(초). 0 이면 연출 없음 |
+| `CB_LOADING_SECONDS` | 7.2 | 고객 심사 2/3 → 3/3 사이 기관별 신용정보 · 대안정보 불러오기 연출 시간(초). 0 이면 연출 없음 |
 | `SCREENING_LOADING_SECONDS` | 3 | 고객 심사 3/3 '심사 실행' → 결과 사이 '심사를 진행하고 있어요' 연출의 최소 시간(초). 실제 심사가 더 걸리면 그만큼 길어짐 |
 | `API_LOG` | (끔) | 대시보드의 API 호출을 터미널에 기록. `1` 은 `POST /predict 200 (24ms)` 한 줄, `body` 는 요청·응답 JSON 까지 (목록은 한 건씩 한 줄) |
 | `API_LOG_BODY_MAX` | 600 | `API_LOG=body` 에서 한 줄 최대 글자 수. `0` 이면 자르지 않음 |

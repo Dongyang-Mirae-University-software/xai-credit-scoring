@@ -55,7 +55,7 @@ def _get_explain(customer_id):
 
 
 # ---------------------------------------------------------------------------
-# 머리: 흐름 경로 + 제목 + 심사 결과로 · 조건 바꿔 재심사 · 상담 마치기
+# 머리: 흐름 경로 + 제목 + 조건 바꿔 재심사 · 상담 마치기
 # ---------------------------------------------------------------------------
 def _crumb(customer_id):
     """흐름 경로: 고객 심사 › 이름 심사 결과 › 판단 근거. 앞의 두 단계는 눌러서 돌아갈 수 있다."""
@@ -74,7 +74,7 @@ def _crumb(customer_id):
 
 
 def _head(customer_id):
-    """제목 + (상담 중인 고객이 있으면) 흐름 경로 · 심사 결과로 · 조건 바꿔 재심사 · 상담 마치기.
+    """제목 + (상담 중인 고객이 있으면) 흐름 경로 · 조건 바꿔 재심사 · 상담 마치기.
     창구는 한 번에 한 고객이라 다른 고객을 고르는 목록은 두지 않는다."""
     if customer_id:
         _crumb(customer_id)
@@ -94,9 +94,6 @@ def _head(customer_id):
                     _find_dialog()
             return
         with st.container(key="xai-pick", horizontal=True, vertical_alignment="center", gap="small"):
-            if st.button("심사 결과로", key="xai-to-result"):
-                CF.open_result(customer_id)
-                st.switch_page(CF.SCREENING_PAGE)
             if st.button("조건 바꿔 재심사", key="xai-rescreen", disabled=connection.is_down()):
                 # 고객 심사의 3/3 전체 확인으로 (그 고객 값이 채워진다). 심사 실행 → 고객 심사 결과 화면
                 CF.edit(st.session_state.customers[customer_id]["profile"])
@@ -185,7 +182,7 @@ def _factor_list(items, top, kind):
     if not items:
         return '<p class="xs-none">해당하는 정보가 없어요</p>'
     rows = "".join(
-        f'<li><span>{escape(F.label(f))}</span><i><em class="{kind}" style="width:{abs(v) / top * 100:.0f}%"></em></i>'
+        f'<li><span>{escape(F.name(f))}</span><i><em class="{kind}" style="width:{abs(v) / top * 100:.0f}%"></em></i>'
         f'<b class="{kind}">{_signed(v)}</b></li>' for f, v in items[:3])
     more = f'<p class="xs-more">외 {len(items) - 3}개</p>' if len(items) > 3 else ""
     return f'<ul class="xs-factors">{rows}</ul>{more}'
@@ -201,10 +198,10 @@ def _overview_tab(explain, entry):
     downs = sorted([(f, v) for f, v in shap.items() if v < 0], key=lambda kv: kv[1])
     top = max([abs(v) for _, v in ups[:3] + downs[:3]] or [1]) or 1
     if approved:
-        reason = (f"{_pair([F.label(f) for f, _ in downs[:2]])} 승인에 가장 크게 기여했어요." if downs
+        reason = (f"{_pair([F.name(f) for f, _ in downs[:2]])} 승인에 가장 크게 기여했어요." if downs
                   else "부도 위험을 크게 높인 정보 없이 승인 기준을 통과했어요.")
     else:
-        reason = (f"{_pair([F.label(f) for f, _ in ups[:2]])} 거절의 가장 큰 이유예요." if ups
+        reason = (f"{_pair([F.name(f) for f, _ in ups[:2]])} 거절의 가장 큰 이유예요." if ups
                   else "부도 확률이 승인 기준을 넘었어요.")
     prob, base = result["default_probability"], explain.get("base_value")
     avg = _sigmoid(base) if base is not None else None
@@ -250,11 +247,11 @@ def _summary_html(explain, result):
     ups = sorted([(f, v) for f, v in shap.items() if v > 0], key=lambda kv: -kv[1])
     downs = sorted([(f, v) for f, v in shap.items() if v < 0], key=lambda kv: kv[1])
     if approved and downs:
-        line = f"{escape(_pair([F.label(f) for f, _ in downs[:2]]))}<br>승인에 가장 크게 기여했어요."
+        line = f"{escape(_pair([F.name(f) for f, _ in downs[:2]]))}<br>승인에 가장 크게 기여했어요."
     elif approved:
         line = "부도 위험을 크게 높인 정보 없이<br>승인 기준을 통과했어요."
     elif ups:
-        line = f"{escape(_pair([F.label(f) for f, _ in ups[:2]]))}<br>거절의 가장 큰 이유예요."
+        line = f"{escape(_pair([F.name(f) for f, _ in ups[:2]]))}<br>거절의 가장 큰 이유예요."
     else:
         line = "부도 확률이 승인 기준을 넘었어요."
 
@@ -262,7 +259,7 @@ def _summary_html(explain, result):
     base = explain.get("base_value")
     avg = f"평균 고객 {_pct(_sigmoid(base))}" if base is not None else ""
     n_alt = sum(1 for f, _ in ups if F.is_alternative(f))
-    down_names = [F.label(f) for f, _ in downs]
+    down_names = [F.name(f) for f, _ in downs]
     down_sub = (", ".join(down_names[:2]) + (f" 외 {len(down_names) - 2}개" if len(down_names) > 2 else "")
                 ) if down_names else "없음"
     return f"""
@@ -297,7 +294,7 @@ def _reasons(explain, result, name=None):
             notice = "\n".join(
                 [f"[대출 심사 결과 안내] {name + ' ' if name else ''}고객님",
                  "고객님의 대출 신청은 아래 사유로 승인되지 않았습니다.", ""]
-                + [f"{i}. {F.label(r['feature'])}: {CONTRIBUTION_SUFFIX.sub('', r.get('explanation') or '')}"
+                + [f"{i}. {F.name(r['feature'])}: {F.reason_sentence(r['feature'], r.get('current_value'), r.get('reference_value'), CONTRIBUTION_SUFFIX.sub('', r.get('explanation') or ''))}"
                    for i, r in enumerate(reasons, 1)]
                 + ["", config.DISCLAIMER])
             with st.container(key="xai-copy"):
@@ -315,8 +312,8 @@ def _reasons(explain, result, name=None):
       <li>
         <i class="xr-rank">{r.get("rank", i)}</i>
         <div class="xr-main">
-          <div class="xr-title"><strong title="{escape(r["feature"])}">{escape(F.label(r["feature"]))}</strong>{_tag(r["feature"])}</div>
-          <p>{escape(CONTRIBUTION_SUFFIX.sub("", r.get("explanation") or ""))}</p>
+          <div class="xr-title"><strong title="{escape(r["feature"])}">{escape(F.name(r["feature"]))}</strong>{_tag(r["feature"])}</div>
+          <p>{escape(F.reason_sentence(r["feature"], r.get("current_value"), r.get("reference_value"), CONTRIBUTION_SUFFIX.sub("", r.get("explanation") or "")))}</p>
         </div>
         <div class="xr-value"><b>{F.fmt_value(r["feature"], r.get("current_value"))}</b><span>{escape(ref_text(r))}</span></div>
         <div class="xr-bar"><i><em class="{"up" if phi >= 0 else "down"}" style="width:{abs(phi) / top * 100:.1f}%"></em></i>
@@ -345,7 +342,7 @@ def _waterfall(explain, entry):
     payload, result = entry["payload"], entry["result"]
     ordered = sorted(shap.items(), key=lambda kv: abs(kv[1]), reverse=True)
     shown, rest = ordered[:config.WATERFALL_MAX_DISPLAY], ordered[config.WATERFALL_MAX_DISPLAY:]
-    rows = [(f'{escape(F.label(f))} <b>{escape(F.fmt_input(f, payload.get(f)))}</b>', v) for f, v in shown]
+    rows = [(f'{escape(F.name(f))} <b>{escape(F.fmt_input(f, payload.get(f)))}</b>', v) for f, v in shown]
     if rest:
         rows.append((f"기타 {len(rest)}개 변수", sum(v for _, v in rest)))
 
@@ -442,7 +439,7 @@ def _how_to_read():
 def _beeswarm_head(summary):
     """카드 머리 (토스식): '모델은 ○○과 ○○를 가장 많이 봐요' 큰 한 줄 + 대안 데이터 비중."""
     feats = sorted(summary.get("features", []), key=lambda x: x["mean_abs_shap"], reverse=True)
-    names = [F.label(x["feature"]) for x in feats[:2]]
+    names = [F.name(x["feature"]) for x in feats[:2]]
     if len(names) == 2:
         title = f'모델은 {names[0]}{F.josa(names[0], "과", "와")} {names[1]}{F.josa(names[1], "을", "를")} 가장 많이 봐요'
     elif names:
@@ -484,7 +481,7 @@ def _beeswarm(summary, reason_features):
         rows.append(f"""
         <li class="{"mine" if mine else ""}">
           <span class="bs-rank">{rank}</span>
-          <span class="bs-name"><span class="{name_cls}" title="{escape(f)}">{escape(F.label(f))}</span>{tag}</span>
+          <span class="bs-name"><span class="{name_cls}" title="{escape(f)}">{escape(F.name(f))}</span>{tag}</span>
           <span class="bs-track"><i class="zero" style="left:{pos(0):.2f}%"></i>{dots}</span>
           <span class="bs-dir">{direction}</span>
         </li>""")
@@ -527,7 +524,7 @@ def _summary_tab(reason_features=frozenset()):
 # ---------------------------------------------------------------------------
 # 페이지
 # ---------------------------------------------------------------------------
-st.html(f"<style>{CF.WORKSPACE_CSS}{CSS_PATH.read_text(encoding='utf-8')}</style>")
+st.html(f"<style>{CF.workspace_css()}{CSS_PATH.read_text(encoding='utf-8')}</style>")
 _init_state()
 customer_id = CF.current_customer()
 _head(customer_id)

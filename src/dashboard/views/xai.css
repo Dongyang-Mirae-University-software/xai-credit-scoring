@@ -838,20 +838,6 @@ div[role="dialog"]:has(.xai-find-sub) > div:first-child p {
   font-weight: 700;
   color: var(--accent);
 }
-.st-key-xai-to-result button {
-  height: 44px;
-  min-height: 44px;
-  padding: 0 16px;
-  border: 0;
-  border-radius: 12px;
-  background: var(--card);
-}
-.st-key-xai-to-result button p {
-  font-size: 14px;
-  font-weight: 700;
-  color: var(--ink-2);
-  white-space: nowrap;
-}
 .st-key-xai-crumb > * {
   flex: 0 0 auto !important;
   width: auto !important;
@@ -870,6 +856,9 @@ div[role="dialog"]:has(.xai-find-sub) > div:first-child p {
   font-weight: 700;
   color: #fff;
   white-space: nowrap;
+}
+.st-key-xai-end button:hover {
+  background: #333d4b;
 }
 
 /* ========== 한 화면 배치: 고객 정보 + 한 줄 요약 한 카드, 아래는 탭 ========== */

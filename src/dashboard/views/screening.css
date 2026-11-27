@@ -2,19 +2,6 @@
    색 · 글자 토큰은 components/workspace.css */
 
 /* =========================================================================
-   01 첫 화면
-   ========================================================================= */
-/* 결과 화면 '이전': 흰 바탕 테두리 버튼 + 왼쪽 화살표 (오른쪽 화살표 아이콘을 뒤집는다) */
-.st-key-scr-back button {
-  display: inline-flex; align-items: center; gap: 6px;
-  height: 44px; min-height: 44px; padding: 0 18px 0 14px; border-radius: var(--radius-ctl);
-  border: 0; background: var(--card); color: var(--ink-2);
-}
-.st-key-scr-back button::before { transform: rotate(180deg); }
-.st-key-scr-back button p { font-size: 15px; font-weight: 700; color: var(--ink-2); }
-.st-key-scr-back button:hover { background: var(--fill-hover); }
-
-/* =========================================================================
    03 / 04 결과
    ========================================================================= */
 .st-key-scr-result-head { justify-content: space-between; flex-wrap: nowrap; }
@@ -81,7 +68,7 @@
 .scr-bar .seg-C { background: #FFC342; }
 .scr-bar .seg-B { background: #7DD3A8; }
 .scr-bar .seg-A { background: #03A94D; }
-/* 승인 기준 점선 (650점) */
+/* 승인 기준 점선 (점수는 API approval_score) */
 .scr-bar u { position: absolute; top: -4px; bottom: -4px; border-left: 2px dashed var(--ink); opacity: .45; }
 .scr-bar-note { margin: 4px 0 0; font-size: 12px; color: var(--ink-3); }
 .scr-bar em { position: absolute; top: -6px; width: 4px; height: 24px; margin-left: -2px; border-radius: 2px; background: var(--ink); }
@@ -89,9 +76,13 @@
   display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 3px;
   font-size: 12px; color: var(--ink-3); text-align: center;
 }
-.scr-bar-labels b.ok { color: var(--ok-text); }
-.scr-bar-labels b.mid { color: var(--mid-text); }
-.scr-bar-labels b.fail { color: var(--fail-text); }
+.scr-bar-labels > div { display: flex; flex-direction: column; align-items: center; gap: 2px; }
+.scr-bar-labels b { font-weight: 500; }
+.scr-bar-labels small { font-size: 11px; color: var(--ink-3); opacity: .8; font-variant-numeric: tabular-nums; }
+.scr-bar-labels .on b, .scr-bar-labels .on small { font-weight: 700; opacity: 1; }
+.scr-bar-labels .ok b, .scr-bar-labels .ok small { color: var(--ok-text); }
+.scr-bar-labels .mid b, .scr-bar-labels .mid small { color: var(--mid-text); }
+.scr-bar-labels .fail b, .scr-bar-labels .fail small { color: var(--fail-text); }
 .scr-prob { flex: 1 1 240px; min-width: 0; padding: 28px 32px; display: flex; flex-direction: column; gap: 10px; }
 .scr-prob p { margin: 0; font-size: 13px; color: var(--ink-3); }
 
@@ -156,12 +147,14 @@
 .scr-xp-go { flex: none; display: inline-flex; align-items: center; gap: 2px; font-size: 15px; font-weight: 700; color: var(--accent); white-space: nowrap; }
 [class*="st-key-scr-act-"]:hover .scr-xp { background: #F7FAFF; }
 
-/* 결과 화면 오른쪽 위: 이전 · 상담 마치기 */
+/* 결과 화면 오른쪽 위: 상담 마치기 */
 .st-key-scr-result-actions { width: auto !important; flex: 0 0 auto; }
 .st-key-scr-result-actions .stElementContainer { width: auto !important; }
 .st-key-scr-end button {
   height: 44px; min-height: 44px; padding: 0 18px; border-radius: var(--radius-ctl); border: 0; background: var(--ink);
 }
 .st-key-scr-end button p { font-size: 15px; font-weight: 700; color: #FFF; }
+/* 공통 secondary 호버(연회색)가 덮으면 흰 글자가 안 보여서, 진한 배경을 조금 밝게만 */
+.st-key-scr-end button:hover { background: #333D4B; }
 [data-testid="stLayoutWrapper"]:has(> .st-key-scr-result-actions) { flex: 0 0 auto; width: auto !important; margin-left: auto; }
 .st-key-scr-result-actions { justify-content: flex-end; }

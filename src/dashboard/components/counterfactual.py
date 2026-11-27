@@ -23,6 +23,13 @@ def _pct(p):
     return f"{p * 100:.1f}%"
 
 
+def _show(c, key):
+    """바꿀 정보 값 표기: 대안정보는 3/3 · XAI 와 같은 원천 기록 모양 (API 단위: 납부율 %, 건 · 회 그대로)."""
+    if F.source_record(c["feature"], 0) is not None:
+        return F.record_text(c["feature"], c[key])
+    return _value(c[key], c["unit"])
+
+
 def _value(v, unit):
     """API 의 unit 단위 값 → 화면 표기. 월소득(원)은 다른 화면처럼 만원으로."""
     if unit == "원":
@@ -47,9 +54,9 @@ def _verb(c):
 
 def _change_row(c):
     """바꿀 정보 한 줄 (토스식): 항목 ··· 지금 값 → 바꿀 값 · 늘리기/줄이기."""
-    return (f'<li><span class="cf2-name">{escape(c["feature_name_kr"])}</span>'
-            f'<span class="cf2-move"><em>{_value(c["current_value"], c["unit"])}</em>{ui.icon("arrow", "#B0B8C1", 16)}'
-            f'<b>{_value(c["suggested_value"], c["unit"])}</b></span><i class="cf2-verb">{_verb(c)}</i></li>')
+    return (f'<li><span class="cf2-name">{escape(F.name(c["feature"]))}</span>'
+            f'<span class="cf2-move"><em>{_show(c, "current_value")}</em>{ui.icon("arrow", "#B0B8C1", 16)}'
+            f'<b>{_show(c, "suggested_value")}</b></span><i class="cf2-verb">{_verb(c)}</i></li>')
 
 
 def _hero(cf, result):
@@ -59,8 +66,8 @@ def _hero(cf, result):
     ok = bool(plan.get("success"))
     if ok and len(changes) == 1:
         c = changes[0]
-        name = c["feature_name_kr"]
-        title = (f'{name}{F.josa(name, "을", "를")} {_value(c["suggested_value"], c["unit"])}로 '
+        name = F.name(c["feature"])
+        title = (f'{name}{F.josa(name, "을", "를")} {_show(c, "suggested_value")}{F.euro(_show(c, "suggested_value"))} '
                  f'{"늘리면" if _verb(c) == "늘리기" else "줄이면"} 승인될 수 있어요')
     elif ok:
         title = f"아래 {len(changes)}가지를 함께 바꾸면 승인될 수 있어요"
@@ -112,8 +119,8 @@ def _tips(cf):
                 '<p class="cf2-empty">고객이 바꿀 수 있는 정보가 없어요</p></section>')
     rows = []
     for c in items[:SINGLE_MAX]:
-        effect = (f'{escape(c["feature_name_kr"])} {_value(c["current_value"], c["unit"])} → '
-                  f'{_value(c["suggested_value"], c["unit"])}')
+        effect = (f'{escape(F.name(c["feature"]))} {_show(c, "current_value")} → '
+                  f'{_show(c, "suggested_value")}')
         prob = (f'면 부도 확률 <b>{_pct(c["new_probability"])}</b>' if c.get("new_probability") is not None
                 else " (함께 바꿀 때)")
         rows.append(f'<li><strong>{escape(TIPS[c["feature"]])}</strong><span>{effect}{prob}</span></li>')

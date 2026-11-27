@@ -4,7 +4,7 @@
 - 1/3 본인 확인: 이름 + 주민등록번호 → 정보 조회
 - 2/3 신청 정보: 월소득 · 부양가족 수 → 동의(개인 · 신용 · 대안정보) → 불러오기 연출
 - 3/3 전체 확인: 모든 정보 → 틀린 항목만 고치고 심사 실행 (결과는 서버 이력에 바로 남는다)
-- 결과 화면: 정보 수정 → 3/3, 이전 → 1/3
+- 결과 화면: 정보 수정 → 3/3, 상담 마치기 → 1/3
 고객 번호(customer_id)는 화면에 보이지 않는다. 고객 구분 · 서버 이력 · XAI 목록 같은 내부 구분에만 쓴다.
 - 로고 · 사이드바 '고객 심사' → 언제나 1/3
 """
@@ -46,11 +46,6 @@ def _start_view():
 # ---------------------------------------------------------------------------
 # 결과 화면 (디자인 03 승인 / 04 거절)
 # ---------------------------------------------------------------------------
-def _back():
-    """이전: 결과 화면을 닫고 1/3 본인 확인으로."""
-    CF.clear_result()
-
-
 def _completed_at(result):
     try:
         stamp = datetime.fromisoformat(result["timestamp"]).astimezone()
@@ -97,7 +92,8 @@ def _bar_pos(score, scale, low):
 
 
 def _score_bar(score, grade, approval_score):
-    """E~A 다섯 칸(구간은 API /health 의 grade_scale)과 점수 위치, 승인 기준 점선을 그린다. 구간을 못 받으면 막대 없이 문구만."""
+    """E~A 다섯 칸(구간은 API /health 의 grade_scale)과 점수 위치, 승인 기준 점선을 그린다.
+    칸 아래에 등급과 점수 구간(예: A 527~850)을 적는다. 구간을 못 받으면 막대 없이 문구만."""
     health = _health()
     scale, (low, high) = health.get("grade_scale"), health.get("score_range") or (300, 850)
     note = f'<p class="scr-bar-note">점수는 PDO 스코어카드 방식({low}~{high}점)이에요. 20점 오를 때마다 부도 위험(odds)이 절반이 돼요.'
@@ -106,7 +102,10 @@ def _score_bar(score, grade, approval_score):
     widths = " ".join("1fr" for _ in scale)
     tone = RISK_TONE[GRADE_RISK.get(grade, "high")]
     segs = "".join(f'<i class="seg-{g}"></i>' for g, _ in scale)
-    labels = "".join(f'<b class="{tone}">{g}</b>' if g == grade else f"<span>{g}</span>" for g, _ in scale)
+    lowers = [low] + [upper for _, upper in scale[:-1]]
+    ranges = [f"{lower}~{min(upper - 1, high)}" for (_, upper), lower in zip(scale, lowers)]
+    labels = "".join(f'<div class="{tone} on"><b>{g}</b><small>{r}</small></div>' if g == grade
+                     else f"<div><b>{g}</b><small>{r}</small></div>" for (g, _), r in zip(scale, ranges))
     line = ""
     if approval_score is not None:
         line = f'<u style="left:{_bar_pos(approval_score, scale, low):.1f}%"></u>'
@@ -148,7 +147,9 @@ def _decision_html(result):
 
 
 def _reason_text(reason):
-    return CONTRIBUTION_SUFFIX.sub("", reason.get("explanation") or "")
+    """거절 사유 문장 (대안정보는 XAI 분석 · 3/3 과 같은 원천 기록 모양으로)."""
+    return F.reason_sentence(reason["feature"], reason.get("current_value"), reason.get("reference_value"),
+                             CONTRIBUTION_SUFFIX.sub("", reason.get("explanation") or ""))
 
 
 # /predict 요청은 % 로 보내고 /explain 의 current_value 는 0~1 로 오는 칸
@@ -178,7 +179,7 @@ def _approval_factors(explain, profile):
         if current is not None and feature in PERCENT_FIELDS:
             current = current / 100
         rows.append({"feature": feature, "current_value": current, "reference_value": None,
-                     "explanation": f"{F.label(feature)} 값이 부도 위험을 낮췄어요."})
+                     "explanation": f"{F.name(feature)} 값이 부도 위험을 낮췄어요."})
     return rows
 
 
@@ -191,7 +192,7 @@ def _shap_cell(value):
 def _factor_table(label, explain, rows):
     body = "".join(
         f'<div class="scr-rr-row"><span class="scr-rr-rank">{r.get("rank", i)}</span>'
-        f'<strong>{escape(F.label(r["feature"]))}</strong>'
+        f'<strong>{escape(F.name(r["feature"]))}</strong>'
         f'<span class="scr-rr-text">{escape(_reason_text(r))}</span>'
         f'<b class="num">{F.fmt_value(r["feature"], r.get("current_value"))}</b>'
         f'<span class="num scr-rr-ref">{F.fmt_value(r["feature"], r.get("reference_value"))}</span>'
@@ -226,7 +227,7 @@ def _factors_section(result, profile, approved):
         notice = "\n".join(
             [f"[대출 심사 결과 안내] {profile['name'] + ' ' if profile.get('name') else ''}고객님",
              "고객님의 대출 신청은 아래 사유로 승인되지 않았습니다.", ""]
-            + [f"{i}. {F.label(r['feature'])}: {_reason_text(r)}" for i, r in enumerate(reasons, 1)]
+            + [f"{i}. {F.name(r['feature'])}: {_reason_text(r)}" for i, r in enumerate(reasons, 1)]
             + ["", config.DISCLAIMER])
         with st.container(key="scr-copy"):
             ui.copy_button("안내문 복사", notice)
@@ -270,7 +271,6 @@ def _result_view():
         st.html(f'<div class="ui-page-head"><div><h1>심사 결과</h1>'
                 f'<p>{_completed_at(result)} 심사 완료</p></div></div>')
         with st.container(key="scr-result-actions", horizontal=True, gap="small"):
-            st.button("이전", key="scr-back", on_click=_back)
             st.button("상담 마치기", key="scr-end", on_click=CF.end_consult)
 
     with st.container(key="scr-summary-card", horizontal=True, vertical_alignment="center"):
@@ -289,11 +289,10 @@ def _result_view():
 # ---------------------------------------------------------------------------
 # 페이지
 # ---------------------------------------------------------------------------
-st.html(f"<style>{CF.WORKSPACE_CSS}{CSS_PATH.read_text(encoding='utf-8')}{CF.CSS}"
+st.html(f"<style>{CF.workspace_css()}{CSS_PATH.read_text(encoding='utf-8')}{CF.css()}"
         + ui.mask_css(".st-key-frm-back button::before", "chevron", 16)
         + ui.mask_css(".st-key-apl-back button::before", "chevron", 16)
         + ui.mask_css(".st-key-agr-back button::before", "chevron", 16)
-        + ui.mask_css(".st-key-scr-back button::before", "chevron", 16)
         + ui.mask_css(".st-key-scr-edit button::before", "pencil", 14)
         + "</style>")
 CF.init_state()
