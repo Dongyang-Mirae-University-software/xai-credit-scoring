@@ -575,18 +575,12 @@ def _basic_section(profile):
 
 
 def _apply_section():
-    """신청 정보: 2/3 에서 받은 값. 글자로만 보여 주고, 줄을 누르면 2/3 으로 돌아가 고친다 (토스의 눌러서 이동하는 줄)."""
+    """신청 정보: 2/3 에서 받은 값. 여기서는 글자로만 보여 준다 (바꾸려면 '이전' 으로 2/3)."""
     with st.container(key="frm-sec-apply"):
-        st.html('<div class="frm-sec-head"><h2>신청 정보</h2><p>2단계에서 고객님께 받은 정보예요. 누르면 고칠 수 있어요</p></div>')
-        with st.container(key="frm-apply-rows"):
-            rows = ""
-            for field, label, unit, *_ in APPLY_FIELDS:
-                value = _val(field)
-                rows += (f'<div class="frm-fixed-row frm-link-row"><div class="frm-label"><span>{escape(label)}</span></div>'
-                         f'<b class="frm-fixed">{"-" if value is None else f"{value:,}"}</b>'
-                         f'<span class="frm-unit">{escape(unit)}</span>{ui.icon("chevron", "#B0B8C1", 18)}</div>')
-            st.html(rows)
-            st.button("신청 정보 고치기", key="frm-apply-edit", on_click=_go, args=("apply",))
+        st.html('<div class="frm-sec-head"><h2>신청 정보</h2><p>2단계에서 고객님께 받은 정보예요</p></div>')
+        for field, label, unit, *_ in APPLY_FIELDS:
+            value = _val(field)
+            _fixed_row(label, "", "-" if value is None else f"{value:,}", unit)
 
 
 def render_confirm(disabled=False):
