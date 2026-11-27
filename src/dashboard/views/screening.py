@@ -300,6 +300,8 @@ elif st.session_state.scr_step == "apply":
     CF.render_apply(disabled=connection.is_down())
 elif st.session_state.scr_step == "loading":
     CF.render_loading()
+elif st.session_state.scr_step == "judging":
+    CF.render_judging()
 elif st.session_state.scr_step == "confirm":
     CF.render_confirm(disabled=connection.is_down())
 else:

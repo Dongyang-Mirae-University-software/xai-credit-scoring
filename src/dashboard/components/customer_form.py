@@ -89,7 +89,7 @@ SAMPLE_CHIPS = [(cid, c["sample_label"]) for cid, c in CUSTOMERS.items() if c.ge
 def init_state():
     ss = st.session_state
     ss.setdefault("scr_current", None)   # 지금 보고 있는 심사 결과 {profile, result}. 있으면 고객 심사 = 결과 화면
-    ss.setdefault("scr_step", "identify")  # 결과가 없을 때: identify 1/3 · apply 2/3 · loading 연출 · confirm 3/3
+    ss.setdefault("scr_step", "identify")  # 결과가 없을 때: identify 1/3 · apply 2/3 · loading 연출 · confirm 3/3 · judging 심사 연출
     ss.setdefault("customers", {})       # 지금 상담 중인 고객 {id: {payload, result, profile}} (한 명)
     ss.setdefault("xai_explain", {})     # /explain 응답 캐시
 
@@ -452,15 +452,24 @@ LOADING_STEPS = [
 ]
 
 
-def _loading_html(done, name):
+# 심사 실행 연출 (3/3 → 결과): 실제 /predict · /explain 호출이 이 화면 뒤에서 돈다
+JUDGING_STEPS = [
+    ("입력한 정보를 확인하고 있어요", "입력한 정보를 확인했어요"),
+    ("모델이 부도 확률을 계산하고 있어요", "부도 확률을 계산했어요"),
+    ("판단 근거(SHAP)를 정리하고 있어요", "판단 근거를 정리했어요"),
+    ("심사 결과를 만들고 있어요", "심사 결과가 나왔어요"),
+]
+
+
+def _loading_html(done, name, steps=LOADING_STEPS, action="정보를<br>가져오고 있어요"):
     rows = []
-    for i, (doing, finished) in enumerate(LOADING_STEPS):
+    for i, (doing, finished) in enumerate(steps):
         state = "done" if i < done else "doing" if i == done else "todo"
         mark = ui.icon("check", "#FFFFFF", 14) if state == "done" else ""
         rows.append(f'<li class="{state}"><i>{mark}</i><span>{escape(finished if state == "done" else doing)}</span></li>')
-    who = f"{escape(name)}님의 정보를" if name else "고객님의 정보를"
-    return (f'<div class="ld-card"><div class="ld-spin{" ok" if done >= len(LOADING_STEPS) else ""}"></div>'
-            f'<h1 class="tz-title">{who}<br>가져오고 있어요</h1>'
+    who = f"{escape(name)}님의" if name else "고객님의"
+    return (f'<div class="ld-card"><div class="ld-spin{" ok" if done >= len(steps) else ""}"></div>'
+            f'<h1 class="tz-title">{who} {action}</h1>'
             f'<ul class="ld-steps">{"".join(rows)}</ul></div>')
 
 
@@ -538,18 +547,35 @@ def _section(key, title, caption, fields):
 
 
 def _submit():
+    """심사 실행: 빈 칸이 없으면 심사 진행 연출 화면으로 (실제 심사는 그 화면에서 부른다)."""
     ss = st.session_state
     ss.frm_missing = _missing_fields()
     ss.frm_error = None
-    if ss.frm_missing:
-        return
+    if not ss.frm_missing:
+        ss.scr_step = "judging"
+
+
+def render_judging():
+    """심사 진행 연출: 첫 단계를 보여 주는 동안 실제 심사(POST /predict + /explain)를 부르고,
+    남은 단계를 하나씩 체크한 뒤 결과 화면으로 (총 config.SCREENING_LOADING_SECONDS 초 이상).
+    심사가 실패하면 3/3 으로 돌아가 오류를 보여 준다."""
+    ss = st.session_state
+    slot = st.empty()
+    name = _name_of()
+    show = lambda done: slot.html(_loading_html(done, name, JUDGING_STEPS, "심사를<br>진행하고 있어요"))  # noqa: E731
+    show(0)
+    started = time.monotonic()
     try:
         run_predict(_form_profile())
     except Exception as e:
-        ss.frm_error = e
-        ss.scr_current = None
-        return
+        ss.frm_error, ss.scr_current, ss.scr_step = e, None, "confirm"
+        st.rerun()
+    left = max(config.SCREENING_LOADING_SECONDS - (time.monotonic() - started), 0)
+    for done in range(1, len(JUDGING_STEPS) + 1):
+        show(done)
+        time.sleep(left / len(JUDGING_STEPS))
     ss.scr_step = "identify"
+    st.rerun()
 
 
 def _go(step):
