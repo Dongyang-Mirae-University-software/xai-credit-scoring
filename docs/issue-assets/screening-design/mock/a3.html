@@ -1,0 +1,63 @@
+﻿<!doctype html><html lang="ko"><head><meta charset="utf-8"><link rel="stylesheet" href="shell.css"><style>
+.cols,.foot{display:grid;grid-template-columns:1fr 1.25fr 1fr;gap:16px}
+.cd{background:#FFF;border-radius:20px;padding:20px}
+.ch{display:flex;align-items:center;gap:10px;height:36px}
+.ic{width:36px;height:36px;flex:none;border-radius:50%;background:var(--accentbg);color:var(--accent);display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;line-height:1}
+.ch b{font-size:17px;line-height:1}.ch .chip{margin-left:auto;height:26px;display:inline-flex;align-items:center;padding:0 10px;line-height:1}
+.cs{font-size:13px;line-height:18px;height:18px;color:var(--ink3);margin:6px 0 16px 46px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tiles{display:grid;grid-template-columns:1fr 1fr;grid-auto-rows:80px;gap:10px}
+.t{background:#F9FAFB;border-radius:14px;padding:0 16px;border:1.5px solid transparent;display:flex;flex-direction:column;justify-content:center;gap:4px}
+.t span{display:block;font-size:13px;line-height:18px;color:var(--ink3);white-space:nowrap}
+.t div{line-height:30px;height:30px;white-space:nowrap}
+.t b{font-size:24px;font-weight:700}.t em{font-style:normal;font-size:14px;color:var(--ink3);margin-left:3px}
+.rs{font-size:11px;line-height:14px;color:var(--ink3);white-space:nowrap}
+.t.edit{border-color:var(--accent);background:#FFF}
+.foot{margin-top:16px}
+.fl{grid-column:span 2;background:#FFF;border-radius:20px;padding:0 20px;height:64px;display:flex;align-items:center;gap:20px}
+.ck{display:flex;gap:20px;font-size:14px;color:var(--ink2);align-items:center}
+.ck span{display:inline-flex;align-items:center;gap:6px}
+.ck i{display:inline-flex;width:18px;height:18px;border-radius:50%;background:var(--ok);color:#FFF;font-size:11px;font-style:normal;align-items:center;justify-content:center}
+.foot .btn{height:64px;border-radius:20px}
+.note{font-size:13px;color:var(--ink3);margin-left:auto}
+.top{align-items:flex-end}
+.idc{height:64px;padding:0 18px}
+</style></head><body>
+<div class="hd"><div class="logo"><i></i><div><b>대안신용평가 심사 시스템</b><small>XAI 기반 씬파일러 대출 심사</small></div></div><div class="hr"><span class="pill">교육용</span><span class="acc"></span></div></div>
+<div class="wrap"><div class="sb"><h6>심사 업무</h6><a class="on">고객 심사</a><a>XAI 분석</a><h6 style="margin-top:14px">모델 검증</h6><a>공정성</a><a>모델 성능</a><a>통계 검증</a></div>
+<div class="main">
+<div class="top"><div><div class="step">‹ 이전 &nbsp; 3 / 3</div><h1>이준호님의 정보를 모두 불러왔어요</h1><p class="sub">파란 테두리 값은 서류로 받은 값이라 눌러서 고칠 수 있어요.</p></div>
+<div class="idc"><div><span>이름</span><b>이준호</b></div><div><span>주민등록번호</span><b>981102-1******</b></div><span class="chip a">씬파일러</span></div></div>
+
+<div class="cols">
+<div class="cd"><div class="ch"><div class="ic">1</div><b>서류</b><span class="chip">담당자 입력</span></div><p class="cs">신분증 · 원천징수영수증 · 가족관계증명서</p>
+<div class="tiles">
+<div class="t"><span>나이</span><div><b>27</b><em>세</em></div></div>
+<div class="t"><span>성별</span><div><b>남성</b></div></div>
+<div class="t edit"><span>월소득</span><div><b>210</b><em>만원</em></div></div>
+<div class="t edit"><span>부양가족</span><div><b>0</b><em>명</em></div></div>
+</div></div>
+
+<div class="cd"><div class="ch"><div class="ic">2</div><b>신용정보</b><span class="chip">KCB · NICE 조회</span></div><p class="cs">대출 · 카드 · 연체 기록 (연체는 최근 2년)</p>
+<div class="tiles">
+<div class="t"><span>월 대출 상환액</span><div><b>122</b><em>만원</em></div></div>
+<div class="t"><span>부채비율 (자동 계산)</span><div><b>58</b><em>%</em></div></div>
+<div class="t"><span>신용한도 사용률</span><div><b>89.0</b><em>%</em></div></div>
+<div class="t"><span>보유 대출 · 신용 한도</span><div><b>1</b><em>개</em></div></div>
+<div class="t"><span>부동산 담보대출</span><div><b>0</b><em>개</em></div></div>
+<div class="t"><span>30~59일 연체</span><div><b>0</b><em>회</em></div></div>
+<div class="t"><span>60~89일 연체</span><div><b>0</b><em>회</em></div></div>
+<div class="t"><span>90일 이상 연체</span><div><b>0</b><em>회</em></div></div>
+</div></div>
+
+<div class="cd"><div class="ch"><div class="ic">3</div><b>대안정보</b><span class="chip">마이데이터</span></div><p class="cs">통신사 · 공공기관 · 카드사 · 우리 은행</p>
+<div class="tiles">
+<div class="t"><span>통신요금</span><div><b>19</b><em>/ 24개월</em></div></div>
+<div class="t"><span>건강보험</span><div><b>17</b><em>/ 24개월</em></div></div>
+<div class="t"><span>소비 일관성</span><div><b>45</b><em>점</em></div></div>
+<div class="t"><span>정기결제</span><div><b>2</b><em>건</em></div></div>
+<div class="t"><span>앱 로그인</span><div><b>8</b><em>/ 30일</em></div></div>
+</div></div>
+</div>
+
+<div class="foot"><div class="fl"><div class="ck"><span><i>✓</i>서류 4</span><span><i>✓</i>신용정보 8</span><span><i>✓</i>대안정보 5</span></div><span class="note">고친 항목이 없어요</span></div><div class="btn">심사 실행</div></div>
+</div></div></body></html>
