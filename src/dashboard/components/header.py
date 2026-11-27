@@ -38,7 +38,7 @@ def render_header(current_page):
           </div>
           <div class="hdr-right">
             <span class="hdr-badge">교육용</span>
-            <span class="hdr-account" aria-hidden="true">{ui.icon("account", "#FFFFFF", 20)}</span>
+            <span class="hdr-account" aria-hidden="true">{ui.icon("account", "#8B95A1", 20)}</span>
           </div>
         </header>
         """)
