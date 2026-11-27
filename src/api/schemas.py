@@ -88,7 +88,7 @@ class PredictResponse(BaseModel):
     model_config = ConfigDict(json_schema_extra={'examples': [PREDICT_EXAMPLE]})
 
     customer_id: str
-    credit_score: int = Field(description='300~850, PDO 스코어카드: 600점 @ good:bad 50:1, 20점마다 odds 2배 (score_method)')
+    credit_score: int = Field(description='300~850, PDO 스코어카드: 모델 확률(보정 전) 기준 odds 50:1 이면 600점, 20점마다 odds 2배. 확률 보정은 다음 단계 (score_method)')
     risk_grade: str = Field(description='A·B 저위험 / C 중위험 / D·E 고위험')
     approval_status: str = Field(description='APPROVED | REJECTED')
     default_probability: float

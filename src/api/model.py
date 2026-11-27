@@ -30,7 +30,7 @@ SCORE_OFFSET = SCORE_BASE - SCORE_FACTOR * math.log(SCORE_BASE_ODDS)
 SCORE_METHOD = f'pdo-{SCORE_BASE}-{SCORE_BASE_ODDS}-{SCORE_PDO}'
 
 # 등급 구간 (등급, 상한): 점수가 상한 미만이면 그 등급. API·대시보드(/health 로 받음)가 이 값 하나를 쓴다.
-# shortcut: 확률 보정 없이 test 점수 분포 분위수로 정함 (이전 등급 비율 E11·D9·C10·B15·A55% 유지 = 이전 부도확률 경계 0.7·0.5·0.35·0.2).
+# 이전 부도확률 경계 0.7·0.5·0.35·0.2 를 새 점수식에 넣은 값 (Test 데이터로 정하지 않음, 승인 여부 · 등급 뜻 유지).
 #           모델 확률을 보정하면 다시 정할 것
 GRADE_SCALE = [('E', 463), ('D', 487), ('C', 505), ('B', 527), ('A', SCORE_MAX + 1)]
 

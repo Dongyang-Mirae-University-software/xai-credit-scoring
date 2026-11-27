@@ -1,7 +1,9 @@
 """모델 성능 페이지 (디자인 07)
 
-결론(성능 목표 4개 달성 여부) → 근거(ROC · PR 곡선) → 상세(혼동행렬 + 해석).
+결론(성능 목표 4개 달성 여부) → 근거(ROC · PR 곡선) → 상세(혼동행렬 + 해석)
+→ 보너스(기존 CB 모델과 비교 · 데이터 드리프트, #140).
 데이터: GET /metrics. 기준 모델(Logistic Regression) 곡선은 /metrics 의 baseline 이 있을 때만 그린다.
+보너스는 GET /ab-test, GET /drift. API 가 아직 없으면 그 섹션 자리에 안내만 둔다.
 """
 from html import escape
 from pathlib import Path
@@ -10,7 +12,7 @@ import plotly.graph_objects as go
 import streamlit as st
 
 import api_client
-from components import ui
+from components import ab_test, drift, ui
 from components.api_error import render_api_error
 from components.empty_state import render_no_report
 from components.page_header import render_page_header
@@ -246,6 +248,9 @@ def _main():
                               + (f"(부도 확률 {threshold:.0%} 미만 승인)" if threshold is not None else "")
                               + "으로 심사했을 때의 결과예요. 색이 진할수록 해당 집단에서 차지하는 비율이 커요.")
             + _confusion(metrics) + "</section>")
+
+    ab_test.render()
+    drift.render()
 
 
 _main()
