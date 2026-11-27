@@ -2,7 +2,7 @@
 
 본문 블록 간격에 끼지 않도록 사이드바 안에 그리고 position: fixed 로 화면 맨 위에 띄운다
 (사이드바는 transform 이 없어 fixed 가 화면 기준으로 잡힌다).
-로고를 누르면 고객 심사 첫 화면으로 간다 (사이드바 '고객 심사' 도 같은 동작, go_start).
+로고를 누르면 고객 심사로 간다: 상담 중인 고객이 있으면 그 결과, 없으면 첫 화면 (사이드바 '고객 심사' 도 같은 동작, go_start).
 """
 from pathlib import Path
 
@@ -15,8 +15,14 @@ SCREENING_PAGE = "views/screening.py"
 
 
 def go_start():
-    """로고 · 사이드바 '고객 심사': 고객 심사 첫 화면으로 (버튼 on_click 에서 부른다)."""
-    customer_form.clear_result()
+    """로고 · 사이드바 '고객 심사' (버튼 on_click 에서 부른다).
+    상담 중인 고객이 있으면 그 고객의 심사 결과로 (정보가 사라진 것처럼 보이지 않게),
+    없으면 1/3 본인 확인. 새 고객은 결과 화면의 '상담 마치기' 로 시작한다."""
+    customer_id = customer_form.current_customer()
+    if customer_id:
+        customer_form.open_result(customer_id)
+    else:
+        customer_form.clear_result()
     st.session_state.hdr_go = True
 
 
