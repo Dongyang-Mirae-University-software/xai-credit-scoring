@@ -66,7 +66,27 @@ def _option_label(customer_id):
     return f'{who} ({status})'
 
 
+def _crumb(customer_id):
+    """흐름 경로: 고객 심사 › 이름 심사 결과 › 판단 근거. 앞의 두 단계는 눌러서 돌아갈 수 있다."""
+    name = st.session_state.customers[customer_id]["profile"].get("name") or "고객"
+    with st.container(key="xai-crumb", horizontal=True, vertical_alignment="center", gap=None):
+        go_start = st.button("고객 심사", key="xai-crumb-start", type="tertiary")
+        st.html('<span class="xai-crumb-sep">›</span>')
+        go_result = st.button(f"{name} 심사 결과", key="xai-crumb-result", type="tertiary")
+        st.html('<span class="xai-crumb-sep">›</span><b class="xai-crumb-now">판단 근거</b>')
+    if go_start:
+        CF.clear_result()
+        st.switch_page(CF.SCREENING_PAGE)
+    if go_result:
+        CF.open_result(customer_id)
+        st.switch_page(CF.SCREENING_PAGE)
+
+
 def _head(ids):
+    if ids:
+        if st.session_state.get("xai_customer") not in ids:
+            st.session_state.xai_customer = ids[0]
+        _crumb(st.session_state.xai_customer)
     with st.container(key="xai-head", horizontal=True, vertical_alignment="bottom"):
         st.html('<div class="ui-page-head"><div><h1>XAI 분석</h1>'
                 '<p>이 고객이 왜 이런 결과를 받았는지 설명해요.</p></div></div>')
@@ -78,8 +98,11 @@ def _head(ids):
             st.html('<span class="xai-pick-label">분석 대상</span>')
             customer_id = st.selectbox("분석 대상", ids, key="xai_customer", format_func=_option_label,
                                        label_visibility="collapsed")
+            if st.button("심사 결과로", key="xai-to-result"):
+                CF.open_result(customer_id)
+                st.switch_page(CF.SCREENING_PAGE)
             if st.button("조건 바꿔 재심사", key="xai-rescreen", disabled=connection.is_down()):
-                # 고객 심사의 2/2 정보 확인으로 (그 고객 값이 채워진다). 심사 실행 → 고객 심사 결과 화면
+                # 고객 심사의 3/3 전체 확인으로 (그 고객 값이 채워진다). 심사 실행 → 고객 심사 결과 화면
                 CF.edit(st.session_state.customers[customer_id]["profile"])
                 st.switch_page(CF.SCREENING_PAGE)
     return customer_id

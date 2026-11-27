@@ -195,3 +195,18 @@ strong.wf-label { color: var(--ink); font-weight: 700; }
 .st-key-xai-empty-box .stElementContainer:has(.stButton) { width: auto !important; align-self: center; }
 .st-key-xai-go button { height: 52px; padding: 0 24px; border-radius: var(--radius-ctl); background: var(--accent); border: 0; }
 .st-key-xai-go button p { font-size: 15px; font-weight: 700; color: #FFF; }
+
+/* 흐름 경로: 고객 심사 › 이름 심사 결과 › 판단 근거 (고객 심사에서 이어진 화면임을 보여 준다) */
+.st-key-xai-crumb { gap: 2px; margin-bottom: -28px; flex-wrap: wrap; }
+.st-key-xai-crumb .stElementContainer { width: auto !important; }
+.st-key-xai-crumb button { height: 30px; min-height: 30px; padding: 0 8px; border-radius: 8px; }
+.st-key-xai-crumb button p { font-size: 14px; color: var(--ink-3); font-weight: 500; }
+.st-key-xai-crumb button:hover { background: var(--fill-hover); }
+.st-key-xai-crumb button:hover p { color: var(--ink); }
+.xai-crumb-sep { font-size: 14px; color: var(--ink-3); padding: 0 2px; }
+.xai-crumb-now { padding: 0 8px; font-size: 14px; font-weight: 700; color: var(--accent); }
+.st-key-xai-to-result button {
+  height: 44px; min-height: 44px; padding: 0 16px; border: 0; border-radius: 12px; background: var(--card);
+}
+.st-key-xai-to-result button p { font-size: 14px; font-weight: 700; color: var(--ink-2); white-space: nowrap; }
+.st-key-xai-crumb > * { flex: 0 0 auto !important; width: auto !important; min-width: 0; }

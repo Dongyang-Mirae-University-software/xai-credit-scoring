@@ -135,6 +135,13 @@ def clear_result():
     st.session_state.scr_step = "identify"
 
 
+def open_result(customer_id):
+    """XAI 분석 → 고객 심사 결과 화면: 이미 심사한 고객의 결과를 연다. 다른 화면에서 부르면 뒤에 st.switch_page."""
+    entry = st.session_state.customers.get(customer_id)
+    if entry:
+        st.session_state.scr_current = {"profile": entry["profile"], "result": entry["result"]}
+
+
 def _payload(profile):
     """심사 요청 본문 (GMSC 10 + 대안 5). 성별 · 이름 · 가린 주민등록번호는 보내지 않는다."""
     return {k: v for k, v in profile.items() if k not in DISPLAY_KEYS}
