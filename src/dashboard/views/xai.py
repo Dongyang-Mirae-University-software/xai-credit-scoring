@@ -424,7 +424,10 @@ def _beeswarm(summary, reason_features, caption=""):
     <div class="xai-sum-grid">
       <div>
         <ol class="bs" role="img" aria-label="SHAP 요약 플롯, 상위 {len(features)}개 변수">{"".join(rows)}</ol>
-        <div class="bs-axis"><span></span><span></span><span><em>← 위험 감소</em><em>SHAP 값</em><em>위험 증가 →</em></span><span></span></div>
+        <div class="bs-axis"><span></span><span></span><span class="bs-axis-track">
+          <em class="minus" style="right:calc({100 - pos(0):.2f}% + 44px)">← 위험 감소</em>
+          <em class="zero" style="left:{pos(0):.2f}%">SHAP 값</em>
+          <em class="plus" style="left:calc({pos(0):.2f}% + 44px)">위험 증가 →</em></span><span></span></div>
       </div>
       <aside>{caption}{_share_bar(summary.get("features", []))}{_how_to_read()}{note}{color_legend}</aside>
     </div>"""
