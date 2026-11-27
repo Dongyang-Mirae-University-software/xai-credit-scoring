@@ -194,3 +194,24 @@ def test_customer_identity_matches_age_and_gender():
         assert (rrn[6] in '13') == (c['gender'] == '남성'), c['customer_id']
         assert int(rrn[12]) != check_digit(rrn[:12]), c['customer_id']
         assert c['name']
+
+
+def test_latest_screening_by_name_and_rrn(tmp_path, monkeypatch):
+    """POST /screenings/lookup: 이름 · 주민등록번호로 그 고객의 가장 최근 심사(입력값 + 결과)를 돌려준다."""
+    from src.api.schemas import LOOKUP_EXAMPLE
+    monkeypatch.setenv('SCREENINGS_DB', str(tmp_path / 's.db'))
+    # 심사 기록이 없으면 404 (고객 없음과 다른 문구)
+    r = client.post('/screenings/lookup', json=LOOKUP_EXAMPLE)
+    assert r.status_code == 404 and '심사 기록' in r.json()['detail']
+    for grade, income in (('B', 3_000_000), ('E', 1_000_000)):   # 같은 고객을 두 번 심사 → 나중 것
+        client.post('/screenings', json={'input': {'customer_id': 'C100001', 'MonthlyIncome': income},
+                                         'result': {'customer_id': 'C100001', 'approval_status': 'REJECTED',
+                                                    'risk_grade': grade, 'credit_score': 100}})
+    client.post('/screenings', json={'input': {'customer_id': 'C999999'}, 'result': {'risk_grade': 'A'}})
+    body = client.post('/screenings/lookup', json=LOOKUP_EXAMPLE).json()
+    assert body['customer_id'] == 'C100001' and body['name'] == LOOKUP_EXAMPLE['name']
+    assert body['result']['risk_grade'] == 'E' and body['input']['MonthlyIncome'] == 1_000_000
+    assert 'rrn' not in body and 'rrn' not in body['input']
+    # 없는 고객은 고객 조회와 같은 404 문구
+    r = client.post('/screenings/lookup', json={**LOOKUP_EXAMPLE, 'name': '없는사람'})
+    assert r.status_code == 404 and '일치하는 고객' in r.json()['detail']
