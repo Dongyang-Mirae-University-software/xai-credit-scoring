@@ -1636,3 +1636,18 @@ div[role="dialog"]:has(.xai-find-sub) [data-testid="stFormSubmitButton"] button 
 .xai-bs-card .xai-mine { background: var(--accent); color: #FFF; border-radius: 999px; padding: 0 8px; }
 .xai-bs-card .xai-sum-grid aside { padding-top: 2px; }
 @media (max-width: 1100px) { .bs2-head { flex-direction: column; } .bs2-share { flex-basis: auto; width: 100%; } }
+/* 모델이 중요하게 보는 정보: 스크롤 없이 한 화면에 (머리 한 줄 · 비중 한 줄 · 줄 높이 줄임) */
+.xai-bs-card { gap: 16px; padding: 22px 28px; }
+[data-testid="stTabs"] .xai-card.xai-bs-card { padding: 20px 28px; }
+.bs2-head p { white-space: nowrap; overflow: hidden; }
+.bs2-share { gap: 6px; }
+.bs2-share > span { display: flex; align-items: baseline; gap: 8px; }
+.bs2-share > span strong { font-size: 26px; }
+[data-testid="stTabs"] .xai-sum-grid .bs li { height: 26px; }
+[data-testid="stTabs"] .xai-sum-grid .bs-track { height: 20px; }
+[data-testid="stTabs"] .bs-axis { margin-top: 10px; }
+.xai-bs-card .bs li { height: 32px; }
+[data-testid="stTabs"] .xai-bs-card .bs li { height: 26px; }
+[data-testid="stTabs"] .xai-card .xai-howto li { font-size: 15px; }
+[data-testid="stTabs"] .xai-howto { padding: 14px 18px; }
+[data-testid="stTabs"] .xai-howto ul { gap: 6px; }

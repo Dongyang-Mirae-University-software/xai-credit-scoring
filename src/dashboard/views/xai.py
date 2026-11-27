@@ -424,7 +424,7 @@ def _share_head(features):
     order = ["financial", "alternative", "basic"]
     bars = "".join(f'<i class="{g}" style="width:{share[g]:.1f}%"></i>' for g in order)
     legend = " · ".join(f'<span><i class="{g}"></i>{F.GROUP_LABELS[g]} {share[g]:.0f}%</span>' for g in order)
-    return (f'<div class="bs2-share"><span>판단에서 대안 데이터 비중</span><strong>{share["alternative"]:.0f}%</strong>'
+    return (f'<div class="bs2-share"><span>대안 데이터 비중 <strong>{share["alternative"]:.0f}%</strong></span>'
             f'<div class="xai-share-bar" role="img" aria-label="영향력 비중">{bars}</div>'
             f'<div class="bs2-share-legend">{legend}</div></div>')
 
@@ -450,8 +450,7 @@ def _beeswarm_head(summary):
     else:
         title = "모델이 중요하게 보는 정보"
     return (f'<div class="bs2-head"><div><h3>{escape(title)}</h3>'
-            f'<p>어떤 고객이든 같은 기준이에요. 점 하나가 고객 한 명이고, 위에 있을수록 영향이 커요. '
-            f'(SHAP Summary Plot, 상위 {SUMMARY_TOP}개 변수)</p></div>'
+            f'<p>점 하나가 고객 한 명, 위에 있을수록 영향이 커요 · SHAP Summary Plot 상위 {SUMMARY_TOP}개</p></div>'
             f'{_share_head(summary.get("features", []))}</div>')
 
 
