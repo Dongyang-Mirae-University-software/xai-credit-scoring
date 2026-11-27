@@ -55,7 +55,7 @@ def _get_explain(customer_id):
 
 
 # ---------------------------------------------------------------------------
-# 머리: 흐름 경로 + 제목 + 심사 결과로 · 조건 바꿔 재심사 · 상담 마치기
+# 머리: 흐름 경로 + 제목 + 조건 바꿔 재심사 · 상담 마치기
 # ---------------------------------------------------------------------------
 def _crumb(customer_id):
     """흐름 경로: 고객 심사 › 이름 심사 결과 › 판단 근거. 앞의 두 단계는 눌러서 돌아갈 수 있다."""
@@ -74,7 +74,7 @@ def _crumb(customer_id):
 
 
 def _head(customer_id):
-    """제목 + (상담 중인 고객이 있으면) 흐름 경로 · 심사 결과로 · 조건 바꿔 재심사 · 상담 마치기.
+    """제목 + (상담 중인 고객이 있으면) 흐름 경로 · 조건 바꿔 재심사 · 상담 마치기.
     창구는 한 번에 한 고객이라 다른 고객을 고르는 목록은 두지 않는다."""
     if customer_id:
         _crumb(customer_id)
@@ -94,9 +94,6 @@ def _head(customer_id):
                     _find_dialog()
             return
         with st.container(key="xai-pick", horizontal=True, vertical_alignment="center", gap="small"):
-            if st.button("심사 결과로", key="xai-to-result"):
-                CF.open_result(customer_id)
-                st.switch_page(CF.SCREENING_PAGE)
             if st.button("조건 바꿔 재심사", key="xai-rescreen", disabled=connection.is_down()):
                 # 고객 심사의 3/3 전체 확인으로 (그 고객 값이 채워진다). 심사 실행 → 고객 심사 결과 화면
                 CF.edit(st.session_state.customers[customer_id]["profile"])
