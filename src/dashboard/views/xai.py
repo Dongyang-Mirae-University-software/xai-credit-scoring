@@ -305,24 +305,26 @@ def _reasons(explain, result, name=None):
 
     phis = [-r["shap_contribution"] for r in reasons]  # 부도 위험 기준으로 뒤집는다
     top = max([abs(p) for p in phis] or [1]) or 1
+    def ref_text(r):
+        ref = r.get("reference_value")
+        return f'평균 {F.fmt_value(r["feature"], ref)}' if ref is not None else ""
+
+    # 토스식 목록: 순위 · 항목(+ 묶음 태그) / 설명 한 줄 ··· 지금 값(아래 작게 평균) ··· 기여도 막대.
+    # 영어 변수 이름은 항목에 마우스를 올리면 보인다
     rows = "".join(f"""
-      <div class="xai-rr-row">
-        <span><i class="xai-rank">{r.get("rank", i)}</i></span>
-        <span class="xai-rr-name"><span><strong>{escape(F.label(r["feature"]))}</strong>{_tag(r["feature"])}</span><code>{escape(r["feature"])}</code></span>
-        <span class="xai-rr-text">{escape(CONTRIBUTION_SUFFIX.sub("", r.get("explanation") or ""))}</span>
-        <b class="num">{F.fmt_value(r["feature"], r.get("current_value"))}</b>
-        <span class="num xai-rr-ref">{F.fmt_value(r["feature"], r.get("reference_value"))}</span>
-        <span class="xai-rr-bar"><i><em class="{"up" if phi >= 0 else "down"}" style="width:{abs(phi) / top * 100:.1f}%"></em></i>
-          <strong class="{"up" if phi >= 0 else "down"}">{_signed(phi)}</strong></span>
-      </div>""" for i, (r, phi) in enumerate(zip(reasons, phis), 1))
+      <li>
+        <i class="xr-rank">{r.get("rank", i)}</i>
+        <div class="xr-main">
+          <div class="xr-title"><strong title="{escape(r["feature"])}">{escape(F.label(r["feature"]))}</strong>{_tag(r["feature"])}</div>
+          <p>{escape(CONTRIBUTION_SUFFIX.sub("", r.get("explanation") or ""))}</p>
+        </div>
+        <div class="xr-value"><b>{F.fmt_value(r["feature"], r.get("current_value"))}</b><span>{escape(ref_text(r))}</span></div>
+        <div class="xr-bar"><i><em class="{"up" if phi >= 0 else "down"}" style="width:{abs(phi) / top * 100:.1f}%"></em></i>
+          <strong class="{"up" if phi >= 0 else "down"}">{_signed(phi)}</strong></div>
+      </li>""" for i, (r, phi) in enumerate(zip(reasons, phis), 1))
     st.html(f"""
-    <div class="xai-rr" role="table" aria-label="{title}">
-      <div class="xai-rr-row xai-rr-headrow"><span>순위</span><span>항목</span><span>설명</span>
-        <span class="num">현재</span><span class="num">기준</span><span>SHAP 기여도</span></div>
-      {rows or '<div class="xai-empty">표시할 사유가 없어요</div>'}
-    </div>
-    <p class="xai-note">기여도는 부도 위험 기준이에요. 값이 클수록 부도 위험을 높였다는 뜻이에요
-      (API의 shap_contribution 은 승인 기준이라 부호를 바꿔 보여줘요).</p>""")
+    <ol class="xr" aria-label="{title}">{rows or '<li class="xai-empty">표시할 사유가 없어요</li>'}</ol>
+    <p class="xai-note">막대와 숫자는 부도 위험을 얼마나 높였는지예요 (SHAP 기여도, 클수록 위험이 커요).</p>""")
 
 
 # ---------------------------------------------------------------------------

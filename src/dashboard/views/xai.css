@@ -1557,3 +1557,32 @@ div[role="dialog"]:has(.xai-find-sub) [data-testid="stFormSubmitButton"] button 
 .xs-factors b.down { color: var(--risk-down); }
 .xs-more, .xs-none { margin: 6px 0 0; font-size: 14px; color: var(--ink-3); }
 @media (max-width: 1100px) { .xs { grid-template-columns: 1fr; } }
+
+/* ========== 거절 사유 Top 5 (토스식 목록): 표 머리 없이 한 줄이 한 사유 ========== */
+.xr { margin: 0; padding: 6px 24px; list-style: none; background: var(--card); border-radius: var(--radius-card); }
+.xr > li {
+  display: grid; grid-template-columns: 36px minmax(0, 1fr) 140px 200px; align-items: center; column-gap: 20px;
+  min-height: 84px; padding: 14px 0; margin: 0;
+}
+.xr > li + li { border-top: 1px solid var(--divider); }
+.xr-rank {
+  width: 32px; height: 32px; border-radius: 50%; background: var(--fill); color: var(--ink-2);
+  font-style: normal; font-size: 15px; font-weight: 700; display: flex; align-items: center; justify-content: center;
+}
+.xr > li:first-child .xr-rank { background: var(--fail-bg); color: var(--fail-text); }
+.xr-main { min-width: 0; }
+.xr-title { display: flex; align-items: center; gap: 8px; }
+.xr-title strong { font-size: 18px; font-weight: 700; color: var(--ink); cursor: help; }
+.xr-main p { margin: 4px 0 0; font-size: 15px; line-height: 1.5; color: var(--ink-3); }
+.xr-value { text-align: right; }
+.xr-value b { display: block; font-size: 20px; font-weight: 700; color: var(--ink); }
+.xr-value span { display: block; margin-top: 2px; font-size: 13px; color: var(--ink-3); }
+.xr-bar { display: flex; align-items: center; gap: 12px; }
+.xr-bar i { flex: 1 1 0; height: 8px; border-radius: 999px; background: var(--fill); overflow: hidden; }
+.xr-bar em { display: block; height: 8px; border-radius: 999px; }
+.xr-bar em.up { background: var(--risk-up); }
+.xr-bar em.down { background: var(--risk-down); }
+.xr-bar strong { flex: 0 0 52px; text-align: right; font-size: 16px; font-weight: 700; }
+.xr-bar strong.up { color: var(--risk-up); }
+.xr-bar strong.down { color: var(--risk-down); }
+@media (max-width: 1100px) { .xr > li { grid-template-columns: 32px minmax(0, 1fr) 110px; } .xr-bar { grid-column: 2 / -1; } }
