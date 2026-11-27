@@ -7,11 +7,11 @@
 .st-key-scr-result-head { justify-content: space-between; flex-wrap: nowrap; }
 
 /* 제목 아래 고객 한 줄 요약 */
-.scr-summary { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 16px; margin-top: 8px; font-size: 14px; color: var(--ink-3); }
+.scr-summary { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 20px; margin-top: 10px; font-size: 16px; color: var(--ink-3); }
 .scr-summary b { font-weight: 700; color: var(--ink); }
-.scr-summary .scr-who { font-size: 15px; }
-.scr-summary .scr-kind { font-style: normal; padding: 3px 10px; border-radius: 999px; background: var(--accent-bg); color: var(--accent); font-size: 12px; font-weight: 700; }
-.scr-summary em { font-style: normal; font-size: 13px; }
+.scr-summary .scr-who { font-size: 18px; }
+.scr-summary .scr-kind { font-style: normal; padding: 4px 12px; border-radius: 999px; background: var(--accent-bg); color: var(--accent); font-size: 14px; font-weight: 700; }
+.scr-summary em { font-style: normal; font-size: 14px; }
 .st-key-scr-edit button {
   display: inline-flex; align-items: center; gap: 6px;
   height: 44px; min-height: 44px; padding: 0 16px; border: 0; border-radius: var(--radius-ctl); background: var(--card);
@@ -91,18 +91,18 @@
 .scr-rr { background: var(--card); border-radius: var(--radius-card); overflow: hidden; }
 .scr-rr-row {
   display: grid; grid-template-columns: 24px minmax(0, 1fr) 76px 76px 56px; column-gap: 16px;
-  align-items: center; padding: 0 20px; min-height: 56px;
+  align-items: center; padding: 0 28px; min-height: 64px;
 }
 .scr-rr-row + .scr-rr-row { border-top: 1px solid var(--divider); }
 .scr-rr-headrow {
-  min-height: 36px; height: 36px; background: var(--card); border-bottom: 1px solid var(--border);
+  min-height: 42px; height: 42px; background: var(--card); border-bottom: 1px solid var(--border);
   font-size: 12px; color: var(--ink-3);
 }
 .scr-rr-headrow + .scr-rr-row { border-top: 0; }
 .scr-rr-row .num { text-align: right; }
 .scr-rr-rank { font-size: 15px; font-weight: 700; color: var(--ink-3); }
 .scr-rr-row strong { font-size: 15px; font-weight: 700; color: var(--ink); }
-.scr-rr-main { display: flex; flex-direction: column; gap: 1px; min-width: 0; padding: 8px 0; }
+.scr-rr-main { display: flex; flex-direction: column; gap: 3px; min-width: 0; padding: 12px 0; }
 .scr-rr-text { font-size: 13px; color: var(--ink-3); line-height: 1.45; }
 .scr-rr-row b.num { font-size: 15px; font-weight: 700; color: var(--ink); }
 .scr-rr-ref { font-size: 15px; color: var(--ink-3); }
@@ -130,10 +130,10 @@
 
 /* 판단 근거 미리 보기 (XAI 분석으로 이어지는 카드) */
 .scr-xp {
-  flex-direction: column; align-items: stretch; justify-content: flex-start; gap: 10px;
-  height: 100%; padding: 18px 22px; border: 1.5px solid var(--accent-bg);
+  flex-direction: column; align-items: stretch; justify-content: flex-start; gap: 14px;
+  height: 100%; padding: 24px 28px; border: 1.5px solid var(--accent-bg);
 }
-.scr-xp > .scr-xp-flow { display: flex; flex-direction: row; align-items: center; gap: 14px; padding: 12px 16px; border-radius: 14px; background: var(--fill); }
+.scr-xp > .scr-xp-flow { display: flex; flex-direction: row; align-items: center; gap: 16px; padding: 14px 20px; border-radius: 14px; background: var(--fill); }
 .scr-xp-flow > span { display: flex; flex-direction: column; gap: 2px; font-size: 13px; color: var(--ink-3); }
 .scr-xp-flow b { font-size: 26px; font-weight: 700; line-height: 1.1; color: var(--ink); }
 .scr-xp-flow b.fail { color: var(--fail-text); }
