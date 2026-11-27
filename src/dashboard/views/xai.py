@@ -378,7 +378,8 @@ def _waterfall(explain, entry):
         start = end
     right_side = pos(fx) > 60
     label_pos = (f"right:calc({100 - pos(fx):.2f}% + 10px)" if right_side else f"left:calc({pos(fx):.2f}% + 10px)")
-    html.append(f'<div class="wf-row wf-final"><strong class="wf-label">이 고객</strong><span class="wf-track">{grid}'
+    who = entry["profile"].get("name") or "이 고객"
+    html.append(f'<div class="wf-row wf-final"><strong class="wf-label">{escape(who)}{"님" if entry["profile"].get("name") else ""}</strong><span class="wf-track">{grid}'
                 f'<i class="mark ink" style="left:{pos(fx):.2f}%"></i>'
                 f'<em class="mark-label b" style="{label_pos}">f(x) = {_signed(fx).lstrip("+")}</em></span><span></span></div>')
     axis = "".join(f'<em style="left:{pos(t):.2f}%">{t:g}</em>' for t in ticks)
@@ -387,21 +388,20 @@ def _waterfall(explain, entry):
     approved = result["approval_status"] == "APPROVED"
     n_up = sum(1 for v in shap.values() if v > 0)
     n_down = sum(1 for v in shap.values() if v < 0)
+    prob = result["default_probability"]
+    who_full = f'{escape(entry["profile"]["name"])}님' if entry["profile"].get("name") else "이 고객"
     return f"""
-    <div class="xai-flow">
-      <div><span>평균 고객</span><strong>{_pct(_sigmoid(base))}</strong></div>
-      <span class="xai-arrow">{ui.icon("arrow", "#8B95A1", 22)}</span>
-      <div><span>이 고객</span><strong class="{'' if approved else 'fail'}">{_pct(result["default_probability"])}</strong></div>
-      <em>위험을 높인 정보 {n_up}개, 낮춘 정보 {n_down}개</em>
+    <div class="wf2-head">
+      <div>
+        <h3>평균 고객 <b>{_pct(_sigmoid(base))}</b><span class="wf2-arrow">→</span>{who_full} <b class="{'ok' if approved else 'fail'}">{_pct(prob)}</b></h3>
+        <p>평균 고객에서 출발해, 정보 하나하나가 부도 위험을 더하고 뺐어요. 높인 정보 {n_up}개 · 낮춘 정보 {n_down}개</p>
+      </div>
+      <div class="wf2-legend"><span><i class="up"></i>위험 증가</span><span><i class="down"></i>위험 감소</span></div>
     </div>
-    <div class="xai-legend"><span><i class="up"></i>위험 증가</span><span><i class="down"></i>위험 감소</span></div>
     <div class="wf" role="img" aria-label="SHAP 워터폴 플롯: 평균 {base:.2f}에서 이 고객 {fx:.2f}까지">{"".join(html)}</div>
-    <span class="xai-note">가로축은 SHAP 값(log-odds)이에요. 오른쪽으로 갈수록 부도 위험이 커요.</span>"""
+    <p class="wf2-note">SHAP Waterfall Plot · 가로축은 SHAP 값(log-odds)이에요. 오른쪽으로 갈수록 부도 위험이 커요.</p>"""
 
 
-# ---------------------------------------------------------------------------
-# 상세 2: SHAP Summary (beeswarm) + 대안 데이터 비중
-# ---------------------------------------------------------------------------
 def _dot_color(t):
     """변수 값 0(낮음)~1(높음) → 파랑(#3182F6)~빨강(#F04452). workspace.css 의 --risk-down · --risk-up 과 같다."""
     t = min(max(float(t), 0.0), 1.0)
@@ -490,11 +490,8 @@ def _beeswarm(summary, reason_features, caption=""):
 
 
 def _waterfall_tab(explain, entry):
-    """탭: 부도 확률이 정해진 과정 (SHAP Waterfall)."""
-    rejected = entry["result"]["approval_status"] != "APPROVED"
-    st.html(ui.section_head("부도 확률이 올라간 과정" if rejected else "부도 확률이 정해진 과정",
-                            "SHAP Waterfall Plot. 평균 고객에서 출발해 정보 하나씩 위험을 더하고 뺀 결과예요.")
-            + f'<div class="xai-card xai-wf-card">{_waterfall(explain, entry)}</div>')
+    """탭: 부도 확률이 정해진 과정 (SHAP Waterfall). 제목 · 설명은 카드 안 머리 한 줄로."""
+    st.html(f'<div class="xai-card xai-wf-card">{_waterfall(explain, entry)}</div>')
 
 
 def _summary_tab(reason_features=frozenset(), in_tab=False):

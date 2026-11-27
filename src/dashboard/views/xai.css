@@ -1586,3 +1586,32 @@ div[role="dialog"]:has(.xai-find-sub) [data-testid="stFormSubmitButton"] button 
 .xr-bar strong.up { color: var(--risk-up); }
 .xr-bar strong.down { color: var(--risk-down); }
 @media (max-width: 1100px) { .xr > li { grid-template-columns: 32px minmax(0, 1fr) 110px; } .xr-bar { grid-column: 2 / -1; } }
+
+/* ========== 부도 확률이 정해진 과정 (토스식): 큰 한 줄 머리 + 넓은 Waterfall ========== */
+.xai-wf-card { display: flex; flex-direction: column; gap: 18px; padding: 26px 30px; }
+.wf2-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 24px; }
+.wf2-head h3 { margin: 0; padding: 0; font-size: 26px; font-weight: 700; line-height: 1.35; letter-spacing: -0.02em; color: var(--ink); }
+.wf2-head h3 b { font-weight: 700; color: var(--ink); }
+.wf2-head h3 b.fail { color: var(--fail-text); }
+.wf2-head h3 b.ok { color: var(--ok-text); }
+.wf2-arrow { margin: 0 12px; color: var(--ink-3); font-weight: 400; }
+.wf2-head p { margin: 6px 0 0; font-size: 16px; color: var(--ink-3); }
+.wf2-legend { display: flex; gap: 16px; flex: none; padding-top: 8px; font-size: 14px; color: var(--ink-2); }
+.wf2-legend span { display: inline-flex; align-items: center; gap: 6px; }
+.wf2-legend i { width: 10px; height: 10px; border-radius: 50%; }
+.wf2-legend i.up { background: var(--risk-up); }
+.wf2-legend i.down { background: var(--risk-down); }
+.wf2-note { margin: 0; font-size: 13px; color: var(--ink-3); }
+/* 그래프: 줄 사이 선 없이, 막대는 둥글게, 격자 · 눈금은 흐리게 */
+.xai-wf-card .wf-row { grid-template-columns: 260px minmax(0, 1fr) 70px; column-gap: 20px; }
+.xai-wf-card .wf-row + .wf-row { border-top: 0; }
+.xai-wf-card .wf-row.wf-final { border-top: 1px solid var(--divider); }
+.xai-wf-card .wf-label { font-size: 16px; color: var(--ink-2); }
+.xai-wf-card .wf-label b { color: var(--ink); }
+.xai-wf-card .wf-track .g { border-left-color: #F2F4F6; }
+.xai-wf-card .wf-track .bar { border-radius: 6px; }
+.xai-wf-card .wf-track .link { border-left-color: #D1D6DB; }
+.xai-wf-card .wf-track .mark-label { font-size: 13px; color: var(--ink-3); }
+.xai-wf-card .wf-ticks em { font-size: 12px; color: #B0B8C1; }
+.xai-wf-card .wf-row > strong:last-child { font-size: 16px; }
+@media (max-width: 1100px) { .wf2-head { flex-direction: column; } .xai-wf-card .wf-row { grid-template-columns: 180px minmax(0, 1fr) 60px; } }
