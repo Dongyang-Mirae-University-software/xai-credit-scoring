@@ -90,7 +90,7 @@ def init_state():
     ss = st.session_state
     ss.setdefault("scr_current", None)   # 지금 보고 있는 심사 결과 {profile, result}. 있으면 고객 심사 = 결과 화면
     ss.setdefault("scr_step", "identify")  # 결과가 없을 때: identify 1/3 · apply 2/3 · loading 연출 · confirm 3/3
-    ss.setdefault("customers", {})       # 심사한 고객 {id: {payload, result, profile}} (XAI 분석 고객 목록)
+    ss.setdefault("customers", {})       # 지금 상담 중인 고객 {id: {payload, result, profile}} (한 명)
     ss.setdefault("xai_explain", {})     # /explain 응답 캐시
 
 
@@ -135,6 +135,36 @@ def clear_result():
     st.session_state.scr_step = "identify"
 
 
+# ---------------------------------------------------------------------------
+# 상담 단위: 창구는 한 번에 한 고객. 새 고객을 시작하거나 '상담 마치기' 를 누르면 앞 고객 정보를 세션에서 지운다
+# ---------------------------------------------------------------------------
+_FORM_KEYS = ("frm_profile", "frm_values", "frm_shown", "frm_source", "frm_gender", "frm_missing", "frm_error",
+              "apl_missing", "idn_notice", "idn_errors")
+
+
+def _clear_consult():
+    """지금 고객의 입력 · 결과 · 설명 · '승인되려면' 캐시를 지운다."""
+    ss = st.session_state
+    ss.customers, ss.xai_explain, ss.xai_cf, ss.scr_current = {}, {}, {}, None
+    for key in _FORM_KEYS:
+        ss.pop(key, None)
+
+
+def current_customer():
+    """지금 상담 중인 고객 ID (심사를 마친 고객). 없으면 None."""
+    return next(iter(st.session_state.get("customers") or {}), None)
+
+
+def end_consult():
+    """상담 마치기: 지금 고객 정보를 모두 지우고 1/3 본인 확인(빈 칸)으로. 다른 화면에서 부르면 뒤에 st.switch_page."""
+    ss = st.session_state
+    _clear_consult()
+    for key in ("idn_name", "idn_front", "idn_back"):
+        ss[key] = ""
+    ss.scr_step = "identify"
+    ss.consult_toast = "상담을 마쳤어요. 다음 고객을 맞이해 주세요."
+
+
 def open_result(customer_id):
     """XAI 분석 → 고객 심사 결과 화면: 이미 심사한 고객의 결과를 연다. 다른 화면에서 부르면 뒤에 st.switch_page."""
     entry = st.session_state.customers.get(customer_id)
@@ -157,14 +187,13 @@ def _save(payload, result):
 
 def run_predict(profile, record=True):
     """심사 실행: POST /predict 와 POST /explain 을 함께 부른다 (승인이든 거절이든).
-    결과를 현재 심사 · XAI 고객 목록에 넣고, record 면 서버 이력(POST /screenings)에 남긴다. /predict 가 실패하면 예외를 올린다.
+    결과를 지금 상담 중인 고객으로 두고, record 면 서버 이력(POST /screenings)에 남긴다. /predict 가 실패하면 예외를 올린다.
     /explain 이 실패하면 그 예외를 캐시에 넣어 두고 결과 화면이 안내한다 (화면을 그릴 때 다시 부르지 않는다)."""
     ss = st.session_state
     payload = _payload(profile)
     result = {**api_client.predict(payload), "customer_id": profile["customer_id"]}
     customer_id = profile["customer_id"]
-    ss.customers.pop(customer_id, None)  # 다시 심사하면 XAI 고객 목록 맨 앞으로
-    ss.customers[customer_id] = {"payload": payload, "result": result, "profile": profile}
+    ss.customers = {customer_id: {"payload": payload, "result": result, "profile": profile}}  # 한 번에 한 고객
     try:
         ss.xai_explain[customer_id] = api_client.explain(payload)
     except Exception as e:
@@ -329,6 +358,8 @@ def _open_flow(profile, source):
     """고객 값으로 입력값을 채우고 다음 단계로 (버튼 on_click 에서 불러도 된다).
     다시 심사(edit)는 3/3 으로 바로, 나머지는 2/3 신청 정보부터."""
     ss = st.session_state
+    if source != "edit":  # 새 고객 시작: 앞 고객 정보는 남기지 않는다
+        _clear_consult()
     profile = _with_repayment(profile)
     ss.frm_profile, ss.frm_source, ss.frm_missing, ss.frm_error = profile, source, [], None
     ss.frm_shown, ss.frm_values = {}, {}
