@@ -261,7 +261,9 @@ def _result_view():
     with st.container(key="scr-result-head", horizontal=True, vertical_alignment="bottom"):
         st.html(f'<div class="ui-page-head"><div><h1>심사 결과</h1>'
                 f'<p>{_completed_at(result)} 심사 완료</p></div></div>')
-        st.button("이전", key="scr-back", on_click=_back)
+        with st.container(key="scr-result-actions", horizontal=True, gap="small"):
+            st.button("이전", key="scr-back", on_click=_back)
+            st.button("상담 마치기", key="scr-end", on_click=CF.end_consult)
 
     with st.container(key="scr-summary-card", horizontal=True, vertical_alignment="center"):
         st.html(_summary_html(profile, result))
@@ -273,7 +275,6 @@ def _result_view():
     _factors_section(result, profile, approved)
 
     if _xai_preview(result):
-        st.session_state.xai_customer = result["customer_id"]
         st.switch_page("views/xai.py")
 
 
@@ -288,6 +289,9 @@ st.html(f"<style>{CF.WORKSPACE_CSS}{CSS_PATH.read_text(encoding='utf-8')}{CF.CSS
         + "</style>")
 CF.init_state()
 CF.take_pending()
+_toast = st.session_state.pop("consult_toast", None)
+if _toast:
+    st.toast(_toast, icon=":material/check_circle:")
 
 
 if st.session_state.scr_current is not None:

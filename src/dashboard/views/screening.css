@@ -155,3 +155,13 @@
 .scr-xp-chips i { font-style: normal; padding: 4px 10px; border-radius: 999px; background: var(--accent-bg); color: var(--accent); font-size: 12px; font-weight: 600; }
 .scr-xp-go { flex: none; display: inline-flex; align-items: center; gap: 2px; font-size: 15px; font-weight: 700; color: var(--accent); white-space: nowrap; }
 [class*="st-key-scr-act-"]:hover .scr-xp { background: #F7FAFF; }
+
+/* 결과 화면 오른쪽 위: 이전 · 상담 마치기 */
+.st-key-scr-result-actions { width: auto !important; flex: 0 0 auto; }
+.st-key-scr-result-actions .stElementContainer { width: auto !important; }
+.st-key-scr-end button {
+  height: 44px; min-height: 44px; padding: 0 18px; border-radius: var(--radius-ctl); border: 0; background: var(--ink);
+}
+.st-key-scr-end button p { font-size: 15px; font-weight: 700; color: #FFF; }
+[data-testid="stLayoutWrapper"]:has(> .st-key-scr-result-actions) { flex: 0 0 auto; width: auto !important; margin-left: auto; }
+.st-key-scr-result-actions { justify-content: flex-end; }
