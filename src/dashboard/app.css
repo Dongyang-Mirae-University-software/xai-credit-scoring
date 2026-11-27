@@ -138,6 +138,10 @@ html, body { overflow-x: hidden; }
 
 /* ---- 하단 면책 조항 (모든 화면) ---- */
 .ui-footer { padding: 12px 0 8px; font-size: 12px; color: var(--ink-3); }
+/* 면책 줄은 화면 바닥에: 본문이 화면보다 짧으면 바닥에 붙고, 길면 본문 끝에 온다 */
+[data-testid="stMainBlockContainer"] { min-height: 100vh; display: flex; flex-direction: column; }
+[data-testid="stMainBlockContainer"] > [data-testid="stVerticalBlock"] { flex: 1 1 auto; }
+[data-testid="stMainBlockContainer"] > [data-testid="stVerticalBlock"] > .stElementContainer:has(.ui-footer) { margin-top: auto; }
 
 /* ---- Streamlit 기본 위젯을 디자인에 맞춘다 ---- */
 [data-testid="stMain"] .stButton > button,
