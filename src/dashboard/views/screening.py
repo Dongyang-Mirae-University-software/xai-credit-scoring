@@ -4,7 +4,7 @@
 - 1/3 본인 확인: 이름 + 주민등록번호 → 정보 조회
 - 2/3 신청 정보: 월소득 · 부양가족 수 → 동의(개인 · 신용 · 대안정보) → 불러오기 연출
 - 3/3 전체 확인: 모든 정보 → 틀린 항목만 고치고 심사 실행 (결과는 서버 이력에 바로 남는다)
-- 결과 화면: 정보 수정 → 3/3, 이전 → 1/3
+- 결과 화면: 정보 수정 → 3/3, 상담 마치기 → 1/3
 고객 번호(customer_id)는 화면에 보이지 않는다. 고객 구분 · 서버 이력 · XAI 목록 같은 내부 구분에만 쓴다.
 - 로고 · 사이드바 '고객 심사' → 언제나 1/3
 """
@@ -46,11 +46,6 @@ def _start_view():
 # ---------------------------------------------------------------------------
 # 결과 화면 (디자인 03 승인 / 04 거절)
 # ---------------------------------------------------------------------------
-def _back():
-    """이전: 결과 화면을 닫고 1/3 본인 확인으로."""
-    CF.clear_result()
-
-
 def _completed_at(result):
     try:
         stamp = datetime.fromisoformat(result["timestamp"]).astimezone()
@@ -272,7 +267,6 @@ def _result_view():
         st.html(f'<div class="ui-page-head"><div><h1>심사 결과</h1>'
                 f'<p>{_completed_at(result)} 심사 완료</p></div></div>')
         with st.container(key="scr-result-actions", horizontal=True, gap="small"):
-            st.button("이전", key="scr-back", on_click=_back)
             st.button("상담 마치기", key="scr-end", on_click=CF.end_consult)
 
     with st.container(key="scr-summary-card", horizontal=True, vertical_alignment="center"):
@@ -295,7 +289,6 @@ st.html(f"<style>{CF.workspace_css()}{CSS_PATH.read_text(encoding='utf-8')}{CF.c
         + ui.mask_css(".st-key-frm-back button::before", "chevron", 16)
         + ui.mask_css(".st-key-apl-back button::before", "chevron", 16)
         + ui.mask_css(".st-key-agr-back button::before", "chevron", 16)
-        + ui.mask_css(".st-key-scr-back button::before", "chevron", 16)
         + ui.mask_css(".st-key-scr-edit button::before", "pencil", 14)
         + "</style>")
 CF.init_state()

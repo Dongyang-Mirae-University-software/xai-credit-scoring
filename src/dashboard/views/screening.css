@@ -2,19 +2,6 @@
    색 · 글자 토큰은 components/workspace.css */
 
 /* =========================================================================
-   01 첫 화면
-   ========================================================================= */
-/* 결과 화면 '이전': 흰 바탕 테두리 버튼 + 왼쪽 화살표 (오른쪽 화살표 아이콘을 뒤집는다) */
-.st-key-scr-back button {
-  display: inline-flex; align-items: center; gap: 6px;
-  height: 44px; min-height: 44px; padding: 0 18px 0 14px; border-radius: var(--radius-ctl);
-  border: 0; background: var(--card); color: var(--ink-2);
-}
-.st-key-scr-back button::before { transform: rotate(180deg); }
-.st-key-scr-back button p { font-size: 15px; font-weight: 700; color: var(--ink-2); }
-.st-key-scr-back button:hover { background: var(--fill-hover); }
-
-/* =========================================================================
    03 / 04 결과
    ========================================================================= */
 .st-key-scr-result-head { justify-content: space-between; flex-wrap: nowrap; }
