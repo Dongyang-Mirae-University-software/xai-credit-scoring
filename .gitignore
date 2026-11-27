@@ -23,7 +23,7 @@ models/val_selection_table.csv
 !models/lightgbm_is_unbalance_integrated_v1.0.joblib
 !models/preprocess_scaler_v1.0.joblib
 
-# 검증 결과 (이슈 #103): API가 읽는 결과 JSON 6개만 저장소에 둔다. 그림·나머지 산출물은 제외
+# 검증 결과 (이슈 #103, #164): API가 읽는 결과 JSON만 저장소에 둔다. 그림·나머지 산출물은 제외
 outputs/**
 !outputs/*/
 !outputs/evaluation/metrics_lightgbm_is_unbalance_integrated_v1.0.json
@@ -33,6 +33,9 @@ outputs/**
 !outputs/fairness/fairness_mitigation.json
 !outputs/statistics/anova.json
 !outputs/monitoring/drift_report.json
+!outputs/statistics/two_way_anova.json
+!outputs/evaluation/ab_test/
+!outputs/evaluation/ab_test/ab_test.json
 data/screenings.db
 
 # 과제 원문 (이슈 #101, PR #113): 저장소에서 추적 해제. 원문은 노션에 있다

@@ -23,6 +23,8 @@ PATHS = {
     'fairness_mitigation': 'fairness/fairness_mitigation.json',  # main_step4
     'anova': 'statistics/anova.json',                            # main_step5
     'drift': 'monitoring/drift_report.json',                     # main_bonus_drift
+    'two_way_anova': 'statistics/two_way_anova.json',            # main_bonus_two_way_anova
+    'ab_test': 'evaluation/ab_test/ab_test.json',                # main_bonus_ab_test
 }
 
 

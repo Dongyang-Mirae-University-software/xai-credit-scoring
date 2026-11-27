@@ -396,6 +396,29 @@ class AnovaResponse(BaseModel):
     interpretation: Optional[dict[str, list[str]]] = None
 
 
+class TwoWayAnovaResponse(BaseModel):
+    model_config = _with_example(example('two_way_anova'))
+
+    test_name: str
+    response: Optional[str] = None
+    design: dict
+    anova: dict = Field(description='table[], n_per_cell, cell_means, cell_std')
+    paired_checks: dict = Field(description='simple_effects, interaction_did')
+    interpretation: list[str]
+
+
+# ---------- 04 모델 성능 (보너스 5) ----------
+class AbTestResponse(BaseModel):
+    model_config = _with_example(example('ab_test'))
+
+    models: dict[str, str] = Field(description='a = 기존 CB 모델, b = 대안신용평가 모델')
+    test_auc: dict[str, float]
+    policies: dict = Field(description='a, threshold_a, policies: {same_threshold, same_approval_rate, same_bad_rate}')
+    ab_single: dict
+    ab_repeated: dict
+    required_sample_size: dict
+
+
 # ---------- 06 모니터링 ----------
 class DriftResponse(BaseModel):
     model_config = _with_example(example('drift'))
