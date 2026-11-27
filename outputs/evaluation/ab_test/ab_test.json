@@ -1,0 +1,262 @@
+{
+  "models": {
+    "a": "기존 CB 모델: 금융 칸 10개, LightGBM is_unbalance (Train 으로 학습, B 용으로 튜닝한 하이퍼파라미터를 그대로 사용 → 비교가 B 에 약간 유리)",
+    "b": "대안신용평가 모델: lightgbm_is_unbalance_integrated_v1.0.joblib"
+  },
+  "test_auc": {
+    "a": 0.8623295901346963,
+    "b": 0.8894458556949043
+  },
+  "bad_rate_definition": "승인 고객 중 부도(SeriousDlqin2yrs = 1) 비율 (금액 정보가 없어 건수 기준)",
+  "policies": {
+    "threshold_a": 0.5,
+    "a": {
+      "n": 22500,
+      "n_approved": 17281,
+      "approval_rate": 0.7680444444444444,
+      "n_bad_approved": 357,
+      "bad_rate": 0.02065852670563046,
+      "bad_caught": 1147,
+      "n_bad": 1504
+    },
+    "same_bad_rate_threshold_source": "validation",
+    "policies": {
+      "same_threshold": {
+        "threshold_b": 0.5,
+        "b": {
+          "n": 22500,
+          "n_approved": 17895,
+          "approval_rate": 0.7953333333333333,
+          "n_bad_approved": 338,
+          "bad_rate": 0.018887957530036324,
+          "bad_caught": 1166,
+          "n_bad": 1504
+        },
+        "approval_change": 0.027288888888888918,
+        "bad_rate_change": -0.001770569175594136,
+        "bad_rate_relative_change": -0.08570645916930607,
+        "segments": {
+          "씬파일러": {
+            "a": {
+              "n": 625,
+              "n_approved": 340,
+              "approval_rate": 0.544,
+              "n_bad_approved": 4,
+              "bad_rate": 0.011764705882352941,
+              "bad_caught": 38,
+              "n_bad": 42
+            },
+            "b": {
+              "n": 625,
+              "n_approved": 430,
+              "approval_rate": 0.688,
+              "n_bad_approved": 10,
+              "bad_rate": 0.023255813953488372,
+              "bad_caught": 32,
+              "n_bad": 42
+            }
+          },
+          "일반": {
+            "a": {
+              "n": 21875,
+              "n_approved": 16941,
+              "approval_rate": 0.7744457142857143,
+              "n_bad_approved": 353,
+              "bad_rate": 0.020837022607874386,
+              "bad_caught": 1109,
+              "n_bad": 1462
+            },
+            "b": {
+              "n": 21875,
+              "n_approved": 17465,
+              "approval_rate": 0.7984,
+              "n_bad_approved": 328,
+              "bad_rate": 0.018780417978814773,
+              "bad_caught": 1134,
+              "n_bad": 1462
+            }
+          }
+        }
+      },
+      "same_approval_rate": {
+        "threshold_b": 0.45372585324198456,
+        "b": {
+          "n": 22500,
+          "n_approved": 17281,
+          "approval_rate": 0.7680444444444444,
+          "n_bad_approved": 298,
+          "bad_rate": 0.017244372432150917,
+          "bad_caught": 1206,
+          "n_bad": 1504
+        },
+        "approval_change": 0.0,
+        "bad_rate_change": -0.0034141542734795437,
+        "bad_rate_relative_change": -0.16526610644257703,
+        "segments": {
+          "씬파일러": {
+            "a": {
+              "n": 625,
+              "n_approved": 340,
+              "approval_rate": 0.544,
+              "n_bad_approved": 4,
+              "bad_rate": 0.011764705882352941,
+              "bad_caught": 38,
+              "n_bad": 42
+            },
+            "b": {
+              "n": 625,
+              "n_approved": 402,
+              "approval_rate": 0.6432,
+              "n_bad_approved": 9,
+              "bad_rate": 0.022388059701492536,
+              "bad_caught": 33,
+              "n_bad": 42
+            }
+          },
+          "일반": {
+            "a": {
+              "n": 21875,
+              "n_approved": 16941,
+              "approval_rate": 0.7744457142857143,
+              "n_bad_approved": 353,
+              "bad_rate": 0.020837022607874386,
+              "bad_caught": 1109,
+              "n_bad": 1462
+            },
+            "b": {
+              "n": 21875,
+              "n_approved": 16879,
+              "approval_rate": 0.7716114285714286,
+              "n_bad_approved": 289,
+              "bad_rate": 0.017121867409206706,
+              "bad_caught": 1173,
+              "n_bad": 1462
+            }
+          }
+        }
+      },
+      "same_bad_rate": {
+        "threshold_b": 0.5445970788690251,
+        "b": {
+          "n": 22500,
+          "n_approved": 18440,
+          "approval_rate": 0.8195555555555556,
+          "n_bad_approved": 380,
+          "bad_rate": 0.020607375271149676,
+          "bad_caught": 1124,
+          "n_bad": 1504
+        },
+        "approval_change": 0.051511111111111174,
+        "bad_rate_change": -5.1151434480783964e-05,
+        "bad_rate_relative_change": -0.002476044647793915,
+        "segments": {
+          "씬파일러": {
+            "a": {
+              "n": 625,
+              "n_approved": 340,
+              "approval_rate": 0.544,
+              "n_bad_approved": 4,
+              "bad_rate": 0.011764705882352941,
+              "bad_caught": 38,
+              "n_bad": 42
+            },
+            "b": {
+              "n": 625,
+              "n_approved": 453,
+              "approval_rate": 0.7248,
+              "n_bad_approved": 14,
+              "bad_rate": 0.03090507726269316,
+              "bad_caught": 28,
+              "n_bad": 42
+            }
+          },
+          "일반": {
+            "a": {
+              "n": 21875,
+              "n_approved": 16941,
+              "approval_rate": 0.7744457142857143,
+              "n_bad_approved": 353,
+              "bad_rate": 0.020837022607874386,
+              "bad_caught": 1109,
+              "n_bad": 1462
+            },
+            "b": {
+              "n": 21875,
+              "n_approved": 17987,
+              "approval_rate": 0.8222628571428572,
+              "n_bad_approved": 366,
+              "bad_rate": 0.020348029132151,
+              "bad_caught": 1096,
+              "n_bad": 1462
+            }
+          }
+        }
+      }
+    }
+  },
+  "ab_single": {
+    "seed": 42,
+    "policy": "same_approval_rate",
+    "a": {
+      "n": 11344,
+      "n_approved": 8734,
+      "approval_rate": 0.7699224259520452,
+      "n_bad_approved": 176,
+      "bad_rate": 0.020151133501259445,
+      "bad_caught": 575,
+      "n_bad": 751
+    },
+    "b": {
+      "n": 11156,
+      "n_approved": 8556,
+      "approval_rate": 0.7669415561133023,
+      "n_bad_approved": 152,
+      "bad_rate": 0.017765310892940627,
+      "bad_caught": 601,
+      "n_bad": 753
+    },
+    "approval_test": {
+      "rate_a": 0.7699224259520452,
+      "rate_b": 0.7669415561133023,
+      "diff": -0.0029808698387429056,
+      "ci_low": -0.014005332117628704,
+      "ci_high": 0.008043592440142893,
+      "z": -0.5299748678464518,
+      "p_value": 0.596129355918608,
+      "testable": true
+    },
+    "bad_rate_test": {
+      "rate_a": 0.020151133501259445,
+      "rate_b": 0.017765310892940627,
+      "diff": -0.002385822608318818,
+      "ci_low": -0.0064502514500995615,
+      "ci_high": 0.0016786062334619252,
+      "z": -1.1497467133417774,
+      "p_value": 0.2502482082866936,
+      "testable": true
+    }
+  },
+  "ab_repeated": {
+    "policy": "same_approval_rate",
+    "n_rep": 1000,
+    "bad_rate_diff": {
+      "mean": -0.0033422091690529588,
+      "p2_5": -0.007151023705143433,
+      "p97_5": 0.0006525041142870206
+    },
+    "approval_diff": {
+      "mean": -7.351301885402872e-05,
+      "p2_5": -0.009894047602637712,
+      "p97_5": 0.009539212246047628
+    },
+    "share_significant_bad_rate": 0.35
+  },
+  "required_sample_size": {
+    "approved_per_arm": 25035,
+    "applicants_per_arm": 32596,
+    "applicants_total": 65192,
+    "alpha": 0.05,
+    "power": 0.8
+  },
+  "disclaimer": "본 시스템은 교육 목적으로 개발되었으며, 실제 금융 의사결정에 사용할 수 없습니다."
+}

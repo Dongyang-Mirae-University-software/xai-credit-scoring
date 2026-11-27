@@ -13,7 +13,8 @@ def test_health_lists_report_sources():
     body = client.get('/health').json()
     assert body['status'] in ('healthy', 'degraded')
     assert body['disclaimer']
-    assert set(body['reports']) == {'metrics', 'shap_summary', 'reference_values', 'fairness', 'fairness_mitigation', 'anova', 'drift'}
+    assert set(body['reports']) == {'metrics', 'shap_summary', 'reference_values', 'fairness', 'fairness_mitigation', 'anova', 'drift',
+                                    'two_way_anova', 'ab_test'}
 
 
 @pytest.mark.parametrize('path, keys', [
@@ -163,6 +164,29 @@ def test_drift_missing_file_returns_example(tmp_path, monkeypatch):
         assert r.status_code == 200, r.text
         assert r.json()['scenarios'].keys() == {'baseline', 'app_login_change'}
         assert all('tables' not in s for s in r.json()['scenarios'].values())
+
+
+def test_bonus_reports():
+    """GET /ab-test 는 결과 그대로, GET /anova/two-way 는 records 를 뺀다 (대시보드 api_client 형식)."""
+    ab = client.get('/ab-test')
+    assert ab.status_code == 200, ab.text
+    assert {'models', 'test_auc', 'policies', 'ab_single', 'ab_repeated', 'required_sample_size'} <= ab.json().keys()
+    assert ab.json()['policies']['policies'].keys() == {'same_threshold', 'same_approval_rate', 'same_bad_rate'}
+    two = client.get('/anova/two-way')
+    assert two.status_code == 200, two.text
+    assert {'design', 'anova', 'paired_checks', 'interpretation'} <= two.json().keys()
+    assert {'table', 'n_per_cell', 'cell_means', 'cell_std'} <= two.json()['anova'].keys()
+    assert 'records' not in two.json()
+
+
+def test_bonus_missing_file_returns_example(tmp_path, monkeypatch):
+    monkeypatch.setattr(reports, 'OUTPUTS_DIR', tmp_path)
+    for url in ('/ab-test', '/anova/two-way'):
+        r = client.get(url)
+        assert r.status_code == 200, r.text
+        assert 'records' not in r.json()
+    assert {k: v for k, v in client.get('/health').json()['reports'].items()
+            if k in ('ab_test', 'two_way_anova')} == {'ab_test': 'example', 'two_way_anova': 'example'}
 
 
 def test_lookup_by_name_and_rrn():
