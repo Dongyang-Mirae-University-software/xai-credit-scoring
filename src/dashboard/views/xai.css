@@ -807,25 +807,16 @@ div[role="dialog"]:has(.xai-find-sub) > div:first-child p {
   margin-bottom: -28px;
   flex-wrap: wrap;
 }
-.st-key-xai-crumb .stElementContainer {
-  width: auto !important;
-}
-.st-key-xai-crumb button {
+.xai-crumb-line {
+  display: flex;
+  align-items: center;
   height: 30px;
-  min-height: 30px;
-  padding: 0 8px;
-  border-radius: 8px;
 }
-.st-key-xai-crumb button p {
+.xai-crumb-item {
+  padding: 0 8px;
   font-size: 14px;
   color: var(--ink-3);
   font-weight: 500;
-}
-.st-key-xai-crumb button:hover {
-  background: var(--fill-hover);
-}
-.st-key-xai-crumb button:hover p {
-  color: var(--ink);
 }
 .xai-crumb-sep {
   font-size: 14px;
@@ -837,11 +828,6 @@ div[role="dialog"]:has(.xai-find-sub) > div:first-child p {
   font-size: 14px;
   font-weight: 700;
   color: var(--accent);
-}
-.st-key-xai-crumb > * {
-  flex: 0 0 auto !important;
-  width: auto !important;
-  min-width: 0;
 }
 .st-key-xai-end button {
   height: 44px;
