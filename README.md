@@ -490,6 +490,7 @@ xai-credit-scoring/
 | `API_TIMEOUT` / `HEALTH_TIMEOUT` | 5 / 2 | API 응답 대기 시간(초) |
 | `COUNTERFACTUAL_TIMEOUT` | 15 | `POST /counterfactual` 응답 대기 시간(초). 후보를 여러 번 계산해 다른 API보다 느림 |
 | `CB_LOADING_SECONDS` | 4 | 고객 심사 2/3 → 3/3 사이 '신용정보원(CB) · 대안정보를 가져오는' 연출 시간(초). 0 이면 연출 없음 |
+| `SCREENING_LOADING_SECONDS` | 3 | 고객 심사 3/3 '심사 실행' → 결과 사이 '심사를 진행하고 있어요' 연출의 최소 시간(초). 실제 심사가 더 걸리면 그만큼 길어짐 |
 | `API_LOG` | (끔) | 대시보드의 API 호출을 터미널에 기록. `1` 은 `POST /predict 200 (24ms)` 한 줄, `body` 는 요청·응답 JSON 까지 (목록은 한 건씩 한 줄) |
 | `API_LOG_BODY_MAX` | 600 | `API_LOG=body` 에서 한 줄 최대 글자 수. `0` 이면 자르지 않음 |
 | `HEALTH_CACHE_TTL` | 10 | 서버 상태 카드 새로고침 간격(초) |
