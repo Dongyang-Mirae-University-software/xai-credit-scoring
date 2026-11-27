@@ -6,7 +6,7 @@
 .grp{font-size:12px;font-weight:700;color:var(--ink3);margin:18px 0 8px}
 .row{display:flex;align-items:center;gap:14px;height:56px}
 .lg i{font-size:22px}.lg{width:44px;height:44px;flex:none;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#FFF;letter-spacing:-.02em;position:relative}
-.kcb{background:#1B3A6B}.nice{background:#D7263D}.tel{background:#7F77DD}.hlt{background:#1D9E75}.card{background:#EF9F27}.bank{background:var(--accent)}
+.kcb{background:#1B3A6B}.nice{background:#D7263D}.tel{background:#7F77DD}.hlt{background:#FFF;box-shadow:inset 0 0 0 1.5px var(--line)}.card{background:#EF9F27}.bank{background:var(--accent)}
 .row .tx{flex:1;font-size:15px;color:var(--ink2)}.row .tx small{display:block;font-size:12px;color:var(--ink3)}
 .st{font-size:13px;font-weight:700;color:var(--ink3);width:70px;text-align:right}
 .row.done .st{color:var(--ok)}.row.doing .st{color:var(--accent)}
@@ -27,7 +27,7 @@
 <div class="row" data-i="1"><div class="lg nice"><i class="ti ti-chart-arrows-vertical"></i></div><div class="tx">NICE평가정보<small>대출 · 카드 · 연체 기록</small></div><span class="st"></span></div>
 <div class="grp">대안정보 · 마이데이터</div>
 <div class="row" data-i="2"><div class="lg tel"><i class="ti ti-device-mobile"></i></div><div class="tx">통신사<small>통신요금 납부 기록</small></div><span class="st"></span></div>
-<div class="row" data-i="3"><div class="lg hlt">건보</div><div class="tx">국민건강보험공단<small>건강보험료 납부 기록</small></div><span class="st"></span></div>
+<div class="row" data-i="3"><div class="lg hlt"><img src="nhis_symbol.svg" alt="국민건강보험공단" style="width:28px;height:28px;object-fit:contain"></div><div class="tx">국민건강보험공단<small>건강보험료 납부 기록</small></div><span class="st"></span></div>
 <div class="row" data-i="4"><div class="lg card"><i class="ti ti-credit-card"></i></div><div class="tx">카드사 · 은행<small>소비 · 정기결제 내역</small></div><span class="st"></span></div>
 <div class="row" data-i="5"><div class="lg bank"><i class="ti ti-building-bank"></i></div><div class="tx">남궁 은행<small>앱 로그인 기록</small></div><span class="st"></span></div>
 <div class="bar"><i id="bar"></i></div>
