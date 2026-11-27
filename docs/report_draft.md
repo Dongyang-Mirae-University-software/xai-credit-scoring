@@ -349,7 +349,7 @@ Recall 0.775(연체자 4명 중 3명을 거절), Precision 0.253(거절한 사�
 - 팀 MLflow 서버의 실험 하나에 run 20개: 모델 18개 + Validation 선택표(`model_selection_val`) + Test 1회 평가(`final_test`)
 - 각 모델 run: params(데이터·알고리즘·불균형 처리), metrics(CV AUC·KS·F1과 폴드별 값), artifacts(모델 파일)
 - `final_test` run: Test AUC·KS, PSI(점수·칸별), 씬파일러 uplift와 구간(Test 1회 `thin_*`, 교차검증 `thin_cv_*`)
-- 최종 모델은 Model Registry `xai-credit-model`에 등록하고 Staging 단계로 두었다 (이슈 #32)
+- 최종 모델은 Model Registry `xai-credit-model`에 등록하고 Staging 단계로 두었다 (이슈 #32). 로컬 compose MLflow 에도 xai-credit-model Staging 으로 등록 (#165)
 - 이 장의 숫자는 #26 재학습을 로컬 MLflow로 재현한 값이다. 팀 MLflow 서버의 기록과 Registry 새 버전은 팀 확인 뒤 갱신한다
 
 ### 6.6 주의할 점
