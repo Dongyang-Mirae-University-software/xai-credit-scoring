@@ -83,7 +83,7 @@
 .scr-prob p { margin: 0; font-size: 13px; color: var(--ink-3); }
 
 /* 04 주요 거절 사유 */
-.st-key-scr-reasons-head { justify-content: space-between; flex-wrap: nowrap; margin-bottom: -12px; }
+.st-key-scr-reasons-head { justify-content: space-between; flex-wrap: nowrap; margin-bottom: 0; }
 .st-key-scr-reasons-head > .stElementContainer:first-child { flex: 1 1 auto; width: auto !important; min-width: 0; }
 .st-key-scr-reasons-head > [data-testid="stLayoutWrapper"] { flex: 0 0 100px; width: 100px !important; }
 .st-key-scr-copy { gap: 0; }
@@ -143,7 +143,7 @@
 [data-testid="stColumn"]:has(.st-key-scr-act-xai) > [data-testid="stVerticalBlock"] { height: 100%; }
 .st-key-scr-act-xai { flex: 1 1 auto; }
 .st-key-scr-act-xai > .stElementContainer:first-child, .st-key-scr-act-xai .stHtml, .st-key-scr-act-xai .stHtml > div { height: 100%; }
-.st-key-scr-xp-head { margin-bottom: -12px; }
+.st-key-scr-xp-head { margin-bottom: 0; }
 .st-key-scr-xp-head .ui-sec-head p { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .scr-xp > .scr-xp-chips { display: flex; flex-direction: row; flex-wrap: wrap; gap: 6px; }
 .scr-xp-chips i { font-style: normal; padding: 4px 10px; border-radius: 999px; background: var(--accent-bg); color: var(--accent); font-size: 12px; font-weight: 600; }
