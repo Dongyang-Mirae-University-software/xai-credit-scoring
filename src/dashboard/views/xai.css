@@ -1475,3 +1475,8 @@ div[role="dialog"]:has(.xai-find-sub) [data-testid="stFormSubmitButton"] button 
 .xai-overview .xai-summary {
   padding: 10px 24px;
 }
+.bs-axis { margin-top: 12px; }
+.bs li { height: 30px; }
+.xai-card:has(.xai-sum-grid) { padding-top: 20px; padding-bottom: 20px; }
+[data-testid="stTabs"] .bs-axis { margin-top: 10px; }
+[data-testid="stTabs"] .xai-card:has(.xai-sum-grid) { padding-top: 12px; padding-bottom: 12px; }
