@@ -1,0 +1,52 @@
+﻿<!doctype html><html lang="ko"><head><meta charset="utf-8"><link rel="stylesheet" href="shell.css"><link rel="stylesheet" href="kit.css"><style>
+.ph{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:18px}.ph h1{margin:0}.ph .meta{font-size:13px;color:var(--ink3);text-align:right;line-height:1.6}
+.hero{display:grid;grid-template-columns:330px 1fr;gap:16px}
+.num{background:#FFF;border-radius:20px;padding:26px 28px;display:flex;flex-direction:column}
+.num .v{font-size:64px;font-weight:700;line-height:1.05;margin:6px 0 4px}
+.num p{font-size:14px;color:var(--ink2);line-height:1.6}
+.kv{display:flex;justify-content:space-between;font-size:14px;padding:9px 0;border-top:1px solid var(--line)}.kv span{color:var(--ink3)}
+.lines div{display:grid;grid-template-columns:1fr auto;gap:12px;padding:14px 0;border-top:1px solid var(--line);font-size:15px}.lines div:first-child{border:0}.lines span{color:var(--ink3);font-size:13px;display:block}.lines b{font-size:22px}
+.mini{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:auto;padding-top:18px}
+.mini div{background:var(--fill);border-radius:12px;padding:10px 12px}.mini span{display:block;font-size:12px;color:var(--ink3)}.mini b{font-size:18px}
+.ttl{font-size:16px;font-weight:700}.ds{font-size:13px;color:var(--ink3);margin:2px 0 12px}
+.row3{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px}
+.seg{display:inline-flex;background:var(--fill);border-radius:10px;padding:3px;font-size:13px;font-weight:700}.seg span{padding:6px 12px;border-radius:8px;color:var(--ink3)}.seg span.on{background:#FFF;color:var(--ink)}
+.tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:16px}
+.tile{background:#FFF;border-radius:16px;padding:16px 18px}.tile span{font-size:12px;color:var(--ink3)}.tile b{display:block;font-size:24px;margin-top:2px}.tile small{font-size:12px;color:#03A55F;font-weight:700}
+</style></head><body data-ver="검증 2안 수정">
+
+<main data-on="공정성" data-label="공정성">
+<div class="ph"><h1>공정성</h1><div class="meta">테스트셋 22,500명 · 2026.11.05 점검</div></div>
+<div class="hero"><div class="num"><span class="k">연령대 승인율 비율 (DI Ratio)</span><div class="v">0.99 <span class="badge b-ok" style="vertical-align:middle">통과</span></div><div class="kv"><span>기준</span><b>0.80 ~ 1.25</b></div><div class="kv"><span>보정 전 → 후</span><b><span class="red">1.25</span> → 0.99</b></div>
+<div class="mini"><div><span>성별 DI Ratio</span><b>0.99</b></div><div><span>TPR 차이</span><b>0.04</b></div><div><span>FPR 차이</span><b>0.06</b></div><div><span>보정 후 AUC</span><b>0.889</b></div></div></div>
+<div class="card"><div style="display:flex;justify-content:space-between"><div><div class="ttl">집단별 승인율</div><div class="ds">점선 = 보정 후 전체 승인율 79.2%</div></div><div class="lgd" style="display:flex;gap:14px;font-size:12px;color:var(--ink2)"><span><i style="display:inline-block;width:10px;height:10px;border-radius:3px;background:#C9CED4;margin-right:6px"></i>보정 전</span><span><i style="display:inline-block;width:10px;height:10px;border-radius:3px;background:#3182F6;margin-right:6px"></i>보정 후</span></div></div><div id="colb" style="margin-top:14px"></div></div></div>
+<div class="row3"><div class="card"><div class="ttl">보정 전후 비교 · DI Ratio</div><div class="ds">초록 칸 = 기준 0.80 ~ 1.25</div><div class="k">연령대</div><div data-chart="diRange(560,1.25,0.99)"></div><div class="k">성별</div><div data-chart="diRange(560,null,0.99)"></div></div>
+<div class="card"><div class="ttl">보정 전후 비교 · Equalized Odds</div><div class="ds">연령대 집단 간 차이 · 기준 0.10 이하</div><div id="eo"></div></div></div>
+</main>
+
+<main data-on="모델 성능" data-label="모델 성능">
+<div class="ph"><h1>모델 성능</h1><div class="meta">테스트셋 22,500명 · lightgbm_is_unbalance_integrated_v1.0</div></div>
+<div class="hero"><div class="num"><span class="k">Test Set AUC-ROC</span><div class="v">0.889 <span class="badge b-ok" style="vertical-align:middle">달성</span></div><div class="kv"><span>목표</span><b>0.78 이상</b></div><div class="kv"><span>기준 모델 (LR)</span><b>0.859</b></div>
+<div class="mini"><div><span>Precision</span><b>0.253</b></div><div><span>Recall</span><b>0.775</b></div><div><span>F1</span><b>0.382</b></div><div><span>승인 기준</span><b>50%</b></div></div></div>
+<div class="card" style="display:grid;grid-template-columns:1fr 1fr;gap:20px"><div><div class="ttl">ROC Curve</div><div class="ds">파랑 LightGBM · 회색 Logistic Regression</div><div data-chart="roc(380,300)"></div></div><div><div class="ttl">Precision-Recall Curve</div><div class="ds">점선 = 부도율 6.7%</div><div data-chart="prc(380,300)"></div></div></div></div>
+<div class="tiles"><div class="tile"><span>KS Statistic · 목표 0.28</span><b>0.613</b><small>달성</small></div><div class="tile"><span>씬파일러 AUC 향상 · 목표 +0.03</span><b>+0.066</b><small>달성</small></div><div class="tile"><span>PSI · 목표 0.1 미만</span><b>0.000</b><small>달성</small></div><div class="tile"><span>AUC-ROC · 목표 0.78</span><b>0.889</b><small>달성</small></div></div>
+<div class="row3"><div class="card"><div class="ttl">혼동행렬</div><div class="ds">승인 기준: 부도 확률 50% 미만</div><div data-chart="cm(true)"></div></div>
+<div class="card"><div class="ttl">한눈에</div><div class="lines" style="margin-top:6px"><div><div>부도 고객 중 거절<span>1,166 / 1,504명</span></div><b>77.5%</b></div><div><div>정상 고객 중 거절<span>3,439 / 20,996명</span></div><b class="red">16.4%</b></div><div><div>전체 승인율<span>17,895 / 22,500명</span></div><b>79.5%</b></div></div></div></div>
+</main>
+
+<main data-on="통계 검증" data-label="통계 검증">
+<div class="ph"><h1>통계 검증</h1><div class="meta">5-Fold CV · α = 0.05</div></div>
+<div class="hero"><div class="num"><span class="k">검증 1 · 통합 모델 AUC − 전통 모델 AUC</span><div class="v" style="white-space:nowrap">+0.046 <span class="badge b-ok" style="vertical-align:middle">유의함</span></div><div class="kv"><span>통합 / 전통</span><b>0.873 / 0.828</b></div><div class="kv"><span>Tukey HSD</span><b>p &lt; 0.001</b></div>
+<div class="mini"><div><span>F값</span><b>39.2</b></div><div><span>p값</span><b>&lt; 0.001</b></div><div><span>η² 효과 크기</span><b>0.47</b></div><div><span>해석</span><b>Large</b></div></div></div>
+<div class="card"><div style="display:flex;justify-content:space-between"><div><div class="ttl">그룹별 평균 AUC · 95% 신뢰구간</div><div class="ds">점 = 평균 · 선 = 95% 신뢰구간</div></div><div class="seg"><span class="on">검증 1 피처 구성</span><span>검증 2 알고리즘</span></div></div><div data-chart="dots(700,'t1')"></div><div style="margin-top:12px" data-chart="tukey('t1')"></div></div></div>
+<div class="card" style="margin-top:16px;padding:8px 18px"><div class="ttl" style="padding:12px 10px 0">ANOVA 결과표</div><div data-chart="anovaTable()"></div></div>
+</main>
+<script src="kit.js"></script><script>fill();
+(function(){const B=FAIR.b,A=FAIR.a,keys=['남성','여성','20-34세','35-54세','55세 이상'],W=700,H=300,b0=258,top=16,y=v=>b0-(v-50)/50*(b0-top);let s='';
+[50,60,70,80,90,100].forEach(v=>s+=`<line x1="40" x2="${W}" y1="${y(v)}" y2="${y(v)}" stroke="#F0F2F4"/><text x="32" y="${y(v)+4}" font-size="11" fill="#8B95A1" text-anchor="end">${v}%</text>`);
+const gx=[100,215,385,500,615];keys.forEach((k,i)=>{const x=gx[i];s+=`<rect x="${x-30}" y="${y(B[k])}" width="26" height="${b0-y(B[k])}" rx="4" fill="#C9CED4"/><rect x="${x+2}" y="${y(A[k])}" width="26" height="${b0-y(A[k])}" rx="4" fill="#3182F6"/><text x="${x-17}" y="${y(B[k])-6}" font-size="11" fill="#8B95A1" text-anchor="middle">${B[k].toFixed(1)}</text><text x="${x+15}" y="${y(A[k])-6}" font-size="12" font-weight="700" fill="#191F28" text-anchor="middle">${A[k].toFixed(1)}</text><text x="${x}" y="${b0+18}" font-size="12" fill="#4E5968" text-anchor="middle">${k}</text>`});
+s+=`<line x1="40" x2="${W}" y1="${y(79.2)}" y2="${y(79.2)}" stroke="#191F28" stroke-dasharray="4 4" stroke-width="1.2"/><line x1="300" x2="300" y1="${top}" y2="${b0+24}" stroke="#E5E8EB"/><text x="157" y="${b0+38}" font-size="12" font-weight="700" fill="#191F28" text-anchor="middle">성별</text><text x="500" y="${b0+38}" font-size="12" font-weight="700" fill="#191F28" text-anchor="middle">연령대</text>`;
+document.getElementById('colb').innerHTML=svg(W,H+4,s)})();
+(function(){const d=[['TPR 차이',0.148,0.041],['FPR 차이',0.176,0.064]];const W=560,x=v=>110+v/0.2*(W-150);let s=`<line x1="${x(.1)}" x2="${x(.1)}" y1="0" y2="120" stroke="#03A55F" stroke-dasharray="4 3"/><text x="${x(.1)+4}" y="12" font-size="11" fill="#03A55F">기준 0.10</text>`;
+d.forEach(([k,b,a],i)=>{const y=24+i*50;s+=`<text x="0" y="${y+14}" font-size="12" fill="#4E5968">${k}</text><rect x="110" y="${y}" width="${x(b)-110}" height="10" rx="5" fill="#C9CED4"/><text x="${x(b)+6}" y="${y+9}" font-size="11" fill="#8B95A1">${b.toFixed(2)}</text><rect x="110" y="${y+14}" width="${x(a)-110}" height="10" rx="5" fill="#3182F6"/><text x="${x(a)+6}" y="${y+23}" font-size="11" font-weight="700" fill="#191F28">${a.toFixed(2)}</text>`});
+document.getElementById('eo').innerHTML=svg(W,130,s)+'<p style="font-size:13px;color:var(--ink3)">회색 보정 전 · 파랑 보정 후</p>'})();</script></body></html>
